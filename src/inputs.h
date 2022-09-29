@@ -2,5 +2,6 @@
 #define __INPUTS_H__
 
 
-#endif
+char** readTuples(void);
 
+#endif
