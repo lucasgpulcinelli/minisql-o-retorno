@@ -7,7 +7,7 @@
  * ABORTPROGRAM aborts the program; showing the file, line, errno
  * and a message with printf-like formatting
  */
-#define ABORTPROGRAM(...) fatalError(__LINE__, __FILE__, __VA_ARGS__);
+#define ABORT_PROGRAM(...) fatalError(__LINE__, __FILE__, __VA_ARGS__);
 
 /*
  * XALLOC allocates memory in the heap in the pointer p,
@@ -16,21 +16,21 @@
 #define XALLOC(type, p, size)          \
     (p) = malloc(sizeof(type)*(size)); \
     if(!(p)){                          \
-        ABORTPROGRAM("malloc");        \
+        ABORT_PROGRAM("malloc");        \
     }
 
 //XREALLOC does the same as XALLOC, but uses realloc with a new size
 #define XREALLOC(type, p, newsize)            \
     (p) = realloc(p, sizeof(type)*(newsize)); \
     if(!(p)){                                 \
-        ABORTPROGRAM("realloc");              \
+        ABORT_PROGRAM("realloc");              \
     } \
 
 //OPEN_FILE does the same as fopen, but verifies if the specified file exists.
 #define OPEN_FILE(file_pointer, filename, mode) \
     (file_pointer) = fopen((filename), (mode)); \
     if ((file_pointer) == NULL) {               \
-        ABORTPROGRAM("open %s", (filename));    \
+        ABORT_PROGRAM("open %s", (filename));    \
     }                                           \
 
 

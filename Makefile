@@ -1,6 +1,6 @@
 
 CC       = gcc
-CFLAGS  += -std=c11 -Wall -Wextra -Wpedantic
+CFLAGS  += -std=c11 -Wall -Wextra
 LDFLAGS +=
 
 EXECUTABLE ?= build/main
