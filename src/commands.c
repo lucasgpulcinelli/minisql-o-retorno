@@ -1,8 +1,10 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <errno.h>
 
 #include "commands.h"
 #include "entries.h"
+#include "file_control.h"
 #include "utils.h"
 
 
@@ -31,16 +33,23 @@ void commandFrom(void){
     FILE* fp;
     OPEN_FILE(fp, bin_filename, "rb");
 
+    table* t = readTableBinary(fp);
+    if(t == NULL){
+        printf("Falha no processamento do arquivo.\n");
+        exit(0);
+    }
+    if(t->size == 0){
+        printf("Registro inexistente.\n");
+        exit(0);
+    }
 
-    entry* e = readEntry(fp);
-    printEntry(e);
+    for(int i = 0; i < t->size; i++){
+        printEntry(t->entries+i);
+        printf("\n");
+    }
+    printf("Numero de páginas de disco: %d\n\n", t->header->pages);
 
-    FILE* fp2;
-    OPEN_FILE(fp2, "out.out", "wb");
-    writeEntry(fp2, e);
-
-    fclose(fp2);
-    deleteEntry(e);
+    deleteTable(t);
     fclose(fp);
     free(bin_filename);
 }

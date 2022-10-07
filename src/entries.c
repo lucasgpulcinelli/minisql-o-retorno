@@ -17,35 +17,47 @@ static const int8_t fields_size_arr[] = {
 };
 
 
-entry* createEntry(void){
-    entry* e;
-    XALLOC(entry, e, 1);
-    memset(e, '$', 1); //coloca lixo nos ponteiros para char também!
+entry* createEntry(int size){
+    entry* es;
+    XALLOC(entry, es, size);
+    memset(es, '$', size); //coloca lixo nos ponteiros para char também!
 
-    for(int i = 0; i < FIELD_AMOUNT; i++){
-        e->fields[i].field_type = i;
+    for(int i = 0; i < size; i++){
+
+        for(int j = 0; j < FIELD_AMOUNT; j++){
+            es[i].fields[j].field_type = j;
+        }
+
+        es[i].fields[removed].value.integer = 0;
+        es[i].fields[linking].value.integer = -1;
+        es[i].fields[poPsName].value.cpointer = NULL;
+        es[i].fields[countryName].value.cpointer = NULL;
+
     }
 
-    e->fields[0].value.removed = 0;
-    e->fields[1].value.linking = -1;
-    e->fields[7].value.poPsName = NULL;
-    e->fields[8].value.parentsName = NULL;
-
-    return e;
+    return es;
 }
 
-void deleteEntry(entry* e){
-    if(e->fields[7].value.poPsName){
-        free(e->fields[7].value.poPsName);
-    }
-    if(e->fields[8].value.parentsName){
-        free(e->fields[8].value.parentsName);
+void deleteEntry(entry* es, int size){
+    for(int i = 0; i < size; i++){
+        clearEntry(es+i);
     }
 
-    free(e);
+    free(es);
 }
 
-int readField(FILE* fp, field* f, int read_for_entry){
+void clearEntry(entry* e){
+    if(e->fields[poPsName].value.cpointer){
+            free(e->fields[poPsName].value.cpointer);
+            e->fields[poPsName].value.cpointer = NULL;
+        }
+    if(e->fields[countryName].value.cpointer){
+            free(e->fields[countryName].value.cpointer);
+            e->fields[countryName].value.cpointer = NULL;
+    }
+}
+
+int readField(FILE* fp, field* f, int field_type, int read_for_entry){
     if(read_for_entry >= MAX_SIZE_ENTRY){
         return read_for_entry;
     }
@@ -53,10 +65,14 @@ int readField(FILE* fp, field* f, int read_for_entry){
     if(fields_size_arr[f->field_type] > 0){
         //campo de tamanho fixo:
 
-        //como não há campos de tamanho fixo após um campo de tamanho variável,
-        //não é possível que read_for_entry seja >= MAX_SIZE_ENTRY, então o
-        //campo inteiro pode ser lido sempre.
-        fread(&(f->value), fields_size_arr[f->field_type], 1, fp);
+        int ret = fread(&(f->value), fields_size_arr[f->field_type], 1, fp);
+        if(ret != 1){
+            errno = EBADFD;
+            ABORT_PROGRAM("read field %s at position %d", 
+                fields_str_arr[f->field_type], 
+                ftell(fp)
+            );
+        }
         return fields_size_arr[f->field_type] + read_for_entry;
     }
 
@@ -73,7 +89,7 @@ int readField(FILE* fp, field* f, int read_for_entry){
         str[i] = c;
         if(str[i] < 0 || i >= MAX_SIZE_ENTRY){
             errno = EBADFD;
-            ABORT_PROGRAM("leitura de field %s na posicao %d", 
+            ABORT_PROGRAM("read field %s at position %d", 
                 fields_str_arr[f->field_type], 
                 ftell(fp)
             );
@@ -85,20 +101,14 @@ int readField(FILE* fp, field* f, int read_for_entry){
     return read_for_entry+1;
 }
 
-entry* readEntry(FILE* fp){
-    entry* e = createEntry();
-    
+void readEntry(FILE* fp, entry* e){
     int read_for_entry = 0;
 
-    for(int i = 0; i < FIELD_AMOUNT && read_for_entry < MAX_SIZE_ENTRY; i++){
-        read_for_entry = readField(fp, e->fields+i, read_for_entry);
+    for(int i = 0; i < FIELD_AMOUNT; i++){
+        read_for_entry = readField(fp, e->fields+i, i, read_for_entry);
     }
 
     fseek(fp, MAX_SIZE_ENTRY-read_for_entry, SEEK_CUR);
-
-    printf("%d\n", read_for_entry);
-
-    return e;
 }
 
 int writeField(FILE* fp, field* f){
@@ -143,26 +153,26 @@ void printField(field* f){
         break;
 
     case speed:
-        printf("%s: %d ", fields_str_arr[f->field_type], f->value.speed);
+        printf("%s: %d ", fields_str_arr[f->field_type], f->value.integer);
         break;
     case measurmentUnit:
-        printf("%cbps\n", f->value.measurmentUnit);
+        printf("%cbps\n", f->value.carray[0]);
         break;
 
-    case parentsAcro:
-        printf("%s: %s\n", 
+    case countryAcro:
+        printf("%s: %c%c\n", 
             fields_str_arr[f->field_type], 
-            f->value.parentsAcro
+            f->value.carray[0], f->value.carray[1]
         );
         break;
     case poPsName:
-    case parentsName:
+    case countryName:
         printf("%s: %s\n", fields_str_arr[f->field_type], f->value.cpointer);
         break;
     
     default:
         errno = EINVAL;
-        ABORT_PROGRAM("tipo de field %d", f->field_type);
+        ABORT_PROGRAM("field type %d", f->field_type);
     }
 }
 

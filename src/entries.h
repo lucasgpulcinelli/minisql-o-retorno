@@ -12,29 +12,20 @@ enum FieldsTypes{
     removed = 0,
     linking,
     idConnect,
-    parentsAcro,
+    countryAcro,
     connPoPsId,
     measurmentUnit,
     speed,
     poPsName,
-    parentsName
+    countryName
 };
 
 typedef struct {
     uint8_t field_type;
     union {
-        int32_t removed;
-        int32_t linking;
-        int32_t idconnect;
-        char parentsAcro[2];
-        int32_t connPoPsId;
-        char measurmentUnit;
-        int32_t speed;
-        char* poPsName;
-        char* parentsName;
-
         int32_t integer;
         char* cpointer;
+        char carray[4];
     } value;
 } field;
 
@@ -43,10 +34,11 @@ typedef struct {
 } entry;
 
 
-entry* createEntry(void);
-void deleteEntry(entry* e);
-int readField(FILE* fp, field* f, int read_for_entry);
-entry* readEntry(FILE* fp);
+entry* createEntry(int size);
+void deleteEntry(entry* e, int size);
+void clearEntry(entry* e);
+int readField(FILE* fp, field* f, int field_type, int read_for_entry);
+void readEntry(FILE* fp, entry* e);
 int writeField(FILE* fp, field* f);
 void writeEntry(FILE* fp, entry* e);
 void printField(field* f);
