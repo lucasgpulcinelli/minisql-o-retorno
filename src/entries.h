@@ -47,6 +47,8 @@ entry* createEntry(void);
 void deleteEntry(entry* e);
 int readField(FILE* fp, field* f, int read_for_entry);
 entry* readEntry(FILE* fp);
+int writeField(FILE* fp, field* f);
+void writeEntry(FILE* fp, entry* e);
 void printField(field* f);
 void printEntry(entry* e);
 

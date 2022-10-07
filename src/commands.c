@@ -35,6 +35,11 @@ void commandFrom(void){
     entry* e = readEntry(fp);
     printEntry(e);
 
+    FILE* fp2;
+    OPEN_FILE(fp2, "out.out", "wb");
+    writeEntry(fp2, e);
+
+    fclose(fp2);
     deleteEntry(e);
     fclose(fp);
     free(bin_filename);

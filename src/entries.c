@@ -18,14 +18,16 @@ static const int8_t fields_size_arr[] = {
 
 
 entry* createEntry(void){
-    entry* e = malloc(sizeof(entry));
-
+    entry* e;
+    XALLOC(entry, e, 1);
     memset(e, '$', 1); //coloca lixo nos ponteiros para char também!
 
     for(int i = 0; i < FIELD_AMOUNT; i++){
         e->fields[i].field_type = i;
     }
 
+    e->fields[0].value.removed = 0;
+    e->fields[1].value.linking = -1;
     e->fields[7].value.poPsName = NULL;
     e->fields[8].value.parentsName = NULL;
 
@@ -44,6 +46,9 @@ void deleteEntry(entry* e){
 }
 
 int readField(FILE* fp, field* f, int read_for_entry){
+    if(read_for_entry >= MAX_SIZE_ENTRY){
+        return read_for_entry;
+    }
 
     if(fields_size_arr[f->field_type] > 0){
         //campo de tamanho fixo:
@@ -56,7 +61,9 @@ int readField(FILE* fp, field* f, int read_for_entry){
     }
 
     //campo de tamanho variável
-    char* str = malloc(sizeof(char)*MAX_SIZE_ENTRY);
+    char* str;
+    XALLOC(char, str, MAX_SIZE_ENTRY);
+
     int i, c;
     for(i = 0; 
         (c = getc(fp)) != '|' 
@@ -92,6 +99,38 @@ entry* readEntry(FILE* fp){
     printf("%d\n", read_for_entry);
 
     return e;
+}
+
+int writeField(FILE* fp, field* f){
+    //campos de tamanho fixo
+    if(fields_size_arr[f->field_type] > 0){
+        fwrite(&(f->value), fields_size_arr[f->field_type], 1, fp);
+        return fields_size_arr[f->field_type];
+    }
+
+    //campos de tamanho variável
+    if(f->value.cpointer == NULL){
+        putc('|', fp);
+        return 1;
+    }
+
+    for(uint32_t i = 0; i < strlen(f->value.cpointer); i++){
+        putc(f->value.cpointer[i], fp);
+    }
+    putc('|', fp);
+
+    return strlen(f->value.cpointer) + 1;
+}
+
+void writeEntry(FILE* fp, entry* e){
+    int position = 0;
+    for(int i = 0; i < FIELD_AMOUNT; i++){
+        position += writeField(fp, e->fields+i);
+    }
+
+    for(int i = 0; i < MAX_SIZE_ENTRY-position; i++){
+        putc('$', fp);
+    }
 }
 
 void printField(field* f){
