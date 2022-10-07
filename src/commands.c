@@ -2,13 +2,14 @@
 #include <stdio.h>
 
 #include "commands.h"
+#include "entries.h"
 #include "utils.h"
 
 
 void commandCreate(void){
     char* csv_input_name;
     char* bin_output_name;
-    scanf("%ms %ms\n", &csv_input_name, &bin_output_name);
+    scanf("%ms %ms", &csv_input_name, &bin_output_name);
 
     FILE* fp_in;
     FILE* fp_out;
@@ -25,13 +26,16 @@ void commandCreate(void){
 
 void commandFrom(void){
     char* bin_filename;
-    scanf("%ms\n", &bin_filename);
+    scanf("%ms", &bin_filename);
     
     FILE* fp;
     OPEN_FILE(fp, bin_filename, "rb");
 
 
+    entry* e = readEntry(fp);
+    printEntry(e);
 
+    deleteEntry(e);
     fclose(fp);
     free(bin_filename);
 }
@@ -39,8 +43,8 @@ void commandFrom(void){
 void commandWhere(void){
     char* bin_filename;
     int n;
-    scanf("%ms %d\n", &bin_filename, &n);
-    readTuples(n);
+    scanf("%ms %d", &bin_filename, &n);
+    //readTuples(n);
 
     FILE* fp;
     OPEN_FILE(fp, bin_filename, "rb");
@@ -54,8 +58,8 @@ void commandWhere(void){
 void commandDelete(void){
     char* bin_filename;
     int n;
-    scanf("%ms %d\n", &bin_filename, &n);
-    readTuples(n);
+    scanf("%ms %d", &bin_filename, &n);
+    //readTuples(n);
     
     FILE* fp;
     OPEN_FILE(fp, bin_filename, "rwb");
@@ -69,8 +73,8 @@ void commandDelete(void){
 void commandInsert(void){
     char* bin_filename;
     int n;
-    scanf("%ms %d\n", &bin_filename, &n);
-    readTable(n);
+    scanf("%ms %d", &bin_filename, &n);
+    //readTable(n);
     
     FILE* fp;
     OPEN_FILE(fp, bin_filename, "rwb");
@@ -83,7 +87,7 @@ void commandInsert(void){
 
 void commandCompact(void){
     char* bin_filename;
-    scanf("%ms\n", &bin_filename);
+    scanf("%ms", &bin_filename);
     
     FILE* fp;
     OPEN_FILE(fp, bin_filename, "rwb");
