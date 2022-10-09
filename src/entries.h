@@ -37,12 +37,14 @@ typedef struct {
 entry* createEntry(int size);
 void deleteEntry(entry* e, int size);
 void clearEntry(entry* e);
-int readField(FILE* fp, field* f, int field_type, int read_for_entry);
+int readField(FILE* fp, field* f, int read_for_entry);
 void readEntry(FILE* fp, entry* e);
 int writeField(FILE* fp, field* f);
 void writeEntry(FILE* fp, entry* e);
 void printField(field* f);
 void printEntry(entry* e);
+int fieldCmp(field f1, field f2);
+int findFieldType(char* str);
 
 
 #endif

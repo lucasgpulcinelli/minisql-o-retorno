@@ -1,10 +1,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
+#include <string.h>
 
 #include "commands.h"
 #include "entries.h"
 #include "file_control.h"
+#include "inputs.h"
 #include "utils.h"
 
 
@@ -58,14 +60,40 @@ void commandWhere(void){
     char* bin_filename;
     int n;
     scanf("%ms %d", &bin_filename, &n);
-    //readTuples(n);
+    field* where = readTuples(n);
 
     FILE* fp;
     OPEN_FILE(fp, bin_filename, "rb");
 
+    table* t = readTableBinary(fp);
+    if(t == NULL){
+        printf("Falha no processamento do arquivo.\n");
+        exit(0);
+    }
+    if(t->size == 0){
+        printf("Registro inexistente.\n");
+        exit(0);
+    }
 
+    for(int i = 0; i < n; i++){
+        printf("Busca %d\n", i);
+        
+        for(int j = 0; j < t->size; j++){
+            field f_cmp = t->entries[j].fields[where[i].field_type];
 
+            if(fieldCmp(where[i], f_cmp) != 0){
+                continue;
+            }
+
+            printEntry(t->entries+j);
+            printf("\n");
+        }
+        printf("Numero de páginas de disco: %d\n\n", t->header->pages);
+    }
+
+    deleteTable(t);
     fclose(fp);
+    freeTuples(where, n);
     free(bin_filename);
 }
 

@@ -57,7 +57,7 @@ void clearEntry(entry* e){
     }
 }
 
-int readField(FILE* fp, field* f, int field_type, int read_for_entry){
+int readField(FILE* fp, field* f, int read_for_entry){
     if(read_for_entry >= MAX_SIZE_ENTRY){
         return read_for_entry;
     }
@@ -105,7 +105,7 @@ void readEntry(FILE* fp, entry* e){
     int read_for_entry = 0;
 
     for(int i = 0; i < FIELD_AMOUNT; i++){
-        read_for_entry = readField(fp, e->fields+i, i, read_for_entry);
+        read_for_entry = readField(fp, e->fields+i, read_for_entry);
     }
 
     fseek(fp, MAX_SIZE_ENTRY-read_for_entry, SEEK_CUR);
@@ -187,4 +187,30 @@ void printEntry(entry* e){
     for(int i = 7; i < FIELD_AMOUNT; i++){
         printField(e->fields + i);
     }
+}
+
+int fieldCmp(field f1, field f2){
+    switch(f1.field_type){
+    case poPsName:
+    case countryName:
+        return strcmp(f1.value.cpointer, f2.value.cpointer);
+
+    case measurmentUnit:
+    case countryAcro:
+        return strncmp(f1.value.carray, f2.value.carray, 
+            fields_size_arr[f1.field_type]
+        );
+
+    default:
+        return f1.value.integer != f2.value.integer;
+    }
+}
+
+int findFieldType(char* str){
+    for(int i = 0; i < FIELD_AMOUNT; i++){
+        if(strcmp(str, fields_str_arr[i]) == 0){
+            return i;
+        }
+    }
+    return -1;
 }
