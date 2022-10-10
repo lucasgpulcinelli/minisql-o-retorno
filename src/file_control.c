@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <errno.h>
 
 #include "file_control.h"
 #include "entries.h"
@@ -30,13 +29,20 @@ table* readTableBinary(FILE* fp){
     if(!t->header->status){
         deleteHeader(t->header);
         free(t);
-        errno = EBADFD;
         return NULL;
     }
+
+    //PAGE_SIZE/MAX_SIZE_ENTRY is the amount of entries a single page has.
+    //This is the absolute maximum size the table can have for this file
     t->entries = createEntry(t->header->pages*PAGE_SIZE/MAX_SIZE_ENTRY);
 
     int size = 0;
     int c;
+    /*
+     * feof does not work here because we read exactaly the size of the file
+     * in the last iteration, we still need to check if the next byte is EOF
+     * (feof would only signal the end of file after an EOF was read)
+     */
     while((c = getc(fp)) != EOF){
         ungetc(c, fp);
 

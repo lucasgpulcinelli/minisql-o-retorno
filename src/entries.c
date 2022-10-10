@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
 
 #include "entries.h"
 #include "utils.h"
@@ -20,7 +19,7 @@ static const int8_t fields_size_arr[] = {
 entry* createEntry(int size){
     entry* es;
     XALLOC(entry, es, size);
-    memset(es, '$', size); //coloca lixo nos ponteiros para char também!
+    memset(es, '$', size); //places trash at pointers too!
 
     for(int i = 0; i < size; i++){
 
@@ -63,12 +62,11 @@ int readField(FILE* fp, field* f, int read_for_entry){
     }
 
     if(fields_size_arr[f->field_type] > 0){
-        //campo de tamanho fixo:
+        //fixed sized fields
 
         int ret = fread(&(f->value), fields_size_arr[f->field_type], 1, fp);
         if(ret != 1){
-            errno = EBADFD;
-            ABORT_PROGRAM("read field %s at position %d", 
+            ABORT_PROGRAM("read field %s at position %d failed", 
                 fields_str_arr[f->field_type], 
                 ftell(fp)
             );
@@ -76,7 +74,7 @@ int readField(FILE* fp, field* f, int read_for_entry){
         return fields_size_arr[f->field_type] + read_for_entry;
     }
 
-    //campo de tamanho variável
+    //variable sized fields
     char* str;
     XALLOC(char, str, MAX_SIZE_ENTRY);
 
@@ -88,8 +86,7 @@ int readField(FILE* fp, field* f, int read_for_entry){
     ){
         str[i] = c;
         if(str[i] < 0 || i >= MAX_SIZE_ENTRY){
-            errno = EBADFD;
-            ABORT_PROGRAM("read field %s at position %d", 
+            ABORT_PROGRAM("read field %s at position %d failed", 
                 fields_str_arr[f->field_type], 
                 ftell(fp)
             );
@@ -112,13 +109,14 @@ void readEntry(FILE* fp, entry* e){
 }
 
 int writeField(FILE* fp, field* f){
-    //campos de tamanho fixo
+
     if(fields_size_arr[f->field_type] > 0){
+        //fixed sized fields
         fwrite(&(f->value), fields_size_arr[f->field_type], 1, fp);
         return fields_size_arr[f->field_type];
     }
 
-    //campos de tamanho variável
+    //variable sized fields
     if(f->value.cpointer == NULL){
         putc('|', fp);
         return 1;
@@ -171,8 +169,7 @@ void printField(field* f){
         break;
     
     default:
-        errno = EINVAL;
-        ABORT_PROGRAM("field type %d", f->field_type);
+        ABORT_PROGRAM("field type %d is invalid", f->field_type);
     }
 }
 

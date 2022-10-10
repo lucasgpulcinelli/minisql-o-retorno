@@ -4,6 +4,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
+
 #define FIELD_AMOUNT 9
 #define MAX_SIZE_ENTRY 64
 

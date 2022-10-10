@@ -1,6 +1,10 @@
 #ifndef __COMMANDS_H__
 #define __COMMANDS_H__
 
+
+#define COMMANDS_SIZE 6
+
+
 enum Commands {
     create = 1,
     /*
@@ -14,6 +18,7 @@ enum Commands {
     compact
 };
 
+
 void commandCreate(void);
 
 void commandFrom(void);
@@ -26,5 +31,5 @@ void commandInsert(void);
 
 void commandCompact(void);
 
-#endif
 
+#endif

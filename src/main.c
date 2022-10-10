@@ -15,31 +15,20 @@
 #include "utils.h"
 
 
+static void (* const command_funcs[])(void) = {
+    commandCreate, commandFrom, commandWhere,
+    commandDelete, commandInsert, commandCompact
+};
+
+
 int main(){
     int command;
     scanf("%d", &command);
 
-    switch(command){
-    case create:
-        commandCreate();
-        break;
-    case from:
-        commandFrom();
-        break;
-    case where:
-        commandWhere();
-        break;
-    case delete:
-        commandDelete();
-        break;
-    case insert:
-        commandInsert();
-        break;
-    case compact:
-        commandCompact();
-        break;
-    default:
+    if(command < 1 || command > COMMANDS_SIZE){
         errno = EINVAL;
         ABORT_PROGRAM("command number");
     }
+
+    command_funcs[command-1]();
 }
