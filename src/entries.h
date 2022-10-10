@@ -39,7 +39,7 @@ entry* createEntry(int size);
 void deleteEntry(entry* e, int size);
 void clearEntry(entry* e);
 int readField(FILE* fp, field* f, int read_for_entry);
-void readEntry(FILE* fp, entry* e);
+int readEntry(FILE* fp, entry* e);
 int writeField(FILE* fp, field* f);
 void writeEntry(FILE* fp, entry* e);
 void printField(field* f);

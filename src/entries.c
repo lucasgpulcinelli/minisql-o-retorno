@@ -66,6 +66,12 @@ int readField(FILE* fp, field* f, int read_for_entry){
 
         int ret = fread(&(f->value), fields_size_arr[f->field_type], 1, fp);
         if(ret != 1){
+            //in case of a read error, return EOF if that is the case and abort
+            //the program if any other error ocurred
+            if(feof(fp)){
+                return EOF;
+            }
+
             ABORT_PROGRAM("read field %s at position %d failed", 
                 fields_str_arr[f->field_type], 
                 ftell(fp)
@@ -98,14 +104,19 @@ int readField(FILE* fp, field* f, int read_for_entry){
     return read_for_entry+1;
 }
 
-void readEntry(FILE* fp, entry* e){
+int readEntry(FILE* fp, entry* e){
     int read_for_entry = 0;
 
     for(int i = 0; i < FIELD_AMOUNT; i++){
         read_for_entry = readField(fp, e->fields+i, read_for_entry);
+        if(read_for_entry < 0){
+            return read_for_entry;
+        }
     }
 
     fseek(fp, MAX_SIZE_ENTRY-read_for_entry, SEEK_CUR);
+
+    return 1;
 }
 
 int writeField(FILE* fp, field* f){

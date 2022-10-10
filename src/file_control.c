@@ -32,36 +32,54 @@ table* readTableBinary(FILE* fp){
         return NULL;
     }
 
-    //PAGE_SIZE/MAX_SIZE_ENTRY is the amount of entries a single page has.
-    //This is the absolute maximum size the table can have for this file
-    t->entries = createEntry(t->header->pages*PAGE_SIZE/MAX_SIZE_ENTRY);
+    t->entries = createEntry(ENTRIES_PER_PAGE);
+    t->index = 0;
+    t->size = 0;
+    t->fp = fp;
 
-    int size = 0;
-    int c;
+    readNextPage(t);
+
+    return t;
+}
+
+void rewindTable(table* t){
+    fseek(t->fp, HEADER_SIZE, SEEK_SET);
+}
+
+int readNextPage(table* t){
     /*
      * feof does not work here because we read exactaly the size of the file
      * in the last iteration, we still need to check if the next byte is EOF
      * (feof would only signal the end of file after an EOF was read)
      */
-    while((c = getc(fp)) != EOF){
-        ungetc(c, fp);
-
-        readEntry(fp, t->entries+size);
+    t->size = 0;
+    while(t->size < ENTRIES_PER_PAGE){
+        clearEntry(t->entries+t->size);
+        int ret = readEntry(t->fp, t->entries+t->size);
+        if(ret < 0){
+            return t->size;
+        }
  
-        if(t->entries[size].fields[removed].value.integer == 1){
-            clearEntry(t->entries+size);
+        if(t->entries[t->size].fields[removed].value.integer == 1){
             continue;
         }
-
-        size++;
+        t->size++;
     }
+    return t->size;
+}
 
-    t->size = size;
-    return t;
+entry* readNextEntry(table* t){
+    if(t->index >= t->size){
+        if(readNextPage(t) <= 0){
+            return NULL;
+        }
+        t->index = 0;
+    }
+    return t->entries + t->index++;
 }
 
 void deleteTable(table* t){
-    deleteEntry(t->entries, t->header->pages*PAGE_SIZE/MAX_SIZE_ENTRY);
+    deleteEntry(t->entries, ENTRIES_PER_PAGE);
     deleteHeader(t->header);
     free(t);
 }
