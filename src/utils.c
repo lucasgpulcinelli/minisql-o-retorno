@@ -15,7 +15,14 @@ void fatalError(int line, char* file, char* fmt, ...){
 
     fprintf(stderr, "Error at line %d of file %s: ", line, file);
     vfprintf(stderr, fmt, ap);
-    fprintf(stderr, ": %s\n", strerror(ini_errno));
+    
+    if(!errno){
+        //errno is SUCESS
+        fprintf(stderr, "\n");
+    }
+    else{
+        fprintf(stderr, ": %s\n", strerror(ini_errno));
+    }
 
     //end the variable argument list
     va_end(ap);

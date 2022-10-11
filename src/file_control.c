@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <errno.h>
 
 #include "file_control.h"
 #include "entries.h"
@@ -40,32 +39,57 @@ table* readTableBinary(FILE* fp){
     if(!t->header->status){
         deleteHeader(t->header);
         free(t);
-        errno = EBADFD;
         return NULL;
     }
-    t->entries = createEntry(t->header->pages*PAGE_SIZE/MAX_SIZE_ENTRY);
 
-    int size = 0;
-    int c;
-    while((c = getc(fp)) != EOF){
-        ungetc(c, fp);
+    t->entries = createEntry(ENTRIES_PER_PAGE);
+    t->index = 0;
+    t->size = 0;
+    t->fp = fp;
 
-        readEntry(fp, t->entries+size);
- 
-        if(t->entries[size].fields[removed].value.integer == 1){
-            clearEntry(t->entries+size);
-            continue;
-        }
+    readNextPage(t);
 
-        size++;
-    }
-
-    t->size = size;
     return t;
 }
 
+void rewindTable(table* t){
+    fseek(t->fp, HEADER_SIZE, SEEK_SET);
+}
+
+int readNextPage(table* t){
+    /*
+     * feof does not work here because we read exactaly the size of the file
+     * in the last iteration, we still need to check if the next byte is EOF
+     * (feof would only signal the end of file after an EOF was read)
+     */
+    t->size = 0;
+    while(t->size < ENTRIES_PER_PAGE){
+        clearEntry(t->entries+t->size);
+        int ret = readEntry(t->fp, t->entries+t->size);
+        if(ret < 0){
+            return t->size;
+        }
+ 
+        if(t->entries[t->size].fields[removed].value.integer == 1){
+            continue;
+        }
+        t->size++;
+    }
+    return t->size;
+}
+
+entry* readNextEntry(table* t){
+    if(t->index >= t->size){
+        if(readNextPage(t) <= 0){
+            return NULL;
+        }
+        t->index = 0;
+    }
+    return t->entries + t->index++;
+}
+
 void deleteTable(table* t){
-    deleteEntry(t->entries, t->header->pages*PAGE_SIZE/MAX_SIZE_ENTRY);
+    deleteEntry(t->entries, ENTRIES_PER_PAGE);
     deleteHeader(t->header);
     free(t);
 }

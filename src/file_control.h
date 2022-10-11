@@ -7,7 +7,9 @@
 
 #include "entries.h"
 
+
 #define PAGE_SIZE 960
+#define ENTRIES_PER_PAGE (PAGE_SIZE/MAX_SIZE_ENTRY)
 #define HEADER_SIZE 21
 
 
@@ -23,6 +25,8 @@ typedef struct{
 typedef struct{
     entry* entries;
     header* header;
+    FILE* fp;
+    int index;
     int size;
 } table;
 
@@ -30,6 +34,8 @@ typedef struct{
 header* readHeader(FILE* fp);
 void writeHeader(FILE *fp_out, header *head);
 table* readTableBinary(FILE* fp);
+entry* readNextEntry(table* t);
+void rewindTable(table* t);
 void deleteTable(table* t);
 void deleteHeader(header* h);
 

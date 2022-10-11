@@ -20,6 +20,7 @@
     p->pages = num_pages;          /*Number of disk pages used*/               \
     p->times_compacted = compacted;/*Number of times file was compacted*/      
 
+#define COMMANDS_SIZE 6
 enum Commands {
     create = 1,
     /*
@@ -33,11 +34,22 @@ enum Commands {
     compact
 };
 
-void writeHeader(FILE *fp_out, header *head);
+
 void commandCreate(void);
 
+/*
+ * commandFrom gets the name of a binary file from stdin and prints all 
+ * entries contained in it. 
+ */
 void commandFrom(void);
 
+/*
+ * commandWhere gets the name of a binary file and a number n of queries from 
+ * stdin, as well as a series of n key-value pairs (composed of a field name,
+ * defined as in entries.c fields_str_arr, and a integer or strings between 
+ * quotes). It prints, for each query, the fields in the binary file that have
+ * the specified value.
+ */
 void commandWhere(void);
 
 void commandDelete(void);
@@ -46,5 +58,5 @@ void commandInsert(void);
 
 void commandCompact(void);
 
-#endif
 
+#endif

@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <errno.h>
 #include <string.h>
 
 #include "commands.h"
@@ -68,10 +67,12 @@ void commandFrom(void){
         exit(0);
     }
 
-    for(int i = 0; i < t->size; i++){
-        printEntry(t->entries+i);
+    entry* e;
+    while((e = readNextEntry(t)) != NULL){
+        printEntry(e);
         printf("\n");
     }
+
     printf("Numero de páginas de disco: %d\n\n", t->header->pages);
 
     deleteTable(t);
@@ -98,19 +99,21 @@ void commandWhere(void){
         exit(0);
     }
 
-    for(int i = 0; i < n; i++){
+    for(int i = 0; i < n; i++, rewindTable(t)){
         printf("Busca %d\n", i);
         
-        for(int j = 0; j < t->size; j++){
-            field f_cmp = t->entries[j].fields[where[i].field_type];
+        entry* e;
+        while((e = readNextEntry(t)) != NULL){
+            field f_cmp = e->fields[where[i].field_type];
 
             if(fieldCmp(where[i], f_cmp) != 0){
                 continue;
             }
 
-            printEntry(t->entries+j);
+            printEntry(e);
             printf("\n");
         }
+
         printf("Numero de páginas de disco: %d\n\n", t->header->pages);
     }
 
