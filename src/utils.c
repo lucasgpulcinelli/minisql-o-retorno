@@ -23,3 +23,23 @@ void fatalError(int line, char* file, char* fmt, ...){
     exit(EXIT_FAILURE);
 }
 
+
+void readFirstLine(char **line, FILE *fp) {
+    size_t line_len = INIT_LEN;
+    size_t char_index = 0;
+
+    XALLOC(char, *line, line_len);
+
+    while (!feof(fp) && (*line)[char_index - 1] != '\n') {
+        if (line_len == char_index) {
+            line_len *= STR_GROWTH_FACTOR;
+            XREALLOC(char, *line, line_len);
+        }
+
+        (*line)[char_index] = fgetc(fp);
+        char_index++;
+    }
+
+    (*line)[char_index - 1] = '\0';
+}
+

@@ -19,13 +19,36 @@ void commandCreate(void){
     FILE* fp_out;
     OPEN_FILE(fp_in, csv_input_name, "rb");
     OPEN_FILE(fp_out, bin_output_name, "wb");
-
-
-
-    fclose(fp_in);
-    fclose(fp_out);
     free(csv_input_name);
     free(bin_output_name);
+
+    header *head;
+    XALLOC(header, head, ONE_ELEMENT);
+    INIT_FILE_HEADER(head, false, EMPTY_STACK, 0, NO_ENTRIES_REMOVED, 1, NOT_COMPACTED)
+    writeHeader(fp_out, head);
+
+    char *first_page_trash;
+    MEMSET_ALLOC(char, first_page_trash, PAGE_SIZE - HEADER_SIZE);
+    fwrite(first_page_trash, sizeof(char), PAGE_SIZE - HEADER_SIZE, fp_out);
+    free(first_page_trash);
+
+    entry *es = createEntry(ONE_ELEMENT);
+    while(!feof(fp_in)) {
+        char *line;
+        readFirstLine(&line, fp_in);
+        readEntryFromCSV(line, es);
+        free(line);
+
+        writeEntry(fp_out, es);
+        head->nextRRN++;
+    }
+
+    free(es);
+    fclose(fp_in);
+
+    head->pages = (head->nextRRN)*sizeof(entry)/PAGE_SIZE + 1;
+    writeHeader(fp_out, head);
+    fclose(fp_out);
 }
 
 void commandFrom(void){
@@ -106,22 +129,18 @@ void commandDelete(void){
     FILE* fp;
     OPEN_FILE(fp, bin_filename, "rwb");
 
-    
-
     fclose(fp);
     free(bin_filename);
 }
 
 void commandInsert(void){
     char* bin_filename;
-    int n;
+    uint32_t n;
     scanf("%ms %d", &bin_filename, &n);
     //readTable(n);
     
     FILE* fp;
     OPEN_FILE(fp, bin_filename, "rwb");
-
-    
 
     fclose(fp);
     free(bin_filename);

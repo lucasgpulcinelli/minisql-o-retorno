@@ -34,11 +34,12 @@ typedef struct {
 } entry;
 
 
-entry* createEntry(int size);
-void deleteEntry(entry* e, int size);
+entry* createEntry(uint32_t size);
+void deleteEntry(entry* e, uint32_t size);
 void clearEntry(entry* e);
 int readField(FILE* fp, field* f, int read_for_entry);
 void readEntry(FILE* fp, entry* e);
+void readEntryFromCSV(char *csv_line, entry *es);
 int writeField(FILE* fp, field* f);
 void writeEntry(FILE* fp, entry* e);
 void printField(field* f);

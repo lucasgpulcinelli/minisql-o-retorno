@@ -8,6 +8,7 @@
 #include "entries.h"
 
 #define PAGE_SIZE 960
+#define HEADER_SIZE 21
 
 
 typedef struct{
@@ -27,6 +28,7 @@ typedef struct{
 
 
 header* readHeader(FILE* fp);
+void writeHeader(FILE *fp_out, header *head);
 table* readTableBinary(FILE* fp);
 void deleteTable(table* t);
 void deleteHeader(header* h);

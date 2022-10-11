@@ -3,6 +3,9 @@
 
 #include <stdlib.h>
 
+#define INIT_LEN 64
+#define STR_GROWTH_FACTOR 2
+
 /*
  * ABORTPROGRAM aborts the program; showing the file, line, errno
  * and a message with printf-like formatting
@@ -33,12 +36,20 @@
         ABORT_PROGRAM("open %s", (filename));    \
     }                                           \
 
+//MEMSET_ALLOC does the same as XALLOC, but it initializes all bytes to '$'
+#define MEMSET_ALLOC(type, p, size)          \
+    XALLOC(type, p, size)                    \
+    memset(p, '$', sizeof(type)*size);       \
+
+
 
 /*
  * fatalError aborts the program with the file and line of the error, and a
  * printf-like formatted message
  */
 void fatalError(int line, char* file, char* fmt, ...);
+
+void readFirstLine(char **line, FILE *fp);
 
 #endif
 

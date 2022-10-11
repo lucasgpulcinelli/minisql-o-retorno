@@ -22,6 +22,16 @@ header* readHeader(FILE* fp){
     return h;
 }
 
+void writeHeader(FILE *fp_out, header *head) {
+    rewind(fp_out);
+    fwrite(&(head->status), sizeof(char), 1, fp_out);
+    fwrite(&(head->stack), sizeof(int32_t), 1, fp_out);
+    fwrite(&(head->nextRRN), sizeof(uint32_t), 1, fp_out);
+    fwrite(&(head->entries_removed), sizeof(int32_t), 1, fp_out);
+    fwrite(&(head->pages), sizeof(uint32_t), 1, fp_out);
+    fwrite(&(head->times_compacted), sizeof(uint32_t), 1, fp_out);
+}
+
 table* readTableBinary(FILE* fp){
     table* t;
     XALLOC(table, t, 1);

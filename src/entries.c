@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <stdint.h>
 
 #include "entries.h"
 #include "utils.h"
@@ -17,14 +18,14 @@ static const int8_t fields_size_arr[] = {
 };
 
 
-entry* createEntry(int size){
+entry* createEntry(uint32_t size){
     entry* es;
     XALLOC(entry, es, size);
     memset(es, '$', size); //coloca lixo nos ponteiros para char também!
 
-    for(int i = 0; i < size; i++){
+    for(uint32_t i = 0; i < size; i++){
 
-        for(int j = 0; j < FIELD_AMOUNT; j++){
+        for(uint32_t j = 0; j < FIELD_AMOUNT; j++){
             es[i].fields[j].field_type = j;
         }
 
@@ -38,8 +39,8 @@ entry* createEntry(int size){
     return es;
 }
 
-void deleteEntry(entry* es, int size){
-    for(int i = 0; i < size; i++){
+void deleteEntry(entry* es, uint32_t size){
+    for(uint32_t i = 0; i < size; i++){
         clearEntry(es+i);
     }
 
@@ -109,6 +110,27 @@ void readEntry(FILE* fp, entry* e){
     }
 
     fseek(fp, MAX_SIZE_ENTRY-read_for_entry, SEEK_CUR);
+}
+
+void readEntryFromCSV(char *csv_line, entry *es) {
+    char *field;
+    size_t num_fields = 0;
+
+    while(field = strtok(csv_line, ",") && num_fields < FIELD_AMOUNT) {
+        
+    }
+
+    if(num_fields < FIELD_AMOUNT) {
+        errno = EINVAL;
+        ABORT_PROGRAM("Bad number of fields: found %lu in input, "
+                      "but there should be %d",
+                      num_fields, FIELD_AMOUNT);
+
+    } else if(field) {
+        errno = EINVAL;
+        ABORT_PROGRAM("Bad number of fields: found more then"
+                      " %lu in input.", FIELD_AMOUNT);
+    }
 }
 
 int writeField(FILE* fp, field* f){
