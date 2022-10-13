@@ -51,5 +51,7 @@ void fatalError(int line, char* file, char* fmt, ...);
 
 void readFirstLine(char **line, FILE *fp);
 
+void binaryOnScreen(char* filename);
+
 #endif
 

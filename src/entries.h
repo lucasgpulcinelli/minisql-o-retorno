@@ -47,6 +47,6 @@ void printField(field* f);
 void printEntry(entry* e);
 int fieldCmp(field f1, field f2);
 int findFieldType(char* str);
-
+void copyEntry(entry* dest, entry* src);
 
 #endif

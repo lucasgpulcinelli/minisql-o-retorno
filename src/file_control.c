@@ -5,6 +5,9 @@
 #include "utils.h"
 
 
+int readNextPage(table* t);
+
+
 header* readHeader(FILE* fp){
     header* h;
     XALLOC(header, h, 1);
@@ -52,6 +55,12 @@ table* readTableBinary(FILE* fp){
     return t;
 }
 
+void seekTable(table* t, size_t entry_number){
+    fseek(t->fp, entry_number * MAX_SIZE_ENTRY + HEADER_SIZE, SEEK_SET);
+    t->index = 0;
+    readNextPage(t);
+}
+
 void rewindTable(table* t){
     fseek(t->fp, HEADER_SIZE, SEEK_SET);
 }
@@ -69,10 +78,7 @@ int readNextPage(table* t){
         if(ret < 0){
             return t->size;
         }
- 
-        if(t->entries[t->size].fields[removed].value.integer == 1){
-            continue;
-        }
+
         t->size++;
     }
     return t->size;
@@ -85,7 +91,12 @@ entry* readNextEntry(table* t){
         }
         t->index = 0;
     }
-    return t->entries + t->index++;
+
+    entry* new_entry = createEntry(1);
+
+    copyEntry(new_entry, t->entries+t->index++);
+
+    return new_entry;
 }
 
 void deleteTable(table* t){

@@ -9,8 +9,8 @@
 #include "utils.h"
 
 
-static const char fields_str_arr[][20] = {   
-    "removido", "encadeamento", "idConecta", "siglaPais", "idPoPsConectado", 
+static const char fields_str_arr[][20] = {
+    "removido", "encadeamento", "idConecta", "siglaPais", "idPoPsConectado",
     "unidadeMedida", "velocidade", "nomePoPs", "nomePais"
 };
 
@@ -75,8 +75,8 @@ int readField(FILE* fp, field* f, int read_for_entry){
                 return EOF;
             }
 
-            ABORT_PROGRAM("read field %s at position %d failed", 
-                fields_str_arr[f->field_type], 
+            ABORT_PROGRAM("read field %s at position %d failed",
+                fields_str_arr[f->field_type],
                 ftell(fp)
             );
         }
@@ -88,15 +88,15 @@ int readField(FILE* fp, field* f, int read_for_entry){
     XALLOC(char, str, MAX_SIZE_ENTRY);
 
     int i, c;
-    for(i = 0; 
-        (c = getc(fp)) != '|' 
+    for(i = 0;
+        (c = getc(fp)) != '|'
         && read_for_entry+1 < MAX_SIZE_ENTRY;
         i++, read_for_entry++
     ){
         str[i] = c;
         if(str[i] < 0 || i >= MAX_SIZE_ENTRY){
-            ABORT_PROGRAM("read field %s at position %d failed", 
-                fields_str_arr[f->field_type], 
+            ABORT_PROGRAM("read field %s at position %d failed",
+                fields_str_arr[f->field_type],
                 ftell(fp)
             );
         }
@@ -126,7 +126,7 @@ void readEntryFromCSV(char *csv_line, entry *es) {
     size_t num_fields = 0;
 
     while(field = strtok(csv_line, ",") && num_fields < FIELD_AMOUNT) {
-        
+
     }
 
     if(num_fields < FIELD_AMOUNT) {
@@ -192,8 +192,8 @@ void printField(field* f){
         break;
 
     case countryAcro:
-        printf("%s: %c%c\n", 
-            fields_str_arr[f->field_type], 
+        printf("%s: %c%c\n",
+            fields_str_arr[f->field_type],
             f->value.carray[0], f->value.carray[1]
         );
         break;
@@ -201,7 +201,7 @@ void printField(field* f){
     case countryName:
         printf("%s: %s\n", fields_str_arr[f->field_type], f->value.cpointer);
         break;
-    
+
     default:
         ABORT_PROGRAM("field type %d is invalid", f->field_type);
     }
@@ -211,7 +211,7 @@ void printEntry(entry* e){
     for(int i = 0; i < 5; i++){
         printField(e->fields + i);
     }
-    
+
     printField(e->fields + speed);
     printField(e->fields + measurmentUnit);
 
@@ -228,7 +228,7 @@ int fieldCmp(field f1, field f2){
 
     case measurmentUnit:
     case countryAcro:
-        return strncmp(f1.value.carray, f2.value.carray, 
+        return strncmp(f1.value.carray, f2.value.carray,
             fields_size_arr[f1.field_type]
         );
 
@@ -244,4 +244,37 @@ int findFieldType(char* str){
         }
     }
     return -1;
+}
+
+void copyField(field* dest, field* src){
+    if(dest->field_type != src->field_type){
+        ABORT_PROGRAM("tried to copy different fields");
+    }
+
+    switch (dest->field_type) {
+    case removed:
+    case linking:
+    case idConnect:
+    case connPoPsId:
+    case speed:
+        dest->value.integer = src->value.integer;
+        return;
+    case countryAcro:
+    case measurmentUnit:
+        strncpy(dest->value.carray, src->value.carray, fields_size_arr[dest->field_type]);
+        return;
+    case poPsName:
+    case countryName:
+        XREALLOC(char, dest->value.cpointer, strlen(src->value.cpointer)+1);
+        strcpy(dest->value.cpointer, src->value.cpointer);
+        return;
+    default:
+            ABORT_PROGRAM("invalid field");
+    }
+}
+
+void copyEntry(entry* dest, entry* src){
+    for(int i = 0; i < FIELD_AMOUNT; i++){
+        copyField(dest->fields+i, src->fields+i);
+    }
 }
