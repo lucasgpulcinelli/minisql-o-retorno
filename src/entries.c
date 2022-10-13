@@ -21,8 +21,7 @@ static const int8_t fields_size_arr[] = {
 
 entry* createEntry(uint32_t size){
     entry* es;
-    XALLOC(entry, es, size);
-    memset(es, '$', size); //places trash at pointers too!
+    MEMSET_ALLOC(entry, es, size);
 
     for(uint32_t i = 0; i < size; i++){
 

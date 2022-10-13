@@ -62,13 +62,19 @@ void commandFrom(void){
         printf("Falha no processamento do arquivo.\n");
         exit(0);
     }
-    if(t->size == 0){
+    int c;
+    if((c = getc(fp)) == EOF){
         printf("Registro inexistente.\n");
         exit(0);
     }
+    ungetc(c, fp);
 
     entry* e;
     while((e = readNextEntry(t)) != NULL){
+        if(e->fields[removed].value.integer == 1){
+            deleteEntry(e, 1);
+            continue;
+        }
         printEntry(e);
         printf("\n");
 
@@ -96,16 +102,24 @@ void commandWhere(void){
         printf("Falha no processamento do arquivo.\n");
         exit(0);
     }
-    if(t->size == 0){
+    int c;
+    if((c = getc(fp)) == EOF){
         printf("Registro inexistente.\n");
         exit(0);
     }
+    ungetc(c, fp);
+
 
     for(int i = 0; i < n; i++, rewindTable(t)){
         printf("Busca %d\n", i);
 
         entry* e;
         while((e = readNextEntry(t)) != NULL){
+            if(e->fields[removed].value.integer == 1){
+                deleteEntry(e, 1);
+                continue;
+            }
+
             field f_cmp = e->fields[where[i].field_type];
 
             if(fieldCmp(where[i], f_cmp) != 0){
@@ -132,12 +146,67 @@ void commandDelete(void){
     char* bin_filename;
     int n;
     scanf("%ms %d", &bin_filename, &n);
-    //readTuples(n);
+    field* where = readTuples(n);
 
     FILE* fp;
-    OPEN_FILE(fp, bin_filename, "rwb");
+    OPEN_FILE(fp, bin_filename, "rb+");
 
+    table* t = readTableBinary(fp);
+    if(t == NULL){
+        printf("Falha no processamento do arquivo.\n");
+        exit(0);
+    }
+    int c;
+    if((c = getc(fp)) == EOF){
+        printf("Registro inexistente.\n");
+        exit(0);
+    }
+    ungetc(c, fp);
+
+
+    t->header->status = false;
+    writeHeader(t->fp, t->header);
+
+    for(int i = 0; i < n; i++, rewindTable(t)){
+        entry* e;
+        int rnn = 0;
+        while((e = readNextEntry(t)) != NULL){
+            if(e->fields[removed].value.integer == 1){
+                deleteEntry(e, 1);
+                rnn++;
+                continue;
+            }
+
+            field f_cmp = e->fields[where[i].field_type];
+
+            if(fieldCmp(where[i], f_cmp) != 0){
+                deleteEntry(e, 1);
+                rnn++;
+                continue;
+            }
+
+            entry* new_e = createEntry(1);
+
+            new_e->fields[removed].value.integer = 1;
+            new_e->fields[linking].value.integer = t->header->stack;
+            t->header->stack = rnn;
+            seekTable(t, rnn);
+            writeEntry(t->fp, new_e);
+
+            deleteEntry(new_e, 1);
+            deleteEntry(e, 1);
+            rnn++;
+        }
+
+        t->header->status = true;
+        writeHeader(t->fp, t->header);
+
+        printf("Numero de páginas de disco: %d\n\n", t->header->pages);
+    }
+
+    deleteTable(t);
     fclose(fp);
+    freeTuples(where, n);
     free(bin_filename);
 }
 

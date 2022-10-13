@@ -23,11 +23,8 @@ typedef struct{
 } header;
 
 typedef struct{
-    entry* entries;
     header* header;
     FILE* fp;
-    int index;
-    int size;
 } table;
 
 
