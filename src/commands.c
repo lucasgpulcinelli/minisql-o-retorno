@@ -61,11 +61,11 @@ void commandFrom(void){
     table* t = readTableBinary(fp);
     if(t == NULL){
         printf("Falha no processamento do arquivo.\n");
-        exit(0);
+        exit(EXIT_SUCCESS);
     }
     if(!hasNextEntry(t)){
         printf("Registro inexistente.\n");
-        exit(0);
+        exit(EXIT_SUCCESS);
     }
 
     for(entry* e; (e = readNextEntry(t)) != NULL; deleteEntry(e, 1)){
@@ -95,11 +95,11 @@ void commandWhere(void){
     table* t = readTableBinary(fp);
     if(t == NULL){
         printf("Falha no processamento do arquivo.\n");
-        exit(0);
+        exit(EXIT_SUCCESS);
     }
     if(!hasNextEntry(t)){
         printf("Registro inexistente.\n");
-        exit(0);
+        exit(EXIT_SUCCESS);
     }
 
     for(int i = 0; i < n; i++, rewindTable(t)){
@@ -142,11 +142,11 @@ void commandDelete(void){
     table* t = readTableBinary(fp);
     if(t == NULL){
         printf("Falha no processamento do arquivo.\n");
-        exit(0);
+        exit(EXIT_SUCCESS);
     }
     if(!hasNextEntry(t)){
         printf("Registro inexistente.\n");
-        exit(0);
+        exit(EXIT_SUCCESS);
     }
 
 
@@ -247,7 +247,7 @@ void commandCompact(void){
     table* t = readTableBinary(fp);
     if(t == NULL){
         printf("Falha no processamento do arquivo.\n");
-        exit(0);
+        exit(EXIT_SUCCESS);
     }
 
     //escreve inconsistente no header
