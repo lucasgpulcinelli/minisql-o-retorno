@@ -23,7 +23,7 @@ static void (*const command_funcs[])(void) = {
 
 int main(){
     int command;
-    scanf("%d", &command);
+    READ_INPUT("%d", &command);
 
     if(command < 1 || command > COMMANDS_SIZE){
         errno = EINVAL;

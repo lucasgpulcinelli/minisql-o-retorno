@@ -12,7 +12,7 @@
 void commandCreate(void){
     char* csv_input_name;
     char* bin_output_name;
-    scanf("%ms %ms", &csv_input_name, &bin_output_name);
+    READ_INPUT("%ms %ms", &csv_input_name, &bin_output_name);
 
     FILE* fp_in;
     FILE* fp_out;
@@ -53,7 +53,7 @@ void commandCreate(void){
 
 void commandFrom(void){
     char* bin_filename;
-    scanf("%ms", &bin_filename);
+    READ_INPUT("%ms", &bin_filename);
 
     FILE* fp;
     OPEN_FILE(fp, bin_filename, "rb");
@@ -86,7 +86,7 @@ void commandFrom(void){
 void commandWhere(void){
     char* bin_filename;
     int n;
-    scanf("%ms %d", &bin_filename, &n);
+    READ_INPUT("%ms %d", &bin_filename, &n);
     field* where = readTuples(n);
 
     FILE* fp;
@@ -132,7 +132,7 @@ void commandWhere(void){
 void commandDelete(void){
     char* bin_filename;
     int n;
-    scanf("%ms %d", &bin_filename, &n);
+    READ_INPUT("%ms %d", &bin_filename, &n);
     field* where = readTuples(n);
 
     FILE* fp;
@@ -190,7 +190,7 @@ void commandDelete(void){
 void commandInsert(void){
     char* bin_filename;
     int32_t n;
-    scanf("%ms %d", &bin_filename, &n);
+    READ_INPUT("%ms %d", &bin_filename, &n);
 
     FILE* fp;
     OPEN_FILE(fp, bin_filename, "r+b");
@@ -237,7 +237,7 @@ void commandInsert(void){
 
 void commandCompact(void){
     char* bin_filename;
-    scanf("%ms", &bin_filename);
+    READ_INPUT("%ms", &bin_filename);
 
     FILE* fp;
     OPEN_FILE(fp, bin_filename, "rb+");
