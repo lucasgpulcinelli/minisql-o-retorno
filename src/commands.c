@@ -22,7 +22,7 @@ void commandCreate(void){
     free(bin_output_name);
 
     header *head;
-    XALLOC(header, head, ONE_ELEMENT);
+    XALLOC(header, head, 1);
     INIT_FILE_HEADER(head, false, EMPTY_STACK, 0, NO_ENTRIES_REMOVED, 1, NOT_COMPACTED)
     writeHeader(fp_out, head);
 
@@ -31,7 +31,7 @@ void commandCreate(void){
     fwrite(first_page_trash, sizeof(char), PAGE_SIZE - HEADER_SIZE, fp_out);
     free(first_page_trash);
 
-    entry *es = createEntry(ONE_ELEMENT);
+    entry *es = createEntry(1);
     while(!feof(fp_in)) {
         char *line;
         readFirstLine(&line, fp_in);
@@ -42,11 +42,12 @@ void commandCreate(void){
         head->nextRRN++;
     }
 
-    free(es);
+    deleteEntry(es, 1);
     fclose(fp_in);
 
     head->pages = (head->nextRRN)*sizeof(entry)/PAGE_SIZE + 1;
     writeHeader(fp_out, head);
+    free(head);
     fclose(fp_out);
 }
 
@@ -138,13 +139,48 @@ void commandDelete(void){
 
 void commandInsert(void){
     char* bin_filename;
-    uint32_t n;
+    int32_t n;
     scanf("%ms %d", &bin_filename, &n);
-    //readTable(n);
     
     FILE* fp;
-    OPEN_FILE(fp, bin_filename, "rwb");
+    OPEN_FILE(fp, bin_filename, "r+b");
+    header *head = readHeader(fp);
 
+    entry* es;
+    entry* erased;
+    XALLOC(entry, es, 1);
+    XALLOC(entry, erased, 1);
+    
+    ssize_t stack = head->stack;
+    while(stack != EMPTY_STACK && n > 0) {
+        fseek(fp, PAGE_SIZE + MAX_SIZE_ENTRY*stack, SEEK_SET);
+        readEntry(fp, erased);
+        readEntryFromStdin(es);
+
+        stack = erased->fields[linking].value.integer;
+        fseek(fp, PAGE_SIZE + MAX_SIZE_ENTRY*stack, SEEK_SET);
+        writeEntry(fp, es);
+        head->entries_removed--;
+        n--;
+    }
+
+    head->stack = stack;
+    free(erased);
+    fseek(fp, 0, SEEK_END);
+
+    while(n > 0) {
+        readEntryFromStdin(es);
+        writeEntry(fp, es);
+        (head->nextRRN)++;
+        n--;
+    }
+
+    deleteEntry(es, 1);
+
+    head->pages = 1 + head->nextRRN/PAGE_SIZE;
+    writeHeader(fp, head);
+
+    free(head);
     fclose(fp);
     free(bin_filename);
 }
@@ -154,7 +190,7 @@ void commandCompact(void){
     scanf("%ms", &bin_filename);
     
     FILE* fp;
-    OPEN_FILE(fp, bin_filename, "rwb");
+    OPEN_FILE(fp, bin_filename, "r+b");
 
     
 

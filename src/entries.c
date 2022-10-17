@@ -18,6 +18,11 @@ static const int8_t fields_size_arr[] = {
     1, 4, 4, 2, 4, 1, 4, -1, -1
 };
 
+static const int8_t data_types_map[] = {
+    boolean, integer, integer, char_array, integer, 
+    char_array, integer, char_p, char_p
+};
+
 
 entry* createEntry(uint32_t size){
     entry* es;
@@ -31,7 +36,7 @@ entry* createEntry(uint32_t size){
         }
 
         es[i].fields[removed].value.integer = 0;
-        es[i].fields[linking].value.integer = -1;
+        es[i].fields[linking].value.integer = NOT_ERASED;
         es[i].fields[poPsName].value.cpointer = NULL;
         es[i].fields[countryName].value.cpointer = NULL;
 
@@ -110,7 +115,7 @@ int readField(FILE* fp, field* f, int read_for_entry){
 int readEntry(FILE* fp, entry* e){
     int read_for_entry = 0;
 
-    for(int i = 0; i < FIELD_AMOUNT; i++){
+    for(uint32_t i = 0; i < FIELD_AMOUNT; i++){
         read_for_entry = readField(fp, e->fields+i, read_for_entry);
         if(read_for_entry < 0){
             return read_for_entry;
@@ -122,11 +127,32 @@ int readEntry(FILE* fp, entry* e){
 }
 
 void readEntryFromCSV(char *csv_line, entry *es) {
-    char *field;
+    char *field = (char *)strtok(csv_line, ",");
     size_t num_fields = 0;
 
-    while(field = strtok(csv_line, ",") && num_fields < FIELD_AMOUNT) {
-        
+    for(num_fields = 0; field && num_fields < FIELD_AMOUNT; 
+        num_fields++, field = (char *)strtok(NULL, ",")) {
+        switch(data_types_map[num_fields]){
+            case boolean:
+                es->fields[num_fields].value.cbool = atoi(field);
+                break;
+            
+            case integer:
+                es->fields[num_fields].value.integer = atoi(field);
+                break;
+            
+            case char_array:
+                strncpy(es->fields[num_fields].value.carray, field, CHAR_ARRAY_LEN);
+                break;
+
+            case char_p:
+                es->fields[num_fields].value.cpointer = malloc((strlen(field) + 1)*sizeof(char));
+                strcpy(es->fields[num_fields].value.cpointer, field);
+                break;
+            
+            default:
+                break;
+        }
     }
 
     if(num_fields < FIELD_AMOUNT) {
@@ -142,8 +168,12 @@ void readEntryFromCSV(char *csv_line, entry *es) {
     }
 }
 
-int writeField(FILE* fp, field* f){
+void readEntryFromStdin(entry *es) {
+    char* input_line;
+    READ_INPUT("%ms\n", input_line);
+}
 
+int writeField(FILE* fp, field* f, ssize_t size){
     if(fields_size_arr[f->field_type] > 0){
         //fixed sized fields
         fwrite(&(f->value), fields_size_arr[f->field_type], 1, fp);
@@ -151,26 +181,25 @@ int writeField(FILE* fp, field* f){
     }
 
     //variable sized fields
-    if(f->value.cpointer == NULL){
+    if(f->value.cpointer == NULL || (!strcmp(f->value.cpointer, NULL_STR))){
         putc('|', fp);
         return 1;
     }
 
-    for(uint32_t i = 0; i < strlen(f->value.cpointer); i++){
-        putc(f->value.cpointer[i], fp);
-    }
+    ssize_t write_len = min(strlen(f->value.cpointer), size) - 1;
+    fwrite(f->value.cpointer, write_len, 1, fp);
     putc('|', fp);
 
-    return strlen(f->value.cpointer) + 1;
+    return write_len + 1;
 }
 
 void writeEntry(FILE* fp, entry* e){
-    int position = 0;
-    for(int i = 0; i < FIELD_AMOUNT; i++){
-        position += writeField(fp, e->fields+i);
+    ssize_t bytes = MAX_SIZE_ENTRY;      //Available bytes in entry
+    for(uint32_t i = 0; i < FIELD_AMOUNT && bytes > 0; i++){
+        bytes -= writeField(fp, e->fields+i, bytes);
     }
 
-    for(int i = 0; i < MAX_SIZE_ENTRY-position; i++){
+    for(int32_t i = 0; i < MAX_SIZE_ENTRY - bytes; i++) {
         putc('$', fp);
     }
 }

@@ -2,6 +2,7 @@
 #define __UTILS_H__
 
 #include <stdlib.h>
+#include <sys/types.h>
 
 #define INIT_LEN 64
 #define STR_GROWTH_FACTOR 2
@@ -41,6 +42,16 @@
     XALLOC(type, p, size)                    \
     memset(p, '$', sizeof(type)*size);       \
 
+/*
+ * READ_INPUT does the same as scanf, but it verifies if the input
+ * has a valid format and throws an appropriate error message.
+ */
+#define READ_INPUT(...)                           \
+    int32_t err = scanf(__VA_ARGS__);             \
+    if (err == EOF) {                             \
+        ABORT_PROGRAM("Invalid input format");    \
+    }                                             \
+
 
 
 /*
@@ -49,7 +60,17 @@
  */
 void fatalError(int line, char* file, char* fmt, ...);
 
+/*
+ * readFirstLine reads the first line of fp (relative to current position)
+ * and stores it in line. The function deals with memory allocation, do not
+ * pass a malloced pointer to it.
+ */
 void readFirstLine(char **line, FILE *fp);
+
+/*
+ * min takes two ssize_ts and returns the smallest one.
+ */
+ssize_t min(ssize_t a, ssize_t b);
 
 #endif
 

@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <sys/types.h>
 
 #include "utils.h"
 
@@ -48,5 +49,10 @@ void readFirstLine(char **line, FILE *fp) {
     }
 
     (*line)[char_index - 1] = '\0';
+}
+
+
+ssize_t min(ssize_t a, ssize_t b) {
+    return a*(a <= b) + b*(b > a);
 }
 
