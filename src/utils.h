@@ -72,5 +72,10 @@ void readFirstLine(char **line, FILE *fp);
  */
 ssize_t min(ssize_t a, ssize_t b);
 
+/*
+ * binaryOnScreen returns a hash of the file of name filename
+ */
+void binaryOnScreen(char* filename);
+
 #endif
 

@@ -54,7 +54,7 @@ void commandCreate(void){
 void commandFrom(void){
     char* bin_filename;
     scanf("%ms", &bin_filename);
-    
+
     FILE* fp;
     OPEN_FILE(fp, bin_filename, "rb");
 
@@ -63,13 +63,15 @@ void commandFrom(void){
         printf("Falha no processamento do arquivo.\n");
         exit(0);
     }
-    if(t->size == 0){
+    if(!hasNextEntry(t)){
         printf("Registro inexistente.\n");
         exit(0);
     }
 
-    entry* e;
-    while((e = readNextEntry(t)) != NULL){
+    for(entry* e; (e = readNextEntry(t)) != NULL; deleteEntry(e, 1)){
+        if(e->fields[removed].value.integer == 1){
+            continue;
+        }
         printEntry(e);
         printf("\n");
     }
@@ -95,16 +97,19 @@ void commandWhere(void){
         printf("Falha no processamento do arquivo.\n");
         exit(0);
     }
-    if(t->size == 0){
+    if(!hasNextEntry(t)){
         printf("Registro inexistente.\n");
         exit(0);
     }
 
     for(int i = 0; i < n; i++, rewindTable(t)){
         printf("Busca %d\n", i);
-        
-        entry* e;
-        while((e = readNextEntry(t)) != NULL){
+
+        for(entry* e; (e = readNextEntry(t)) != NULL; deleteEntry(e, 1)){
+            if(e->fields[removed].value.integer == 1){
+                continue;
+            }
+
             field f_cmp = e->fields[where[i].field_type];
 
             if(fieldCmp(where[i], f_cmp) != 0){
@@ -128,12 +133,57 @@ void commandDelete(void){
     char* bin_filename;
     int n;
     scanf("%ms %d", &bin_filename, &n);
-    //readTuples(n);
-    
-    FILE* fp;
-    OPEN_FILE(fp, bin_filename, "rwb");
+    field* where = readTuples(n);
 
+    FILE* fp;
+    // needs a + for overwriting headers and deleting entries
+    OPEN_FILE(fp, bin_filename, "rb+");
+
+    table* t = readTableBinary(fp);
+    if(t == NULL){
+        printf("Falha no processamento do arquivo.\n");
+        exit(0);
+    }
+    if(!hasNextEntry(t)){
+        printf("Registro inexistente.\n");
+        exit(0);
+    }
+
+
+    t->header->status = false;
+    writeHeader(t->fp, t->header);
+
+    for(int i = 0; i < n; i++, rewindTable(t)){
+        int rrn = 0;
+        for(entry* e; (e = readNextEntry(t)) != NULL; deleteEntry(e, 1), rrn++){
+            if(e->fields[removed].value.integer == 1){
+                continue;
+            }
+
+            field f_cmp = e->fields[where[i].field_type];
+
+            if(fieldCmp(where[i], f_cmp) != 0){
+                continue;
+            }
+
+            // clears already existing entry and writes it to disk
+            clearEntry(e);
+            e->fields[removed].value.integer = 1;
+            e->fields[linking].value.integer = t->header->stack;
+            t->header->stack = rrn;
+            seekTable(t, rrn);
+            writeEntry(t->fp, e);
+        }
+
+        t->header->status = true;
+        writeHeader(t->fp, t->header);
+
+        printf("Numero de páginas de disco: %d\n\n", t->header->pages);
+    }
+
+    deleteTable(t);
     fclose(fp);
+    freeTuples(where, n);
     free(bin_filename);
 }
 
@@ -141,7 +191,7 @@ void commandInsert(void){
     char* bin_filename;
     int32_t n;
     scanf("%ms %d", &bin_filename, &n);
-    
+
     FILE* fp;
     OPEN_FILE(fp, bin_filename, "r+b");
     header *head = readHeader(fp);
@@ -188,12 +238,52 @@ void commandInsert(void){
 void commandCompact(void){
     char* bin_filename;
     scanf("%ms", &bin_filename);
-    
+
     FILE* fp;
-    OPEN_FILE(fp, bin_filename, "r+b");
+    OPEN_FILE(fp, bin_filename, "rb+");
+    rewind(fp);
 
-    
 
+    table* t = readTableBinary(fp);
+    if(t == NULL){
+        printf("Falha no processamento do arquivo.\n");
+        exit(0);
+    }
+
+    //escreve inconsistente no header
+
+    int read_end = 0;
+    int write_end = 0;
+
+    entry* e_read;
+
+    while((e_read = readNextEntry(t)) != NULL){
+        printf("%d\n", e_read->fields[removed].value.integer);
+        if(e_read->fields[removed].value.integer == 1){
+            //registro removido
+            read_end++; //somente pula esse registro e não escreve nada
+            deleteEntry(e_read, 1);
+            continue;
+        }
+        //registro não removido
+
+        if(read_end == write_end){
+            //não precisa escrever no disco, as informações seriam iguais
+            read_end++;
+            write_end++;
+            deleteEntry(e_read, 1);
+            continue;
+        }
+
+        fseek(fp, write_end*MAX_SIZE_ENTRY, SEEK_SET);
+        seekTable(t, read_end);
+
+        read_end++;
+        write_end++;
+        deleteEntry(e_read, 1);
+    }
+
+    deleteTable(t);
     fclose(fp);
     free(bin_filename);
 }

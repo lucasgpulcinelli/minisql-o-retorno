@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-#include <sys/types.h>
+#include <inttypes.h>
 
 #include "utils.h"
 
@@ -31,8 +31,7 @@ void fatalError(int line, char* file, char* fmt, ...){
     exit(EXIT_FAILURE);
 }
 
-
-void readFirstLine(char **line, FILE *fp) {
+void readFirstLine(char **line, FILE *fp){
     size_t line_len = INIT_LEN;
     size_t char_index = 0;
 
@@ -51,8 +50,24 @@ void readFirstLine(char **line, FILE *fp) {
     (*line)[char_index - 1] = '\0';
 }
 
-
 ssize_t min(ssize_t a, ssize_t b) {
     return a*(a <= b) + b*(b > a);
 }
 
+void binaryOnScreen(char* filename){
+	FILE *fp;
+
+	if(filename == NULL) {
+        ABORT_PROGRAM("binaryOnScreen got NULL filename as input");
+	}
+    
+    OPEN_FILE(fp, filename, "rb");
+
+    uint32_t sum = 0;
+	for(char c = getc(fp); c != EOF; c = getc(fp)) {
+		sum += c;
+	}
+
+	printf("%lf\n", sum / (double) 100);
+    fclose(fp);
+}	

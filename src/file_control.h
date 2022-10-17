@@ -23,11 +23,8 @@ typedef struct{
 } header;
 
 typedef struct{
-    entry* entries;
     header* header;
     FILE* fp;
-    int index;
-    int size;
 } table;
 
 
@@ -35,6 +32,8 @@ header* readHeader(FILE* fp);
 void writeHeader(FILE *fp_out, header *head);
 table* readTableBinary(FILE* fp);
 entry* readNextEntry(table* t);
+bool hasNextEntry(table* t);
+void seekTable(table* r, size_t entry_number);
 void rewindTable(table* t);
 void deleteTable(table* t);
 void deleteHeader(header* h);
