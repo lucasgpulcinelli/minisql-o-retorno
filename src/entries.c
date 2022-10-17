@@ -110,18 +110,14 @@ int readField(FILE* fp, field* f, int read_for_entry){
     return read_for_entry+1;
 }
 
-int readEntry(FILE* fp, entry* e){
+void readEntry(FILE* fp, entry* e){
     int read_for_entry = 0;
 
     for(int i = 0; i < FIELD_AMOUNT; i++){
         read_for_entry = readField(fp, e->fields+i, read_for_entry);
-        if(read_for_entry < 0){
-            return read_for_entry;
-        }
     }
 
     fseek(fp, MAX_SIZE_ENTRY-read_for_entry, SEEK_CUR);
-    return 1;
 }
 
 void readEntryFromCSV(char *csv_line, entry *es) {
