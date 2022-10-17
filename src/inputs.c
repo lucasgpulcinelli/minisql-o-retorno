@@ -27,6 +27,26 @@ field* readTuples(int n){
         }
         fs[i].field_type = type;
 
+        if(strcmp("NULO", field_value) == 0){
+            //NULL value
+
+            switch(type){
+            case countryAcro:
+            case measurmentUnit:
+                memset(fs[i].value.carray, '$', sizeof(char)*4);
+                break;
+            case countryName:
+            case poPsName:
+                fs[i].value.cpointer = NULL;
+                break;
+            case idConnect:
+                ABORT_PROGRAM("idConnect cannot be NULL");
+            default:
+                fs[i].value.integer = -1;
+            }
+
+            continue;
+        }
 
         if(field_value[0] != '\"'){
             //integer value
