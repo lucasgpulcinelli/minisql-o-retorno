@@ -62,23 +62,17 @@ void commandFrom(void){
         printf("Falha no processamento do arquivo.\n");
         exit(0);
     }
-    int c;
-    if((c = getc(fp)) == EOF){
+    if(!hasNextEntry(t)){
         printf("Registro inexistente.\n");
         exit(0);
     }
-    ungetc(c, fp);
 
-    entry* e;
-    while((e = readNextEntry(t)) != NULL){
+    for(entry* e; (e = readNextEntry(t)) != NULL; deleteEntry(e, 1)){
         if(e->fields[removed].value.integer == 1){
-            deleteEntry(e, 1);
             continue;
         }
         printEntry(e);
         printf("\n");
-
-        deleteEntry(e, 1);
     }
 
     printf("Numero de páginas de disco: %d\n\n", t->header->pages);
@@ -102,35 +96,27 @@ void commandWhere(void){
         printf("Falha no processamento do arquivo.\n");
         exit(0);
     }
-    int c;
-    if((c = getc(fp)) == EOF){
+    if(!hasNextEntry(t)){
         printf("Registro inexistente.\n");
         exit(0);
     }
-    ungetc(c, fp);
-
 
     for(int i = 0; i < n; i++, rewindTable(t)){
         printf("Busca %d\n", i);
 
-        entry* e;
-        while((e = readNextEntry(t)) != NULL){
+        for(entry* e; (e = readNextEntry(t)) != NULL; deleteEntry(e, 1)){
             if(e->fields[removed].value.integer == 1){
-                deleteEntry(e, 1);
                 continue;
             }
 
             field f_cmp = e->fields[where[i].field_type];
 
             if(fieldCmp(where[i], f_cmp) != 0){
-                deleteEntry(e, 1);
                 continue;
             }
 
             printEntry(e);
             printf("\n");
-
-            deleteEntry(e, 1);
         }
 
         printf("Numero de páginas de disco: %d\n\n", t->header->pages);
@@ -149,6 +135,7 @@ void commandDelete(void){
     field* where = readTuples(n);
 
     FILE* fp;
+    // needs a + for overwriting headers and deleting entries
     OPEN_FILE(fp, bin_filename, "rb+");
 
     table* t = readTableBinary(fp);
@@ -156,46 +143,35 @@ void commandDelete(void){
         printf("Falha no processamento do arquivo.\n");
         exit(0);
     }
-    int c;
-    if((c = getc(fp)) == EOF){
+    if(!hasNextEntry(t)){
         printf("Registro inexistente.\n");
         exit(0);
     }
-    ungetc(c, fp);
 
 
     t->header->status = false;
     writeHeader(t->fp, t->header);
 
     for(int i = 0; i < n; i++, rewindTable(t)){
-        entry* e;
-        int rnn = 0;
-        while((e = readNextEntry(t)) != NULL){
+        int rrn = 0;
+        for(entry* e; (e = readNextEntry(t)) != NULL; deleteEntry(e, 1), rrn++){
             if(e->fields[removed].value.integer == 1){
-                deleteEntry(e, 1);
-                rnn++;
                 continue;
             }
 
             field f_cmp = e->fields[where[i].field_type];
 
             if(fieldCmp(where[i], f_cmp) != 0){
-                deleteEntry(e, 1);
-                rnn++;
                 continue;
             }
 
-            entry* new_e = createEntry(1);
-
-            new_e->fields[removed].value.integer = 1;
-            new_e->fields[linking].value.integer = t->header->stack;
-            t->header->stack = rnn;
-            seekTable(t, rnn);
-            writeEntry(t->fp, new_e);
-
-            deleteEntry(new_e, 1);
-            deleteEntry(e, 1);
-            rnn++;
+            // clears already existing entry and writes it to disk
+            clearEntry(e);
+            e->fields[removed].value.integer = 1;
+            e->fields[linking].value.integer = t->header->stack;
+            t->header->stack = rrn;
+            seekTable(t, rrn);
+            writeEntry(t->fp, e);
         }
 
         t->header->status = true;

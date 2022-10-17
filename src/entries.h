@@ -3,7 +3,7 @@
 
 #include <inttypes.h>
 #include <stdbool.h>
-
+#include <stdio.h>
 
 #define FIELD_AMOUNT 9
 #define MAX_SIZE_ENTRY 64
@@ -36,6 +36,7 @@ typedef struct {
 
 
 entry* createEntry(uint32_t size);
+void initEntry(entry* e);
 void deleteEntry(entry* e, uint32_t size);
 void clearEntry(entry* e);
 int readField(FILE* fp, field* f, int read_for_entry);

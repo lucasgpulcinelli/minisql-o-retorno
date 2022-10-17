@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdbool.h>
 
 #include "file_control.h"
 #include "entries.h"
@@ -59,13 +60,22 @@ void rewindTable(table* t){
     fseek(t->fp, HEADER_SIZE, SEEK_SET);
 }
 
+bool hasNextEntry(table* t){
+    int c;
+    if((c = getc(t->fp)) == EOF){
+        return false;
+    }
+    ungetc(c, t->fp);
+    return true;
+}
+
 
 entry* readNextEntry(table* t){
-    entry* new_entry = createEntry(1);
-    if(readEntry(t->fp, new_entry) == EOF){
-        deleteEntry(new_entry, 1);
+    if(!hasNextEntry(t)){
         return NULL;
     }
+    entry* new_entry = createEntry(1);
+    readEntry(t->fp, new_entry);
     return new_entry;
 }
 

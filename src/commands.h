@@ -46,12 +46,16 @@ void commandFrom(void);
 /*
  * commandWhere gets the name of a binary file and a number n of queries from 
  * stdin, as well as a series of n key-value pairs (composed of a field name,
- * defined as in entries.c fields_str_arr, and a integer or strings between 
+ * defined as in entries.c fields_str_arr, and an integer or strings between 
  * quotes). It prints, for each query, the fields in the binary file that have
  * the specified value.
  */
 void commandWhere(void);
 
+/*
+ * commandDelete deletes all query matches, provided in the same way as 
+ * commandWhere.
+ */
 void commandDelete(void);
 
 void commandInsert(void);
