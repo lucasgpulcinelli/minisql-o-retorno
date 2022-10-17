@@ -12,28 +12,28 @@ header* readHeader(FILE* fp){
 
     rewind(fp);
 
-    fread(&(h->status), 1, 1, fp);
-    fread(&(h->stack), 4, 1, fp);
-    fread(&(h->nextRRN), 4, 1, fp);
-    fread(&(h->entries_removed), 4, 1, fp);
-    fread(&(h->pages), 4, 1, fp);
-    fread(&(h->times_compacted), 4, 1, fp);
+    fread(&(h->status), sizeof(uint8_t), 1, fp);
+    fread(&(h->stack), sizeof(int32_t), 1, fp);
+    fread(&(h->nextRRN), sizeof(int32_t), 1, fp);
+    fread(&(h->entries_removed), sizeof(int32_t), 1, fp);
+    fread(&(h->pages), sizeof(int32_t), 1, fp);
+    fread(&(h->times_compacted), sizeof(int32_t), 1, fp);
 
     return h;
 }
 
-void writeHeader(FILE *fp_out, header *head) {
-    int position = ftell(fp_out);
+void writeHeader(FILE *fp, header *head) {
+    int position = ftell(fp);
 
-    rewind(fp_out);
-    fwrite(&(head->status), sizeof(char), 1, fp_out);
-    fwrite(&(head->stack), sizeof(int32_t), 1, fp_out);
-    fwrite(&(head->nextRRN), sizeof(uint32_t), 1, fp_out);
-    fwrite(&(head->entries_removed), sizeof(int32_t), 1, fp_out);
-    fwrite(&(head->pages), sizeof(uint32_t), 1, fp_out);
-    fwrite(&(head->times_compacted), sizeof(uint32_t), 1, fp_out);
+    rewind(fp);
+    fwrite(&(head->status), sizeof(uint8_t), 1, fp);
+    fwrite(&(head->stack), sizeof(int32_t), 1, fp);
+    fwrite(&(head->nextRRN), sizeof(uint32_t), 1, fp);
+    fwrite(&(head->entries_removed), sizeof(int32_t), 1, fp);
+    fwrite(&(head->pages), sizeof(uint32_t), 1, fp);
+    fwrite(&(head->times_compacted), sizeof(uint32_t), 1, fp);
 
-    fseek(fp_out, position, SEEK_SET);
+    fseek(fp, position, SEEK_SET);
 }
 
 table* readTableBinary(FILE* fp){

@@ -14,8 +14,8 @@
 #include "commands.h"
 #include "utils.h"
 
-
-static void (* const command_funcs[])(void) = {
+//command_funcs is a collection of functions to call depending on the input
+static void (*const command_funcs[])(void) = {
     commandCreate, commandFrom, commandWhere,
     commandDelete, commandInsert, commandCompact
 };
@@ -30,5 +30,6 @@ int main(){
         ABORT_PROGRAM("command number");
     }
 
+    //calls the function from the array with the correct order
     command_funcs[command-1]();
 }
