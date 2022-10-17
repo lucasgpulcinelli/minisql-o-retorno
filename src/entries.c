@@ -4,7 +4,6 @@
 #include <errno.h>
 #include <stdint.h>
 
-
 #include "entries.h"
 #include "utils.h"
 
@@ -20,12 +19,7 @@ static const char fields_str_arr[][20] = {
  */
 static const int8_t fields_size_arr[] = {
     1, 4, 4, 2, 4, 1, 4, -1, -1
-};
-
-static const int8_t data_types_map[] = {
-    boolean, integer, integer, char_array, integer, 
-    char_array, integer, char_p, char_p
-};
+};  
 
 
 entry* createEntry(uint32_t size){
@@ -54,7 +48,7 @@ void initEntry(entry* e){
         e->fields[i].field_type = i;
     }
 
-    e->fields[removed].value.integer = 0;
+    e->fields[removed].value.cbool = false;
     e->fields[linking].value.integer = -1;
     e->fields[poPsName].value.cpointer = NULL;
     e->fields[countryName].value.cpointer = NULL;
@@ -123,48 +117,6 @@ void readEntry(FILE* fp, entry* e){
     }
 
     fseek(fp, MAX_SIZE_ENTRY-read_for_entry, SEEK_CUR);
-}
-
-void readEntryFromCSV(char *csv_line, entry *es){
-    char *field = (char *)strtok(csv_line, ",");
-    size_t num_fields = 0;
-
-    for(num_fields = 0; field && num_fields < FIELD_AMOUNT; 
-        num_fields++, field = (char *)strtok(NULL, ",")) {
-        switch(data_types_map[num_fields]){
-            case boolean:
-                es->fields[num_fields].value.cbool = atoi(field);
-                break;
-            
-            case integer:
-                es->fields[num_fields].value.integer = atoi(field);
-                break;
-            
-            case char_array:
-                strncpy(es->fields[num_fields].value.carray, field, CHAR_ARRAY_LEN);
-                break;
-
-            case char_p:
-                es->fields[num_fields].value.cpointer = malloc((strlen(field) + 1)*sizeof(char));
-                strcpy(es->fields[num_fields].value.cpointer, field);
-                break;
-            
-            default:
-                break;
-        }
-    }
-
-    if(num_fields < FIELD_AMOUNT) {
-        errno = EINVAL;
-        ABORT_PROGRAM("Bad number of fields: found %lu in input, "
-                      "but there should be %d",
-                      num_fields, FIELD_AMOUNT);
-
-    } else if(field) {
-        errno = EINVAL;
-        ABORT_PROGRAM("Bad number of fields: found more then"
-                      " %lu in input.", FIELD_AMOUNT);
-    }
 }
 
 void readEntryFromStdin(entry *es) {

@@ -69,7 +69,7 @@ void commandFrom(void){
     }
 
     for(entry* e; (e = readNextEntry(t)) != NULL; deleteEntry(e, 1)){
-        if(e->fields[removed].value.integer == 1){
+        if(e->fields[removed].value.cbool == true){
             continue;
         }
         printEntry(e);
@@ -106,7 +106,7 @@ void commandWhere(void){
         printf("Busca %d\n", i);
 
         for(entry* e; (e = readNextEntry(t)) != NULL; deleteEntry(e, 1)){
-            if(e->fields[removed].value.integer == 1){
+            if(e->fields[removed].value.cbool == true){
                 continue;
             }
 
@@ -156,7 +156,7 @@ void commandDelete(void){
     for(int i = 0; i < n; i++, rewindTable(t)){
         int rrn = 0;
         for(entry* e; (e = readNextEntry(t)) != NULL; deleteEntry(e, 1), rrn++){
-            if(e->fields[removed].value.integer == 1){
+            if(e->fields[removed].value.cbool == true){
                 continue;
             }
 
@@ -168,7 +168,7 @@ void commandDelete(void){
 
             // clears already existing entry and writes it to disk
             clearEntry(e);
-            e->fields[removed].value.integer = 1;
+            e->fields[removed].value.cbool = true;
             e->fields[linking].value.integer = t->header->stack;
             t->header->stack = rrn;
             seekTable(t, rrn);
@@ -243,7 +243,6 @@ void commandCompact(void){
     OPEN_FILE(fp, bin_filename, "rb+");
     rewind(fp);
 
-
     table* t = readTableBinary(fp);
     if(t == NULL){
         printf("Falha no processamento do arquivo.\n");
@@ -251,15 +250,14 @@ void commandCompact(void){
     }
 
     //escreve inconsistente no header
-
     int read_end = 0;
     int write_end = 0;
 
-    entry* e_read;
+    for (entry *e_read; (e_read = readNextEntry(t)) != NULL; 
+         read_end++, write_end++, deleteEntry(e_read, 1)){
 
-    while((e_read = readNextEntry(t)) != NULL){
-        printf("%d\n", e_read->fields[removed].value.integer);
-        if(e_read->fields[removed].value.integer == 1){
+        printf("%d\n", e_read->fields[removed].value.cbool);
+        if(e_read->fields[removed].value.cbool == true){
             //registro removido
             read_end++; //somente pula esse registro e não escreve nada
             deleteEntry(e_read, 1);
@@ -277,10 +275,6 @@ void commandCompact(void){
 
         fseek(fp, write_end*MAX_SIZE_ENTRY, SEEK_SET);
         seekTable(t, read_end);
-
-        read_end++;
-        write_end++;
-        deleteEntry(e_read, 1);
     }
 
     deleteTable(t);

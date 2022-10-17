@@ -97,10 +97,6 @@ int readField(FILE* fp, field* f, int read_for_entry);
 //readEntry reads a full entry from fp.
 void readEntry(FILE* fp, entry* e);
 
-void readEntryFromStdin(entry *es);
-
-void readEntryFromCSV(char *csv_line, entry *es);
-
 /*
  * WriteField writes a field f on the file fp if the contents
  * of the field are less than or equal to size. On success, it
