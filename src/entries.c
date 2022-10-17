@@ -125,7 +125,7 @@ void readEntry(FILE* fp, entry* e){
     fseek(fp, MAX_SIZE_ENTRY-read_for_entry, SEEK_CUR);
 }
 
-void readEntryFromCSV(char *csv_line, entry *es) {
+void readEntryFromCSV(char *csv_line, entry *es){
     char *field = (char *)strtok(csv_line, ",");
     size_t num_fields = 0;
 
@@ -152,6 +152,7 @@ void readEntryFromCSV(char *csv_line, entry *es) {
             default:
                 break;
         }
+    }
 
     if(num_fields < FIELD_AMOUNT) {
         errno = EINVAL;
@@ -168,7 +169,7 @@ void readEntryFromCSV(char *csv_line, entry *es) {
 
 void readEntryFromStdin(entry *es) {
     char* input_line;
-    READ_INPUT("%ms\n", input_line);
+    READ_INPUT("%ms\n", &input_line);
 }
 
 int writeField(FILE* fp, field* f, ssize_t size){
