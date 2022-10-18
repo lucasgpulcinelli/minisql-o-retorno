@@ -34,10 +34,9 @@ void fatalError(int line, char* file, char* fmt, ...){
 void readFirstLine(char **line, FILE *fp){
     size_t line_len = INIT_LEN;
     size_t char_index = 0;
-
     XALLOC(char, *line, line_len);
 
-    while (!feof(fp) && (*line)[char_index - 1] != '\n') {
+    do {
         if (line_len == char_index) {
             line_len *= STR_GROWTH_FACTOR;
             XREALLOC(char, *line, line_len);
@@ -45,13 +44,13 @@ void readFirstLine(char **line, FILE *fp){
 
         (*line)[char_index] = fgetc(fp);
         char_index++;
-    }
+    } while (!feof(fp) && (*line)[char_index - 1] != '\n');
 
     (*line)[char_index - 1] = '\0';
 }
 
 ssize_t min(ssize_t a, ssize_t b) {
-    return a*(a <= b) + b*(b > a);
+    return a*(a <= b) + b*(b < a);
 }
 
 void binaryOnScreen(char* filename){

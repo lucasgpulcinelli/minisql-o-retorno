@@ -24,7 +24,7 @@ static const int8_t fields_size_arr[] = {
 
 entry* createEntry(uint32_t size){
     entry* es;
-    XALLOC(entry, es, size);
+    MEMSET_ALLOC(entry, es, size);
 
     for(uint32_t i = 0; i < size; i++){
         initEntry(es+i);
@@ -132,7 +132,7 @@ int writeField(FILE* fp, field* f, ssize_t size){
         return 1;
     }
 
-    ssize_t write_len = min(strlen(f->value.cpointer), size) - 1;
+    ssize_t write_len = min(strlen(f->value.cpointer), size - (FIELD_AMOUNT - f->field_type));
     fwrite(f->value.cpointer, write_len, 1, fp);
     putc('|', fp);
 
@@ -145,8 +145,9 @@ void writeEntry(FILE* fp, entry* e){
         bytes -= writeField(fp, e->fields+i, bytes);
     }
 
-    for(int32_t i = 0; i < MAX_SIZE_ENTRY - bytes; i++) {
+    while(bytes > 0) {
         putc('$', fp);
+        bytes--;
     }
 }
 
