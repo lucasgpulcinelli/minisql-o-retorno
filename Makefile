@@ -2,6 +2,7 @@
 CC       = gcc
 CFLAGS  += -std=c11 -Wall -Wextra
 LDFLAGS +=
+VDFLAGS  = --track-origins=yes -v --leak-check=full
 
 EXECUTABLE ?= build/main
 ZIPFILE    ?= ../zipfile.zip
@@ -9,7 +10,7 @@ CFILES      = $(shell find src/ -type f |grep '\.c')
 OFILES      = $(patsubst src/%.c,build/obj/%.o, $(CFILES))
 
 
-.PHONY: all clean zip run debug gdb
+.PHONY: all clean zip run debug gdb valgrind
 
 
 all: $(EXECUTABLE)
@@ -26,6 +27,9 @@ gdb: $(EXECUTABLE)
 
 run: $(EXECUTABLE)
 	@./$(EXECUTABLE) $(ARGS)
+
+valgrind: debug
+	valgrind $(VDFLAGS) $(EXECUTABLE)
 
 debug: CFLAGS+=-g -O0
 debug: clean
