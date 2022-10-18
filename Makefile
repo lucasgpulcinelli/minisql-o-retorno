@@ -9,7 +9,7 @@ CFILES      = $(shell find src/ -type f |grep '\.c')
 OFILES      = $(patsubst src/%.c,build/obj/%.o, $(CFILES))
 
 
-.PHONY: all clean zip run debug
+.PHONY: all clean zip run debug gdb
 
 
 all: $(EXECUTABLE)
@@ -20,6 +20,9 @@ clean:
 
 zip: clean
 	7za a $(ZIPFILE) ./*
+
+gdb: $(EXECUTABLE)
+	gdb $(EXECUTABLE)
 
 run: $(EXECUTABLE)
 	@./$(EXECUTABLE) $(ARGS)
