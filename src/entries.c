@@ -119,11 +119,6 @@ void readEntry(FILE* fp, entry* e){
     fseek(fp, MAX_SIZE_ENTRY-read_for_entry, SEEK_CUR);
 }
 
-void readEntryFromStdin(entry *es) {
-    char* input_line;
-    READ_INPUT("%ms\n", &input_line);
-}
-
 int writeField(FILE* fp, field* f, ssize_t size){
     if(fields_size_arr[f->field_type] > 0){
         //fixed sized fields
@@ -158,6 +153,8 @@ void writeEntry(FILE* fp, entry* e){
 void printField(field* f){
     switch(f->field_type){
     case removed:
+        printf("%s: %d\n", fields_str_arr[f->field_type], f->value.cbool);
+        break;
     case linking:
     case idConnect:
     case connPoPsId:
