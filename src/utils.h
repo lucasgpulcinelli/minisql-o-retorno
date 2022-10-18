@@ -70,17 +70,19 @@
  * READ_INPUT does the same as scanf, but it verifies if the input
  * has a valid format and throws an appropriate error message.
  */
-#define READ_INPUT(...)                                                 \
-    int32_t matches = scanf(__VA_ARGS__);                               \
-    if (matches == EOF) {                                               \
-        ABORT_PROGRAM("Invalid input format");                          \
-    }                                                                   \
-    if (matches != NUM_VA_ARGS(__VA_ARGS__) - 1) {                      \
-        ABORT_PROGRAM("Invalid input format: matched "                  \
-                      "%d patterns of %d required. Use %s",             \
-                      matches, NUM_VA_ARGS(__VA_ARGS__) - 1,            \
-                      _GET_FIRST_ARG(__VA_ARGS__))                      \
-    }                                                                   \
+#define READ_INPUT(...)                                                     \
+    do {                                                                    \
+        int32_t matches = scanf(__VA_ARGS__);                               \
+        if (matches == EOF) {                                               \
+            ABORT_PROGRAM("Invalid input format");                          \
+        }                                                                   \
+        if (matches != NUM_VA_ARGS(__VA_ARGS__) - 1) {                      \
+            ABORT_PROGRAM("Invalid input format: matched "                  \
+                          "%d patterns of %d required. Use %s",             \
+                          matches, NUM_VA_ARGS(__VA_ARGS__) - 1,            \
+                          _GET_FIRST_ARG(__VA_ARGS__))                      \
+        }                                                                   \
+    } while(false)                                                          \
 
 /*
  * fatalError aborts the program with the file and line of the error, and a
