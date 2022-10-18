@@ -104,6 +104,11 @@ void readEntry(FILE* fp, entry* e);
  */
 int writeField(FILE* fp, field* f, ssize_t size);
 
+/*
+ * writeEntry writes the entry e in the binary file fp. It fills the 
+ * trash and remaining space with '$'. It always writes MAX_SIZE_ENTRY
+ * bytes.
+ */
 void writeEntry(FILE* fp, entry* e);
 
 //printField prints a single field to stdout.
