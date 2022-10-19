@@ -19,6 +19,7 @@ header* readHeader(FILE* fp){
     fread(&(h->pages), sizeof(int32_t), 1, fp);
     fread(&(h->times_compacted), sizeof(int32_t), 1, fp);
 
+    fseek(fp, PAGE_SIZE, SEEK_SET);
     return h;
 }
 

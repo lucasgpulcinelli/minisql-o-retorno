@@ -45,6 +45,7 @@ void commandCreate(void){
     fclose(fp_in);
 
     head->pages = (head->nextRRN)*sizeof(entry)/PAGE_SIZE + 1;
+    head->status = true;
     writeHeader(fp_out, head);
     free(head);
     fclose(fp_out);
@@ -241,45 +242,40 @@ void commandCompact(void){
     char* bin_filename;
     READ_INPUT("%ms", &bin_filename);
 
-    FILE* fp;
-    OPEN_FILE(fp, bin_filename, "rb+");
-    rewind(fp);
+    char* out_bin;
+    XCALLOC(char, out_bin, strlen(bin_filename) + 2);
+    out_bin[0] = '_';
+    strcat(out_bin, bin_filename);
 
-    table* t = readTableBinary(fp);
+    FILE* fp_in;
+    FILE* fp_out;
+    OPEN_FILE(fp_in, bin_filename, "rb");
+    OPEN_FILE(fp_out, out_bin, "wb");
+
+    table* t = readTableBinary(fp_in);
     if(t == NULL){
         printf("Falha no processamento do arquivo.\n");
         exit(EXIT_SUCCESS);
     }
-
-    //escreve inconsistente no header
-    int read_end = 0;
-    int write_end = 0;
-
-    for (entry *e_read; (e_read = readNextEntry(t)) != NULL; 
-         read_end++, write_end++, deleteEntry(e_read, 1)){
-
-        printf("%d\n", e_read->fields[removed].value.cbool);
-        if(e_read->fields[removed].value.cbool == true){
-            //registro removido
-            read_end++; //somente pula esse registro e não escreve nada
-            deleteEntry(e_read, 1);
-            continue;
-        }
-        //registro não removido
-
-        if(read_end == write_end){
-            //não precisa escrever no disco, as informações seriam iguais
-            read_end++;
-            write_end++;
-            deleteEntry(e_read, 1);
-            continue;
-        }
-
-        fseek(fp, write_end*MAX_SIZE_ENTRY, SEEK_SET);
-        seekTable(t, read_end);
+    if(!hasNextEntry(t)){
+        exit(EXIT_SUCCESS);
     }
 
+    for(entry* e; (e = readNextEntry(t)) != NULL; deleteEntry(e, 1)){
+        if(e->fields[removed].value.cbool == true){
+            continue;
+        }
+
+        writeEntry(fp_out, e);
+    }
+
+    fclose(fp_in);
+    fclose(fp_out);
     deleteTable(t);
-    fclose(fp);
+
+    rename(out_bin, bin_filename);
+    binaryOnScreen(bin_filename);
+
     free(bin_filename);
+    free(out_bin);
 }
