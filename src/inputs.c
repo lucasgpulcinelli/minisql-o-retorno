@@ -42,6 +42,7 @@ field* readTuples(int n){
                 break;
             case idConnect:
                 ABORT_PROGRAM("idConnect cannot be NULL");
+                break;
             default:
                 fs[i].value.integer = -1;
             }
@@ -173,8 +174,7 @@ void readEntryFromStdin(entry *es){
             break;
         
         case null_char_array:
-            strncpy(es->fields[order[field]].value.carray, "$$$$", 
-                    CHAR_ARRAY_SIZE);
+            memset(es->fields[order[field]].value.carray, '$', CHAR_ARRAY_SIZE);
             break;
         case null_char_p:
             es->fields[order[field]].value.cpointer = NULL;
