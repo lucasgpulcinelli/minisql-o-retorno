@@ -127,7 +127,7 @@ int writeField(FILE* fp, field* f, ssize_t size){
     }
 
     //variable sized fields
-    if(f->value.cpointer == NULL || (!strcmp(f->value.cpointer, NULL_STR))){
+    if(f->value.cpointer == NULL || (!strncmp(f->value.cpointer, NULL_STR, strlen(f->value.cpointer)))){
         putc('|', fp);
         return 1;
     }

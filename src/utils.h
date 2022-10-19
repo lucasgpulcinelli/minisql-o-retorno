@@ -54,6 +54,13 @@
         ABORT_PROGRAM("realloc");              \
     } \
 
+//XCALLOC does the same as XALLOC, but uses calloc to set memory to '0's.
+#define XCALLOC(type, p, size)                \
+    p = calloc(size, sizeof(type));           \
+    if(!(p)) {                                \
+        ABORT_PROGRAM("calloc");              \
+    }                                         \
+
 //OPEN_FILE does the same as fopen, but verifies if the specified file exists.
 #define OPEN_FILE(file_pointer, filename, mode) \
     (file_pointer) = fopen((filename), (mode)); \

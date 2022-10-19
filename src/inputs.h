@@ -34,4 +34,17 @@ void readEntryFromCSV(char *csv_line, entry *es);
  */
 void readEntryFromStdin(entry *es);
 
+/*
+ * readFieldFromStdin reads a string from Stdin formated to be
+ * a field for commandInsert.
+ */
+void readFieldFromStdin(char** field_str);
+
+/*
+ * storeField stores a field of es specified by its number (size_t field)
+ * and its data type (int8_t type). If a field has null value, you
+ * should pass a nullType.
+ */
+void storeField(entry *es, size_t field, int8_t type, char* field_str);
+
 #endif

@@ -99,27 +99,7 @@ void readEntryFromCSV(char *csv_line, entry *es){
 
     for(num_fields = 0; field && num_fields < FIELD_AMOUNT; 
         num_fields++, field = (char *)strtok(NULL, ",")) {
-        switch(data_types_map[num_fields]){
-            case boolean:
-                es->fields[num_fields].value.cbool = atoi(field);
-                break;
-            
-            case integer:
-                es->fields[num_fields].value.integer = atoi(field);
-                break;
-            
-            case char_array:
-                strncpy(es->fields[num_fields].value.carray, field, CHAR_ARRAY_LEN);
-                break;
-
-            case char_p:
-                XALLOC(char, es->fields[num_fields].value.cpointer, strlen(field) + 1);
-                strcpy(es->fields[num_fields].value.cpointer, field);
-                break;
-            
-            default:
-                break;
-        }
+        storeField(es, num_fields, data_types_map[num_fields], field);
     }
 
     if(num_fields < FIELD_AMOUNT) {
@@ -143,44 +123,78 @@ void readEntryFromStdin(entry *es){
 
     for(size_t field = idConnect; field < FIELD_AMOUNT; field++){
         char* field_str;
-        READ_INPUT("%ms", &field_str);
+        readFieldFromStdin(&field_str);
 
         int8_t data_type = data_types_map[order[field]];
         if(!strcmp(field_str, "NULO")){
            data_type += NULL_OFFSET;
         }
 
-        switch (data_type){
-        case integer:
-            es->fields[order[field]].value.integer = atoi(field_str);
-            break;
-        
-        case char_array:
-            strncat(es->fields[order[field]].value.carray, field_str, 
-                    CHAR_ARRAY_SIZE);
-            break;
-        
-        case char_p:
-            ssize_t str_size = strlen(field_str);
-            XALLOC(char, es->fields[order[field]].value.cpointer, str_size - 1);
+        storeField(es, order[field], data_type, field_str);
+        free(field_str);
+    }
+}
 
-            strncpy(es->fields[order[field]].value.cpointer, field_str + 1, str_size - 2);
-            es->fields[order[field]].value.cpointer[str_size - 2] = '\0';
+void readFieldFromStdin(char** field_str) {
+    char first_char;
+    while((first_char = fgetc(stdin)) == ' ');
+    ungetc(first_char, stdin);
+
+    if(first_char != '"') {
+        READ_INPUT("%ms", field_str);
+        return;
+    }
+    
+    first_char = fgetc(stdin);
+    size_t field_len = INIT_LEN;
+    size_t char_index = 0;
+    XALLOC(char, *field_str, field_len);
+
+    do {
+        if (field_len == char_index) {
+            field_len *= STR_GROWTH_FACTOR;
+            XREALLOC(char, *field_str, field_len);
+        }
+
+        (*field_str)[char_index] = fgetc(stdin);
+        char_index++;
+    } while(!feof(stdin) && (*field_str)[char_index - 1] != '"');
+
+    (*field_str)[char_index - 1] = '\0';
+}
+
+void storeField(entry *es, size_t field, int8_t type, char* field_str) {
+    switch(type){
+        case boolean:
+            es->fields[field].value.cbool = atoi(field_str);
             break;
-        
+            
+        case integer:
+            es->fields[field].value.integer = atoi(field_str);
+            break;
+            
+        case char_array:
+            strncpy(es->fields[field].value.carray, field_str, CHAR_ARRAY_LEN);
+            break;
+
+        case char_p:
+            XALLOC(char, es->fields[field].value.cpointer, strlen(field_str) + 1);
+            strcpy(es->fields[field].value.cpointer, field_str);
+            break;
+            
         case null_int:
-            es->fields[order[field]].value.integer = NULL_INT;
+            es->fields[field].value.integer = NULL_INT;
             break;
         
         case null_char_array:
-            strncpy(es->fields[order[field]].value.carray, "$$$$", 
-                    CHAR_ARRAY_SIZE);
+            memset(es->fields[field].value.carray, '$', CHAR_ARRAY_SIZE);
             break;
-        case null_char_p:
-            es->fields[order[field]].value.cpointer = NULL;
-            break;
-        }
 
-        free(field_str);
+        case null_char_p:
+            es->fields[field].value.cpointer = NULL;
+            break;
+            
+        default:
+            break;
     }
 }

@@ -19,7 +19,6 @@ void commandCreate(void){
     OPEN_FILE(fp_in, csv_input_name, "rb");
     OPEN_FILE(fp_out, bin_output_name, "wb");
     free(csv_input_name);
-    free(bin_output_name);
 
     header *head;
     XALLOC(header, head, 1);
@@ -49,6 +48,9 @@ void commandCreate(void){
     writeHeader(fp_out, head);
     free(head);
     fclose(fp_out);
+
+    binaryOnScreen(bin_output_name);
+    free(bin_output_name);
 }
 
 void commandFrom(void){
