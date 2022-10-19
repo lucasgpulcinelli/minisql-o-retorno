@@ -42,6 +42,7 @@ field* readTuples(int n){
                 break;
             case idConnect:
                 ABORT_PROGRAM("idConnect cannot be NULL");
+                break;
             default:
                 fs[i].value.integer = -1;
             }
