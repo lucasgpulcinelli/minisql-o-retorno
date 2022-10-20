@@ -22,13 +22,9 @@ void commandCreate(void){
 
     header *head;
     XALLOC(header, head, 1);
-    INIT_FILE_HEADER(head, false, EMPTY_STACK, 0, NO_ENTRIES_REMOVED, 1, NOT_COMPACTED)
-    writeHeader(fp_out, head);
+    INIT_FILE_HEADER(head, false, EMPTY_STACK, 0, NO_ENTRIES_REMOVED, 1, NOT_COMPACTED);
 
-    char *first_page_trash;
-    MEMSET_ALLOC(char, first_page_trash, PAGE_SIZE - HEADER_SIZE);
-    fwrite(first_page_trash, sizeof(char), PAGE_SIZE - HEADER_SIZE, fp_out);
-    free(first_page_trash);
+    writeHeader(fp_out, head);
 
     entry *es = createEntry(1);
     while(!feof(fp_in)) {

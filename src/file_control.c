@@ -24,8 +24,6 @@ header* readHeader(FILE* fp){
 }
 
 void writeHeader(FILE *fp, header *head) {
-    int position = ftell(fp);
-
     rewind(fp);
     fwrite(&(head->status), sizeof(uint8_t), 1, fp);
     fwrite(&(head->stack), sizeof(int32_t), 1, fp);
@@ -34,7 +32,9 @@ void writeHeader(FILE *fp, header *head) {
     fwrite(&(head->pages), sizeof(uint32_t), 1, fp);
     fwrite(&(head->times_compacted), sizeof(uint32_t), 1, fp);
 
-    fseek(fp, position, SEEK_SET);
+    for(uint32_t i = 0; i < PAGE_SIZE-HEADER_SIZE; i++){
+        putc('$', fp);
+    }
 }
 
 table* readTableBinary(FILE* fp){
@@ -54,11 +54,11 @@ table* readTableBinary(FILE* fp){
 }
 
 void seekTable(table* t, size_t entry_number){
-    fseek(t->fp, entry_number * MAX_SIZE_ENTRY + HEADER_SIZE, SEEK_SET);
+    fseek(t->fp, entry_number * MAX_SIZE_ENTRY + PAGE_SIZE, SEEK_SET);
 }
 
 void rewindTable(table* t){
-    fseek(t->fp, HEADER_SIZE, SEEK_SET);
+    fseek(t->fp, PAGE_SIZE, SEEK_SET);
 }
 
 bool hasNextEntry(table* t){
