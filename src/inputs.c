@@ -20,7 +20,7 @@ field* readTuples(int n){
     char* field_name;
     char* field_value;
     for(int i = 0; i < n; i++){
-        READ_INPUT("%ms %ms", &field_name, &field_value);
+        READ_INPUT("%ms %m[^\n]", &field_name, &field_value);
 
         int type = findFieldType(field_name);
         if(type == -1){
