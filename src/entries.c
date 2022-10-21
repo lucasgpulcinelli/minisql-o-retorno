@@ -8,7 +8,7 @@
 #include "utils.h"
 
 //the string names used for each field as ordered in FieldTypes enum
-static const char fields_str_arr[][20] = {
+static const char fields_str_arr[FIELD_AMOUNT][20] = {
     "removido", "encadeamento", "idConecta", "siglaPais", "idPoPsConectado",
     "unidadeMedida", "velocidade", "nomePoPs", "nomePais"
 };
@@ -20,6 +20,12 @@ static const char fields_str_arr[][20] = {
 static const int8_t fields_size_arr[] = {
     1, 4, 4, 2, 4, 1, 4, -1, -1
 };  
+
+static const char fields_print_arr[FIELD_AMOUNT][35] = {
+    "", "", "Identificador do ponto", "Sigla do pais", 
+    "Identificador do ponto conectado", "", "Velocidade de transmissao", 
+    "Nome do ponto", "Pais de localizacao"
+};
 
 
 entry* createEntry(uint32_t size){
@@ -48,7 +54,7 @@ void initEntry(entry* e){
         e->fields[i].field_type = i;
     }
 
-    e->fields[removed].value.cbool = false;
+    e->fields[removed].value.carray[0] = '0';
     e->fields[linking].value.integer = -1;
     e->fields[poPsName].value.cpointer = NULL;
     e->fields[countryName].value.cpointer = NULL;
@@ -89,7 +95,7 @@ int readField(FILE* fp, field* f, int read_for_entry){
 
     int i, c;
     for(i = 0; (c = getc(fp)) != '|' &&
-        read_for_entry <= MAX_SIZE_ENTRY; //if we go past the max size, break
+        read_for_entry < MAX_SIZE_ENTRY; //if we go past the max size, break
         i++, read_for_entry++
     ){
         if(c == EOF){
@@ -110,12 +116,17 @@ int readField(FILE* fp, field* f, int read_for_entry){
 }
 
 void readEntry(FILE* fp, entry* e){
-    int read_for_entry = 0;
 
-    for(uint32_t i = 0; i < FIELD_AMOUNT; i++){
-        read_for_entry = readField(fp, e->fields+i, read_for_entry);
+    int read_for_entry = readField(fp, e->fields, 0);
+    if(e->fields[removed].value.carray[0] == '1'){
+        read_for_entry = readField(fp, e->fields+1, read_for_entry);
+        fseek(fp, MAX_SIZE_ENTRY-read_for_entry, SEEK_CUR);
+        return;
     }
 
+    for(uint32_t i = 1; i < FIELD_AMOUNT; i++){
+        read_for_entry = readField(fp, e->fields+i, read_for_entry);
+    }
     fseek(fp, MAX_SIZE_ENTRY-read_for_entry, SEEK_CUR);
 }
 
@@ -154,30 +165,37 @@ void writeEntry(FILE* fp, entry* e){
 void printField(field* f){
     switch(f->field_type){
     case removed:
-        printf("%s: %d\n", fields_str_arr[f->field_type], f->value.cbool);
-        break;
     case linking:
-    case idConnect:
-    case connPoPsId:
-        printf("%s: %d\n", fields_str_arr[f->field_type], f->value.integer);
+        //won't print meta fields
         break;
 
+    case idConnect:
+    case connPoPsId:
     case speed:
-        printf("%s: %d ", fields_str_arr[f->field_type], f->value.integer);
+        if(f->value.integer == -1){
+            return;
+        }
+        printf("%s: %d%c", fields_print_arr[f->field_type], f->value.integer, 
+            (f->field_type == speed)? ' ': '\n');
         break;
+
     case measurmentUnit:
         printf("%cbps\n", f->value.carray[0]);
         break;
 
     case countryAcro:
-        printf("%s: %c%c\n",
-            fields_str_arr[f->field_type],
-            f->value.carray[0], f->value.carray[1]
-        );
+        if(f->value.carray[0] == '\0'){
+            return;
+        }
+        printf("%s: %c%c\n", fields_print_arr[f->field_type],
+            f->value.carray[0], f->value.carray[1]);
         break;
     case poPsName:
     case countryName:
-        printf("%s: %s\n", fields_str_arr[f->field_type], f->value.cpointer);
+        if(f->value.cpointer == NULL || f->value.cpointer[0] == '\0'){
+            return;
+        }
+        printf("%s: %s\n", fields_print_arr[f->field_type], f->value.cpointer);
         break;
 
     default:
@@ -186,15 +204,14 @@ void printField(field* f){
 }
 
 void printEntry(entry* e){
-    for(int i = 0; i < 5; i++){
-        printField(e->fields + i);
-    }
-
+    printField(e->fields + idConnect);
+    printField(e->fields + poPsName);
+    printField(e->fields + countryName);
+    printField(e->fields + countryAcro);
+    printField(e->fields + connPoPsId);
     printField(e->fields + speed);
-    printField(e->fields + measurmentUnit);
-
-    for(int i = 7; i < FIELD_AMOUNT; i++){
-        printField(e->fields + i);
+    if(e->fields[speed].value.integer != -1){
+        printField(e->fields + measurmentUnit);
     }
 }
 

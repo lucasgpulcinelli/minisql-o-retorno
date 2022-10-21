@@ -14,7 +14,7 @@
 
 //struct header contains the header for a binary file
 typedef struct{
-    bool status;
+    char status;
     int32_t stack;
     uint32_t nextRRN;
     uint32_t entries_removed;

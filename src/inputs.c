@@ -167,7 +167,7 @@ void readFieldFromStdin(char** field_str) {
 void storeField(entry *es, size_t field, int8_t type, char* field_str) {
     switch(type){
         case boolean:
-            es->fields[field].value.cbool = atoi(field_str);
+            es->fields[field].value.carray[0] = atoi(field_str);
             break;
             
         case integer:

@@ -48,7 +48,6 @@ enum DataTypes{
 typedef struct {
     uint8_t field_type;
     union {
-        bool cbool;
         int32_t integer;
         char* cpointer;
         char carray[CHAR_ARRAY_LEN];

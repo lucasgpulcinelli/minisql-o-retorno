@@ -12,7 +12,7 @@ header* readHeader(FILE* fp){
 
     rewind(fp);
 
-    fread(&(h->status), sizeof(uint8_t), 1, fp);
+    fread(&(h->status), sizeof(char), 1, fp);
     fread(&(h->stack), sizeof(int32_t), 1, fp);
     fread(&(h->nextRRN), sizeof(int32_t), 1, fp);
     fread(&(h->entries_removed), sizeof(int32_t), 1, fp);
@@ -25,7 +25,7 @@ header* readHeader(FILE* fp){
 
 void writeHeader(FILE *fp, header *head) {
     rewind(fp);
-    fwrite(&(head->status), sizeof(uint8_t), 1, fp);
+    fwrite(&(head->status), sizeof(char), 1, fp);
     fwrite(&(head->stack), sizeof(int32_t), 1, fp);
     fwrite(&(head->nextRRN), sizeof(uint32_t), 1, fp);
     fwrite(&(head->entries_removed), sizeof(int32_t), 1, fp);
@@ -42,7 +42,7 @@ table* readTableBinary(FILE* fp){
     XALLOC(table, t, 1);
 
     t->header = readHeader(fp);
-    if(!t->header->status){
+    if(t->header->status != '1'){
         deleteHeader(t->header);
         free(t);
         return NULL;

@@ -22,7 +22,7 @@ void commandCreate(void){
 
     header *head;
     XALLOC(header, head, 1);
-    INIT_FILE_HEADER(head, false, EMPTY_STACK, 0, NO_ENTRIES_REMOVED, 1, NOT_COMPACTED);
+    INIT_FILE_HEADER(head, '0', EMPTY_STACK, 0, NO_ENTRIES_REMOVED, 1, NOT_COMPACTED);
 
     writeHeader(fp_out, head);
 
@@ -41,7 +41,7 @@ void commandCreate(void){
     fclose(fp_in);
 
     head->pages = (head->nextRRN)*sizeof(entry)/PAGE_SIZE + 1;
-    head->status = true;
+    head->status = '1';
     writeHeader(fp_out, head);
     free(head);
     fclose(fp_out);
@@ -62,20 +62,22 @@ void commandFrom(void){
         printf("Falha no processamento do arquivo.\n");
         exit(EXIT_SUCCESS);
     }
-    if(!hasNextEntry(t)){
-        printf("Registro inexistente.\n");
-        exit(EXIT_SUCCESS);
-    }
 
+    int printed = 0;
     for(entry* e; (e = readNextEntry(t)) != NULL; deleteEntry(e, 1)){
-        if(e->fields[removed].value.cbool == true){
+        if(e->fields[removed].value.carray[0] == '1'){
             continue;
         }
+        printed++;
         printEntry(e);
         printf("\n");
     }
 
-    printf("Numero de páginas de disco: %d\n\n", t->header->pages);
+    if(printed == 0){
+        printf("Registro inexistente.\n\n");
+    }
+
+    printf("Numero de paginas de disco: %d\n\n", t->header->pages);
 
     deleteTable(t);
     fclose(fp);
@@ -96,16 +98,13 @@ void commandWhere(void){
         printf("Falha no processamento do arquivo.\n");
         exit(EXIT_SUCCESS);
     }
-    if(!hasNextEntry(t)){
-        printf("Registro inexistente.\n");
-        exit(EXIT_SUCCESS);
-    }
 
-    for(int i = 0; i < n; i++, rewindTable(t)){
+    for(int i = 1; i <= n; i++, rewindTable(t)){
+        int printed = 0;
         printf("Busca %d\n", i);
 
         for(entry* e; (e = readNextEntry(t)) != NULL; deleteEntry(e, 1)){
-            if(e->fields[removed].value.cbool == true){
+            if(e->fields[removed].value.carray[0] == '1'){
                 continue;
             }
 
@@ -115,11 +114,16 @@ void commandWhere(void){
                 continue;
             }
 
+            printed++;
             printEntry(e);
             printf("\n");
         }
 
-        printf("Numero de páginas de disco: %d\n\n", t->header->pages);
+        if(printed == 0){
+            printf("Registro inexistente.\n\n");
+        }
+
+        printf("Numero de paginas de disco: %d\n\n", t->header->pages);
     }
 
     deleteTable(t);
@@ -149,13 +153,13 @@ void commandDelete(void){
     }
 
 
-    t->header->status = false;
+    t->header->status = '0';
     writeHeader(t->fp, t->header);
 
     for(int i = 0; i < n; i++, rewindTable(t)){
         int rrn = 0;
         for(entry* e; (e = readNextEntry(t)) != NULL; deleteEntry(e, 1), rrn++){
-            if(e->fields[removed].value.cbool == true){
+            if(e->fields[removed].value.carray[0] == '1'){
                 continue;
             }
 
@@ -167,17 +171,17 @@ void commandDelete(void){
 
             // clears already existing entry and writes it to disk
             clearEntry(e);
-            e->fields[removed].value.cbool = true;
+            e->fields[removed].value.carray[0] = '1';
             e->fields[linking].value.integer = t->header->stack;
             t->header->stack = rrn;
             seekTable(t, rrn);
             writeEntry(t->fp, e);
         }
 
-        t->header->status = true;
+        t->header->status = '1';
         writeHeader(t->fp, t->header);
 
-        printf("Numero de páginas de disco: %d\n\n", t->header->pages);
+        printf("Numero de paginas de disco: %d\n\n", t->header->pages);
     }
 
     deleteTable(t);
@@ -258,7 +262,7 @@ void commandCompact(void){
     }
 
     for(entry* e; (e = readNextEntry(t)) != NULL; deleteEntry(e, 1)){
-        if(e->fields[removed].value.cbool == true){
+        if(e->fields[removed].value.carray[0] == '1'){
             continue;
         }
 
