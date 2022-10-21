@@ -99,9 +99,9 @@ void commandWhere(void){
         exit(EXIT_SUCCESS);
     }
 
-    for(int i = 1; i <= n; i++, rewindTable(t)){
+    for(int i = 0; i < n; i++, rewindTable(t)){
         int printed = 0;
-        printf("Busca %d\n", i);
+        printf("Busca %d\n", i+1);
 
         for(entry* e; (e = readNextEntry(t)) != NULL; deleteEntry(e, 1)){
             if(e->fields[removed].value.carray[0] == '1'){
@@ -147,11 +147,6 @@ void commandDelete(void){
         printf("Falha no processamento do arquivo.\n");
         exit(EXIT_SUCCESS);
     }
-    if(!hasNextEntry(t)){
-        printf("Registro inexistente.\n");
-        exit(EXIT_SUCCESS);
-    }
-
 
     t->header->status = '0';
     writeHeader(t->fp, t->header);
@@ -169,24 +164,22 @@ void commandDelete(void){
                 continue;
             }
 
-            // clears already existing entry and writes it to disk
-            clearEntry(e);
-            e->fields[removed].value.carray[0] = '1';
-            e->fields[linking].value.integer = t->header->stack;
-            t->header->stack = rrn;
             seekTable(t, rrn);
-            writeEntry(t->fp, e);
+            writeEmptyEntry(t->fp, t->header->stack);
+            t->header->entries_removed++;
+            t->header->stack = rrn;
         }
-
-        t->header->status = '1';
-        writeHeader(t->fp, t->header);
-
-        printf("Numero de paginas de disco: %d\n\n", t->header->pages);
     }
+
+
+    t->header->status = '1';
+    writeHeader(t->fp, t->header);
 
     deleteTable(t);
     fclose(fp);
     freeTuples(where, n);
+
+    binaryOnScreen(bin_filename);
     free(bin_filename);
 }
 

@@ -150,6 +150,20 @@ int writeField(FILE* fp, field* f, ssize_t size){
     return write_len + 1;
 }
 
+void writeEmptyEntry(FILE* fp, int stack){
+    int i = 0;
+
+    putc('1', fp);
+    i++;
+
+    fwrite(&stack, sizeof(int32_t), 1, fp);
+    i += 4;
+
+    for(; i < MAX_SIZE_ENTRY; i++){
+        putc('$', fp);
+    }
+}
+
 void writeEntry(FILE* fp, entry* e){
     ssize_t bytes = MAX_SIZE_ENTRY;      //Available bytes in entry
     for(uint32_t i = 0; i < FIELD_AMOUNT && bytes > 0; i++){
@@ -209,8 +223,10 @@ void printEntry(entry* e){
     printField(e->fields + countryName);
     printField(e->fields + countryAcro);
     printField(e->fields + connPoPsId);
-    printField(e->fields + speed);
-    if(e->fields[speed].value.integer != -1){
+    if(e->fields[speed].value.integer != -1 && 
+        e->fields[measurmentUnit].value.carray[0] != '$'){
+
+        printField(e->fields + speed);
         printField(e->fields + measurmentUnit);
     }
 }

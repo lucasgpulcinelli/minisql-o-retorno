@@ -103,6 +103,9 @@ void readEntry(FILE* fp, entry* e);
  */
 int writeField(FILE* fp, field* f, ssize_t size);
 
+// writeEmptyEntry writes a single entry as removed with a stack index.
+void writeEmptyEntry(FILE* fp, int stack);
+
 /*
  * writeEntry writes the entry e in the binary file fp. It fills the 
  * trash and remaining space with '$'. It always writes MAX_SIZE_ENTRY

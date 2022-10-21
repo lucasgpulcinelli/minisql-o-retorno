@@ -63,7 +63,7 @@ void binaryOnScreen(char* filename){
     OPEN_FILE(fp, filename, "rb");
 
     uint32_t sum = 0;
-	for(char c = getc(fp); c != EOF; c = getc(fp)) {
+	for(int c = getc(fp); c != EOF; c = getc(fp)) {
 		sum += c;
 	}
 
