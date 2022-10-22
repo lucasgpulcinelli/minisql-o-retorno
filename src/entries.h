@@ -6,13 +6,17 @@
 #include <stdbool.h>
 #include <sys/types.h>
 
-#define NOT_ERASED -1
-
 #define FIELD_AMOUNT 9
 #define MAX_SIZE_ENTRY 64
 #define CHAR_ARRAY_LEN 4
 
 #define NULL_STR "NULO"
+#define NULL_INT -1
+
+#define NOT_REMOVED '0'
+#define REMOVED '1'
+
+#define ENTRY_REMOVED(e) (e->fields[removed].value.carray[0] == REMOVED)
 
 /*
  * enum FieldTypes represents all possible fields, ordered by apperance in the

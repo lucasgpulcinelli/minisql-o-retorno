@@ -22,7 +22,7 @@ void commandCreate(void){
 
     header *head;
     XALLOC(header, head, 1);
-    INIT_FILE_HEADER(head, '0', EMPTY_STACK, 0, NO_ENTRIES_REMOVED, 1, NOT_COMPACTED);
+    INIT_FILE_HEADER(head, ERR_HEADER, EMPTY_STACK, 0, NO_ENTRIES_REMOVED, 1, NOT_COMPACTED);
 
     writeHeader(fp_out, head);
 
@@ -41,7 +41,7 @@ void commandCreate(void){
     fclose(fp_in);
 
     head->pages = (head->nextRRN)*sizeof(entry)/PAGE_SIZE + 1;
-    head->status = '1';
+    head->status = OK_HEADER;
     writeHeader(fp_out, head);
     free(head);
     fclose(fp_out);
@@ -65,12 +65,12 @@ void commandFrom(void){
 
     int printed = 0;
     for(entry* e; (e = readNextEntry(t)) != NULL; deleteEntry(e, 1)){
-        if(e->fields[removed].value.carray[0] == '1'){
+        if(ENTRY_REMOVED(e)){
             continue;
         }
+
         printed++;
         printEntry(e);
-        printf("\n");
     }
 
     if(printed == 0){
@@ -104,7 +104,7 @@ void commandWhere(void){
         printf("Busca %d\n", i+1);
 
         for(entry* e; (e = readNextEntry(t)) != NULL; deleteEntry(e, 1)){
-            if(e->fields[removed].value.carray[0] == '1'){
+            if(ENTRY_REMOVED(e)){
                 continue;
             }
 
@@ -116,7 +116,6 @@ void commandWhere(void){
 
             printed++;
             printEntry(e);
-            printf("\n");
         }
 
         if(printed == 0){
@@ -148,13 +147,13 @@ void commandDelete(void){
         exit(EXIT_SUCCESS);
     }
 
-    t->header->status = '0';
+    t->header->status = ERR_HEADER;
     writeHeader(t->fp, t->header);
 
     for(int i = 0; i < n; i++, rewindTable(t)){
         int rrn = 0;
         for(entry* e; (e = readNextEntry(t)) != NULL; deleteEntry(e, 1), rrn++){
-            if(e->fields[removed].value.carray[0] == '1'){
+            if(ENTRY_REMOVED(e)){
                 continue;
             }
 
@@ -172,7 +171,7 @@ void commandDelete(void){
     }
 
 
-    t->header->status = '1';
+    t->header->status = OK_HEADER;
     writeHeader(t->fp, t->header);
 
     deleteTable(t);

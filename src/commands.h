@@ -19,6 +19,7 @@
     p->times_compacted = compacted;/*Number of times file was compacted*/      
 
 #define COMMANDS_SIZE 6
+
 enum Commands {
     create = 1,
     /*

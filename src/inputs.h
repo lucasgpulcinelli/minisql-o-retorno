@@ -3,8 +3,6 @@
 
 #include "entries.h"
 
-#define NULL_INT -1
-#define CHAR_ARRAY_SIZE 4
 #define NULL_OFFSET 3
 
 enum NullTypes {

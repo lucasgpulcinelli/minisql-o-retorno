@@ -30,7 +30,7 @@ static const char fields_print_arr[FIELD_AMOUNT][35] = {
 
 entry* createEntry(uint32_t size){
     entry* es;
-    MEMSET_ALLOC(entry, es, size);
+    XALLOC(entry, es, size);
 
     for(uint32_t i = 0; i < size; i++){
         initEntry(es+i);
@@ -54,8 +54,8 @@ void initEntry(entry* e){
         e->fields[i].field_type = i;
     }
 
-    e->fields[removed].value.carray[0] = '0';
-    e->fields[linking].value.integer = -1;
+    e->fields[removed].value.carray[0] = NOT_REMOVED;
+    e->fields[linking].value.integer = NULL_INT;
     e->fields[poPsName].value.cpointer = NULL;
     e->fields[countryName].value.cpointer = NULL;
 }
@@ -110,15 +110,17 @@ int readField(FILE* fp, field* f, int read_for_entry){
 
     //the last character must always be '\0'
     str[i] = '\0';
+    XREALLOC(char, str, i+1);
     f->value.cpointer = str;
 
     return read_for_entry+1;
 }
 
 void readEntry(FILE* fp, entry* e){
-
     int read_for_entry = readField(fp, e->fields, 0);
-    if(e->fields[removed].value.carray[0] == '1'){
+    if(ENTRY_REMOVED(e)){
+        //if the entry is deleted, only read the meta fields
+
         read_for_entry = readField(fp, e->fields+1, read_for_entry);
         fseek(fp, MAX_SIZE_ENTRY-read_for_entry, SEEK_CUR);
         return;
@@ -138,7 +140,9 @@ int writeField(FILE* fp, field* f, ssize_t size){
     }
 
     //variable sized fields
-    if(f->value.cpointer == NULL || (!strncmp(f->value.cpointer, NULL_STR, strlen(f->value.cpointer)))){
+    if(f->value.cpointer == NULL || 
+        (!strncmp(f->value.cpointer, NULL_STR, strlen(f->value.cpointer)))){
+            
         putc('|', fp);
         return 1;
     }
@@ -153,7 +157,7 @@ int writeField(FILE* fp, field* f, ssize_t size){
 void writeEmptyEntry(FILE* fp, int stack){
     int i = 0;
 
-    putc('1', fp);
+    putc(REMOVED, fp);
     i++;
 
     fwrite(&stack, sizeof(int32_t), 1, fp);
@@ -229,9 +233,15 @@ void printEntry(entry* e){
         printField(e->fields + speed);
         printField(e->fields + measurmentUnit);
     }
+    
+    printf("\n");
 }
 
 int fieldCmp(field f1, field f2){
+    if(f1.field_type != f2.field_type){
+        return 1; //different
+    }
+
     switch(f1.field_type){
     case poPsName:
     case countryName:

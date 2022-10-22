@@ -12,6 +12,9 @@
 #define ENTRIES_PER_PAGE (PAGE_SIZE/MAX_SIZE_ENTRY)
 #define HEADER_SIZE 21
 
+#define OK_HEADER '1'
+#define ERR_HEADER '0'
+
 //struct header contains the header for a binary file
 typedef struct{
     char status;

@@ -28,13 +28,13 @@ field* readTuples(int n){
         }
         fs[i].field_type = type;
 
-        if(strcmp("NULO", field_value) == 0){
+        if(strcmp(NULL_STR, field_value) == 0){
             //NULL value
 
             switch(type){
             case countryAcro:
             case measurmentUnit:
-                memset(fs[i].value.carray, '$', sizeof(char)*4);
+                memset(fs[i].value.carray, '$', sizeof(char)*CHAR_ARRAY_LEN);
                 break;
             case countryName:
             case poPsName:
@@ -65,7 +65,7 @@ field* readTuples(int n){
         switch(fs[i].field_type){
         case countryAcro:
         case measurmentUnit:
-            strncpy(fs[i].value.carray, field_value+1, 4);
+            strncpy(fs[i].value.carray, field_value+1, CHAR_ARRAY_LEN);
             break;
         
         case poPsName:
@@ -127,7 +127,7 @@ void readEntryFromStdin(entry *es){
         readFieldFromStdin(&field_str);
 
         int8_t data_type = data_types_map[order[field]];
-        if(!strcmp(field_str, "NULO")){
+        if(!strcmp(field_str, NULL_STR)){
            data_type += NULL_OFFSET;
         }
 
@@ -188,7 +188,7 @@ void storeField(entry *es, size_t field, int8_t type, char* field_str) {
             break;
         
         case null_char_array:
-            memset(es->fields[field].value.carray, '$', CHAR_ARRAY_SIZE);
+            memset(es->fields[field].value.carray, '$', CHAR_ARRAY_LEN);
             break;
 
         case null_char_p:

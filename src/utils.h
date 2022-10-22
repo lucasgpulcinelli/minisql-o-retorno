@@ -62,11 +62,14 @@
     }                                         \
 
 //OPEN_FILE does the same as fopen, but verifies if the specified file exists.
-#define OPEN_FILE(file_pointer, filename, mode) \
-    (file_pointer) = fopen((filename), (mode)); \
-    if ((file_pointer) == NULL) {               \
-        ABORT_PROGRAM("open %s", (filename));   \
-    }                                           \
+//usually, this would call ABORT_PROGRAM, however, because of runcodes test
+//cases, a simple printf and a silent exit were used.
+#define OPEN_FILE(file_pointer, filename, mode)         \
+    (file_pointer) = fopen((filename), (mode));         \
+    if ((file_pointer) == NULL) {                       \
+        printf("Falha no processamento do arquivo.\n"); \
+        exit(EXIT_SUCCESS);                             \
+    }                                                   \
 
 //MEMSET_ALLOC does the same as XALLOC, but it initializes all bytes to '$'
 #define MEMSET_ALLOC(type, p, size)          \
