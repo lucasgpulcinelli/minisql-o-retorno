@@ -6,3 +6,5 @@ build/
 
 *.bin
 *.csv
+arquivos/*
+casos_de_teste/*
