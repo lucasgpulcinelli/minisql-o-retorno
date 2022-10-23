@@ -12,6 +12,11 @@ static const int8_t data_types_map[] = {
     char_array, integer, char_p, char_p
 };
 
+static const int8_t order[] = {
+    removed, linking, idConnect, poPsName, countryName, 
+    countryAcro, connPoPsId, measurmentUnit, speed
+};
+
 
 field* readTuples(int n){
     field* fs;
@@ -95,19 +100,24 @@ void freeTuples(field* fs, int n){
 }
 
 void readEntryFromCSV(char *csv_line, entry *es){
-    char *field = (char *)strtok(csv_line, ",");
+    char *field = (char *)strsep(&csv_line, ",");
     size_t num_fields = 0;
 
-    for(num_fields = 0; field && num_fields < FIELD_AMOUNT; 
-        num_fields++, field = (char *)strtok(NULL, ",")) {
-        storeField(es, num_fields, data_types_map[num_fields], field);
+    for(num_fields = idConnect; field && num_fields < FIELD_AMOUNT; 
+        num_fields++, field = (char *)strsep(&csv_line, ",")) {
+        ssize_t data_type = data_types_map[order[num_fields]];
+        if(IS_NULL(field)) {
+            data_type += NULL_DATA_TYPES_OFFSET;
+        }
+        
+        storeField(es, order[num_fields], data_type, field);
     }
 
-    if(num_fields < FIELD_AMOUNT) {
+    if(num_fields < CSV_FIELD_AMOUNT) {
         errno = EINVAL;
         ABORT_PROGRAM("Bad number of fields: found %lu in input, "
                       "but there should be %d",
-                      num_fields, FIELD_AMOUNT);
+                      num_fields, CSV_FIELD_AMOUNT);
 
     } else if(field) {
         errno = EINVAL;
@@ -117,18 +127,13 @@ void readEntryFromCSV(char *csv_line, entry *es){
 }
 
 void readEntryFromStdin(entry *es){
-    static const int8_t order[] = {
-        removed, linking, idConnect, poPsName, countryName, 
-        countryAcro, connPoPsId, measurmentUnit, speed
-    };
-
     for(size_t field = idConnect; field < FIELD_AMOUNT; field++){
         char* field_str;
         readFieldFromStdin(&field_str);
 
         int8_t data_type = data_types_map[order[field]];
         if(!strcmp(field_str, NULL_STR)){
-           data_type += NULL_OFFSET;
+           data_type += NULL_DATA_TYPES_OFFSET;
         }
 
         storeField(es, order[field], data_type, field_str);
@@ -165,29 +170,31 @@ void readFieldFromStdin(char** field_str) {
 }
 
 void storeField(entry *es, size_t field, int8_t type, char* field_str) {
+    char* copy = strdup(field_str);
+    strStrip(&copy);
     switch(type){
         case boolean:
-            es->fields[field].value.carray[0] = atoi(field_str);
+            es->fields[field].value.carray[0] = atoi(copy);
             break;
             
         case integer:
-            es->fields[field].value.integer = atoi(field_str);
+            es->fields[field].value.integer = atoi(copy);
             break;
             
         case char_array:
-            strncpy(es->fields[field].value.carray, field_str, CHAR_ARRAY_LEN);
+            strncpy(es->fields[field].value.carray, copy, CHAR_ARRAY_LEN);
             break;
 
         case char_p:
-            XALLOC(char, es->fields[field].value.cpointer, strlen(field_str) + 1);
-            strcpy(es->fields[field].value.cpointer, field_str);
+            XALLOC(char, es->fields[field].value.cpointer, strlen(copy) + 1);
+            strcpy(es->fields[field].value.cpointer, copy);
             break;
             
         case null_int:
             es->fields[field].value.integer = NULL_INT;
             break;
         
-        case null_char_array:
+        case null_char_array: 
             memset(es->fields[field].value.carray, '$', CHAR_ARRAY_LEN);
             break;
 
@@ -198,4 +205,6 @@ void storeField(entry *es, size_t field, int8_t type, char* field_str) {
         default:
             break;
     }
+
+    free(copy);
 }

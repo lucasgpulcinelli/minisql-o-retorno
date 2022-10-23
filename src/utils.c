@@ -3,6 +3,7 @@
 #include <string.h>
 #include <errno.h>
 #include <inttypes.h>
+#include <ctype.h>
 
 #include "utils.h"
 
@@ -69,4 +70,30 @@ void binaryOnScreen(char* filename){
 
 	printf("%lf\n", sum / (double) 100);
     fclose(fp);
-}	
+}
+
+void strStrip(char **str_ptr) {
+    ssize_t len = strlen(*str_ptr);
+    ssize_t end = len;
+    while(len > 0 && isblank((*str_ptr)[len - 1])) {
+        len--;
+    }
+
+    ssize_t start = 0;
+    while(start <= len && isblank((*str_ptr)[start])) {
+        start++;
+    }
+
+    if(start == 0 && len == end) {
+        return;
+    }
+
+    char* striped_str;
+    XALLOC(char, striped_str, len - start + 1);
+
+    strncpy(striped_str, *(str_ptr) + start, len - start);
+    striped_str[len - start] = '\0';
+
+    free(*str_ptr);
+    *str_ptr = striped_str;
+} 

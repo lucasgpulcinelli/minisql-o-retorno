@@ -1,4 +1,4 @@
-CFLAGS  += -std=c11 -Wall -Wextra
+CFLAGS  += -std=gnu99 -Wall -Wextra
 LDFLAGS +=
 VDFLAGS  = --track-origins=yes -v --leak-check=full
 

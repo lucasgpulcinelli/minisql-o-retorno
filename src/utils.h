@@ -117,5 +117,7 @@ ssize_t min(ssize_t a, ssize_t b);
  */
 void binaryOnScreen(char* filename);
 
+void strStrip(char **str_ptr);
+
 #endif
 

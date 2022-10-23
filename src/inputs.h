@@ -3,8 +3,17 @@
 
 #include "entries.h"
 
-#define NULL_OFFSET 3
+#define NULL_DATA_TYPES_OFFSET 3
+#define CSV_FIELD_AMOUNT 7       //Number of fields per line in csv
 
+#define IS_NULL(str) !strcmp(str, "")
+
+/*
+ * NullTypes represents the same data types as enum DataTypes, 
+ * but any field with a type in enum NullTypes has been 
+ * initialized to a null value. Conversely, any field with type in
+ * enum DataTypes has been initialized to a non-null value.
+ */
 enum NullTypes {
     null_int = 4,
     null_char_p,

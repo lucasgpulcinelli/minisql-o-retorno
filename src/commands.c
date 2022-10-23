@@ -25,11 +25,22 @@ void commandCreate(void){
     INIT_FILE_HEADER(head, ERR_HEADER, EMPTY_STACK, 0, NO_ENTRIES_REMOVED, 1, NOT_COMPACTED);
 
     writeHeader(fp_out, head);
-
     entry *es = createEntry(1);
+
+    char* csv_header;
+    readFirstLine(&csv_header, fp_in);
+    if(strcmp(csv_header, CSV_HEADER)){
+        ABORT_PROGRAM("Falha no processamento do arquivo.\n");
+    }
+    free(csv_header);
+
     while(!feof(fp_in)) {
         char *line;
         readFirstLine(&line, fp_in);
+        if(!strcmp(line, "")){
+            break;
+        }
+        
         readEntryFromCSV(line, es);
         free(line);
 
@@ -191,10 +202,8 @@ void commandInsert(void){
     OPEN_FILE(fp, bin_filename, "r+b");
     header *head = readHeader(fp);
 
-    entry* es;
-    entry* erased;
-    XALLOC(entry, es, 1);
-    XALLOC(entry, erased, 1);
+    entry* es = createEntry(1);
+    entry* erased = createEntry(1);
     
     ssize_t stack = head->stack;
     while(stack != EMPTY_STACK && n > 0) {
@@ -210,7 +219,7 @@ void commandInsert(void){
     }
 
     head->stack = stack;
-    free(erased);
+    deleteEntry(erased, 1);
     fseek(fp, 0, SEEK_END);
 
     while(n > 0) {
@@ -221,11 +230,10 @@ void commandInsert(void){
     }
 
     deleteEntry(es, 1);
-
     head->pages = 1 + head->nextRRN/PAGE_SIZE;
     writeHeader(fp, head);
 
-    free(head);
+    deleteHeader(head);
     fclose(fp);
     free(bin_filename);
 }
@@ -253,13 +261,22 @@ void commandCompact(void){
         exit(EXIT_SUCCESS);
     }
 
+    header *head;
+    XALLOC(header, head, 1);
+    INIT_FILE_HEADER(head, false, EMPTY_STACK, 0, NO_ENTRIES_REMOVED, 1, NOT_COMPACTED);
+
     for(entry* e; (e = readNextEntry(t)) != NULL; deleteEntry(e, 1)){
         if(e->fields[removed].value.carray[0] == '1'){
             continue;
         }
 
         writeEntry(fp_out, e);
+        head->nextRRN++;
     }
+
+    head->pages = (head->nextRRN)*sizeof(entry)/PAGE_SIZE + 1;
+    head->status = true;
+    writeHeader(fp_out, head);
 
     fclose(fp_in);
     fclose(fp_out);
