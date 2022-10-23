@@ -25,7 +25,6 @@ void commandCreate(void){
     INIT_FILE_HEADER(head, ERR_HEADER, EMPTY_STACK, 0, NO_ENTRIES_REMOVED, 1, NOT_COMPACTED);
 
     writeHeader(fp_out, head);
-    entry *es = createEntry(1);
 
     char* csv_header;
     readFirstLine(&csv_header, fp_in);
@@ -38,20 +37,21 @@ void commandCreate(void){
         char *line;
         readFirstLine(&line, fp_in);
         if(!strcmp(line, "")){
+            free(line);
             break;
         }
-        
+
+        entry *es = createEntry(1);
         readEntryFromCSV(line, es);
         free(line);
 
         writeEntry(fp_out, es);
+        deleteEntry(es, 1);
         head->nextRRN++;
     }
-
-    deleteEntry(es, 1);
     fclose(fp_in);
 
-    head->pages = (head->nextRRN)*sizeof(entry)/PAGE_SIZE + 1;
+    head->pages = head->nextRRN/ENTRIES_PER_PAGE + ((head->nextRRN/ENTRIES_PER_PAGE)*ENTRIES_PER_PAGE != head->nextRRN) + 1;
     head->status = OK_HEADER;
     writeHeader(fp_out, head);
     free(head);
