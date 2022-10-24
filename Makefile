@@ -20,7 +20,7 @@ clean:
 zip: clean
 	7za a $(ZIPFILE) ./*
 
-gdb: $(EXECUTABLE)
+gdb: debug
 	gdb $(EXECUTABLE)
 
 run: $(EXECUTABLE)
