@@ -272,19 +272,20 @@ void commandCompact(void){
     header *head;
     XALLOC(header, head, 1);
     INIT_FILE_HEADER(head, false, EMPTY_STACK, 0, NO_ENTRIES_REMOVED, 1, NOT_COMPACTED);
+    writeHeader(fp_out, head);
 
     for(entry* e; (e = readNextEntry(t)) != NULL; deleteEntry(e, 1)){
-        if(e->fields[removed].value.carray[0] == '1'){
-            continue;
+        if(e->fields[removed].value.carray[0] == NOT_REMOVED){
+            writeEntry(fp_out, e);
+            head->nextRRN++;
         }
-
-        writeEntry(fp_out, e);
-        head->nextRRN++;
     }
 
-    head->pages = (head->nextRRN)*sizeof(entry)/PAGE_SIZE + 1;
-    head->status = true;
+    head->pages = head->nextRRN/ENTRIES_PER_PAGE + ((head->nextRRN/ENTRIES_PER_PAGE)*ENTRIES_PER_PAGE != head->nextRRN) + 1;
+    head->status = OK_HEADER;
+    head->times_compacted  = getTimesCompacted(t) + 1;
     writeHeader(fp_out, head);
+    deleteHeader(head);
 
     fclose(fp_in);
     fclose(fp_out);

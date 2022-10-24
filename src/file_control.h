@@ -76,4 +76,7 @@ void deleteTable(table* t);
 //deleteHeader deletes a header.
 void deleteHeader(header* h);
 
+//getTimesCompacted returns the number of times the table has been compacted.
+uint32_t getTimesCompacted(table* t);
+
 #endif

@@ -89,3 +89,7 @@ void deleteTable(table* t){
 void deleteHeader(header* h){
     free(h);
 }
+
+uint32_t getTimesCompacted(table* t) {
+    return t->header->times_compacted;
+}
