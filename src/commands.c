@@ -230,11 +230,13 @@ void commandInsert(void){
     }
 
     deleteEntry(es, 1);
-    head->pages = 1 + head->nextRRN/PAGE_SIZE;
+    head->pages = head->nextRRN/ENTRIES_PER_PAGE + ((head->nextRRN/ENTRIES_PER_PAGE)*ENTRIES_PER_PAGE != head->nextRRN) + 1;
     writeHeader(fp, head);
 
     deleteHeader(head);
     fclose(fp);
+
+    binaryOnScreen(bin_filename);
     free(bin_filename);
 }
 
