@@ -209,11 +209,12 @@ void commandInsert(void){
     while(stack != EMPTY_STACK && n > 0) {
         fseek(fp, PAGE_SIZE + MAX_SIZE_ENTRY*stack, SEEK_SET);
         readEntry(fp, erased);
+
         readEntryFromStdin(es);
+        fseek(fp, -MAX_SIZE_ENTRY, SEEK_CUR);
+        writeEntry(fp, es);
 
         stack = erased->fields[linking].value.integer;
-        fseek(fp, PAGE_SIZE + MAX_SIZE_ENTRY*stack, SEEK_SET);
-        writeEntry(fp, es);
         head->entries_removed--;
         n--;
     }
