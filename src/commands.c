@@ -201,10 +201,10 @@ void commandInsert(void){
     FILE* fp;
     OPEN_FILE(fp, bin_filename, "r+b");
     header *head = readHeader(fp);
-
+    
     entry* es = createEntry(1);
     entry* erased = createEntry(1);
-    
+
     ssize_t stack = head->stack;
     while(stack != EMPTY_STACK && n > 0) {
         fseek(fp, PAGE_SIZE + MAX_SIZE_ENTRY*stack, SEEK_SET);
@@ -217,15 +217,20 @@ void commandInsert(void){
         stack = erased->fields[linking].value.integer;
         head->entries_removed--;
         n--;
+
+        clearEntry(es);
+        clearEntry(erased);
     }
 
-    head->stack = stack;
     deleteEntry(erased, 1);
+    head->stack = stack;
     fseek(fp, 0, SEEK_END);
 
     while(n > 0) {
         readEntryFromStdin(es);
         writeEntry(fp, es);
+        clearEntry(es);
+
         (head->nextRRN)++;
         n--;
     }
