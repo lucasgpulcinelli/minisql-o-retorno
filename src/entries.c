@@ -21,6 +21,10 @@ static const int8_t fields_size_arr[] = {
     1, 4, 4, 2, 4, 1, 4, -1, -1
 };  
 
+/*
+ * printing strings for each field (except for meta fields, these can't be 
+ * printed)
+ */
 static const char fields_print_arr[FIELD_AMOUNT][35] = {
     "", "", "Identificador do ponto", "Sigla do pais", 
     "Identificador do ponto conectado", "", "Velocidade de transmissao", 
@@ -198,11 +202,14 @@ void printField(field* f){
         break;
 
     case measurmentUnit:
+        if(f->value.carray[0] == '\0' || f->value.carray[0] == '$'){
+            return;
+        }
         printf("%cbps\n", f->value.carray[0]);
         break;
 
     case countryAcro:
-        if(f->value.carray[0] == '\0'){
+        if(f->value.carray[0] == '\0' || f->value.carray[0] == '$'){
             return;
         }
         printf("%s: %c%c\n", fields_print_arr[f->field_type],
@@ -227,8 +234,12 @@ void printEntry(entry* e){
     printField(e->fields + countryName);
     printField(e->fields + countryAcro);
     printField(e->fields + connPoPsId);
+
+    //esses dois campos estão diretamente relacionados, se qualquer um deles 
+    //for vazio, não coloca nenhum na tela
     if(e->fields[speed].value.integer != -1 && 
-        e->fields[measurmentUnit].value.carray[0] != '$'){
+       e->fields[measurmentUnit].value.carray[0] != '$' &&
+       e->fields[measurmentUnit].value.carray[0] != '\0'){
 
         printField(e->fields + speed);
         printField(e->fields + measurmentUnit);
@@ -239,7 +250,7 @@ void printEntry(entry* e){
 
 int fieldCmp(field f1, field f2){
     if(f1.field_type != f2.field_type){
-        return 1; //different
+        return 1; //diferentes
     }
 
     switch(f1.field_type){
