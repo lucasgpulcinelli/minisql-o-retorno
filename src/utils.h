@@ -71,8 +71,7 @@
 #define OPEN_FILE(file_pointer, filename, mode)         \
     (file_pointer) = fopen((filename), (mode));         \
     if ((file_pointer) == NULL) {                       \
-        printf("Falha no processamento do arquivo.\n"); \
-        exit(EXIT_SUCCESS);                             \
+        EXIT_ERROR()                                    \
     }                                                   \
 
 //MEMSET_ALLOC does the same as XALLOC, but it initializes all bytes to '$'
