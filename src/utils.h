@@ -37,6 +37,10 @@
  */
 #define ABORT_PROGRAM(...) fatalError(__LINE__, __FILE__, ##__VA_ARGS__);
 
+#define EXIT_ERROR()                                        \
+    printf("Falha no processamento do arquivo.\n");         \
+    exit(EXIT_SUCCESS);                                     \
+
 /*
  * XALLOC allocates memory in the heap in the pointer p,
  * checking if the allocation failed and aborting the program if so

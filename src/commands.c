@@ -183,56 +183,24 @@ void commandDelete(void){
 }
 
 void commandInsert(void){
-    char* bin_filename;
-    int32_t n;
-    READ_INPUT("%ms %d", &bin_filename, &n);
-
-    FILE* fp;
-    OPEN_FILE(fp, bin_filename, "r+b");
-    header *head = readHeader(fp);
+    char* table_filename;
+    int32_t num_insertions;
+    READ_INPUT("%ms %d", &table_filename, &num_insertions);
     
+    table* t = openTable(table_filename);
     entry* es = createEntry(1);
-    entry* erased = createEntry(1);
+    free(table_filename);
 
-    ssize_t stack = head->stack;
-    while(stack != EMPTY_STACK && n > 0) {
-        fseek(fp, PAGE_SIZE + MAX_SIZE_ENTRY*stack, SEEK_SET);
-        readEntry(fp, erased);
-
+    while(num_insertions > 0) {
         readEntryFromStdin(es);
-        fseek(fp, -MAX_SIZE_ENTRY, SEEK_CUR);
-        writeEntry(fp, es);
-
-        stack = erased->fields[linking].value.integer;
-        head->entries_removed--;
-        n--;
+        writeEntryOnTable(t, es);
 
         clearEntry(es);
-        clearEntry(erased);
-    }
-
-    deleteEntry(erased, 1);
-    head->stack = stack;
-    fseek(fp, 0, SEEK_END);
-
-    while(n > 0) {
-        readEntryFromStdin(es);
-        writeEntry(fp, es);
-        clearEntry(es);
-
-        (head->nextRRN)++;
-        n--;
+        num_insertions--;
     }
 
     deleteEntry(es, 1);
-    head->pages = head->nextRRN/ENTRIES_PER_PAGE + ((head->nextRRN/ENTRIES_PER_PAGE)*ENTRIES_PER_PAGE != head->nextRRN) + 1;
-    writeHeader(fp, head);
-
-    deleteHeader(head);
-    fclose(fp);
-
-    binaryOnScreen(bin_filename);
-    free(bin_filename);
+    closeTable(t);
 }
 
 void commandCompact(void){

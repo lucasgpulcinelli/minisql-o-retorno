@@ -53,6 +53,8 @@ table* readTableBinary(FILE* fp);
 
 table* createEmptyTable(char* table_name);
 
+table* openTable(char* table_name);
+
 /*
  * readNextEntry reads the next entry from the table, the returned entry must be
  * deleted afterwards.

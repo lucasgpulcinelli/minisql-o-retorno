@@ -42,7 +42,7 @@ table* readTableBinary(FILE* fp){
     XALLOC(table, t, 1);
 
     t->header = readHeader(fp);
-    if(t->header->status != '1'){
+    if(t->header->status != OK_HEADER){
         deleteHeader(t->header);
         free(t);
         return NULL;
@@ -68,6 +68,19 @@ table* createEmptyTable(char* table_name) {
 
     writeHeader(new_table->fp, new_table->header);
     return new_table;
+}
+
+table* openTable(char* table_name) {
+    table* t;
+    XALLOC(table, t, 1);
+
+    OPEN_FILE(t->fp, table_name, "r+b");
+    t->header = readHeader(t->fp);
+    if(t->header->status == ERR_HEADER) {
+        EXIT_ERROR();
+    }
+
+    return t;
 }
 
 void seekTable(table* t, size_t entry_number){
@@ -98,8 +111,25 @@ entry* readNextEntry(table* t){
 }
 
 void writeEntryOnTable(table* t, entry* es) {
+    if(t->header->stack != EMPTY_STACK) {
+        fseek(t->fp, PAGE_SIZE + t->header->stack*MAX_SIZE_ENTRY, SEEK_SET);
+        entry* erased = createEntry(1);
+        readEntry(t->fp, erased);
+
+        fseek(t->fp, -MAX_SIZE_ENTRY, SEEK_CUR);
+        t->header->stack = erased->fields[linking].value.integer;
+        t->header->entries_removed--;
+        deleteEntry(erased, 1);
+
+        writeEntry(t->fp, es);
+        return;
+
+    } else if(!feof(t->fp)) {
+        fseek(t->fp, 0, SEEK_END);
+    }
+
     writeEntry(t->fp, es);
-    t->header->nextRRN += !feof(t->fp);
+    t->header->nextRRN++;
 }
 
 void closeTable(table *t) {
