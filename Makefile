@@ -1,6 +1,6 @@
 CFLAGS  += -std=gnu99 -Wall -Wextra
 LDFLAGS +=
-VDFLAGS  = --track-origins=yes -v --leak-check=full
+VDFLAGS  = --track-origins=yes -v --leak-check=full --show-leak-kinds=all
 
 EXECUTABLE ?= build/main
 ZIPFILE    ?= ../zipfile.zip
