@@ -94,4 +94,6 @@ void deleteHeader(header* h);
 //getTimesCompacted returns the number of times the table has been compacted.
 uint32_t getTimesCompacted(table* t);
 
+void setTimesCompacted(table* t, uint32_t num_times_compacted);
+
 #endif

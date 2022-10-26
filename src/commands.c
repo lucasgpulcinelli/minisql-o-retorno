@@ -212,44 +212,19 @@ void commandCompact(void){
     out_bin[0] = '_';
     strcat(out_bin, bin_filename);
 
-    FILE* fp_in;
-    FILE* fp_out;
-    OPEN_FILE(fp_in, bin_filename, "rb");
-    OPEN_FILE(fp_out, out_bin, "wb");
+    table* t_in = openTable(bin_filename);
+    table* t_out = createEmptyTable(out_bin);
 
-    table* t = readTableBinary(fp_in);
-    if(t == NULL){
-        printf("Falha no processamento do arquivo.\n");
-        exit(EXIT_SUCCESS);
-    }
-    if(!hasNextEntry(t)){
-        exit(EXIT_SUCCESS);
-    }
-
-    header *head;
-    XALLOC(header, head, 1);
-    INIT_FILE_HEADER(head, false, EMPTY_STACK, 0, NO_ENTRIES_REMOVED, 1, NOT_COMPACTED);
-    writeHeader(fp_out, head);
-
-    for(entry* e; (e = readNextEntry(t)) != NULL; deleteEntry(e, 1)){
+    for(entry* e; (e = readNextEntry(t_in)) != NULL; deleteEntry(e, 1)){
         if(e->fields[removed].value.carray[0] == NOT_REMOVED){
-            writeEntry(fp_out, e);
-            head->nextRRN++;
+            writeEntryOnTable(t_out, e);
         }
     }
 
-    head->pages = head->nextRRN/ENTRIES_PER_PAGE + ((head->nextRRN/ENTRIES_PER_PAGE)*ENTRIES_PER_PAGE != head->nextRRN) + 1;
-    head->status = OK_HEADER;
-    head->times_compacted  = getTimesCompacted(t) + 1;
-    writeHeader(fp_out, head);
-    deleteHeader(head);
+    setTimesCompacted(t_out, getTimesCompacted(t_in) + 1);
 
-    fclose(fp_in);
-    fclose(fp_out);
-    deleteTable(t);
-
-    rename(out_bin, bin_filename);
-    binaryOnScreen(bin_filename);
+    deleteTable(t_in);
+    closeTable(t_out);
 
     free(bin_filename);
     free(out_bin);

@@ -138,6 +138,7 @@ void closeTable(table *t) {
 
     writeHeader(t->fp, t->header);
     tableHashOnScreen(t);
+    fclose(t->fp);
     deleteTable(t);
 }
 
@@ -162,4 +163,8 @@ void deleteHeader(header* h){
 
 uint32_t getTimesCompacted(table* t) {
     return t->header->times_compacted;
+}
+
+void setTimesCompacted(table* t, uint32_t num_times_compacted) {
+    t->header->times_compacted = num_times_compacted;
 }
