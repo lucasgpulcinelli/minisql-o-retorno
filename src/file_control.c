@@ -53,6 +53,23 @@ table* readTableBinary(FILE* fp){
     return t;
 }
 
+table* createEmptyTable(char* table_name) {
+    table* new_table;
+    XALLOC(table, new_table, 1);
+    XALLOC(header, new_table->header, 1);
+
+    OPEN_FILE(new_table->fp, table_name, "wb");
+    new_table->header->status = ERR_HEADER;
+    new_table->header->stack = EMPTY_STACK;
+    new_table->header->nextRRN = 0;
+    new_table->header->entries_removed = 0;
+    new_table->header->pages = 1;
+    new_table->header->times_compacted = 0;
+
+    writeHeader(new_table->fp, new_table->header);
+    return new_table;
+}
+
 void seekTable(table* t, size_t entry_number){
     fseek(t->fp, entry_number * MAX_SIZE_ENTRY + PAGE_SIZE, SEEK_SET);
 }
@@ -78,6 +95,19 @@ entry* readNextEntry(table* t){
     entry* new_entry = createEntry(1);
     readEntry(t->fp, new_entry);
     return new_entry;
+}
+
+void writeEntryOnTable(table* t, entry* es) {
+    writeEntry(t->fp, es);
+    t->header->nextRRN += !feof(t->fp);
+}
+
+void closeTable(table *t) {
+    t->header->pages = NUM_PAGES_FORMULA(t->header->nextRRN);
+    t->header->status = OK_HEADER;
+
+    writeHeader(t->fp, t->header);
+    deleteTable(t);
 }
 
 void deleteTable(table* t){

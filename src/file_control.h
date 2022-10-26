@@ -14,6 +14,11 @@
 
 #define OK_HEADER '1'
 #define ERR_HEADER '0'
+#define EMPTY_STACK -1
+
+#define NUM_PAGES_FORMULA(nextRRN)                                   \
+    nextRRN/ENTRIES_PER_PAGE +                                       \
+    ((nextRRN/ENTRIES_PER_PAGE)*ENTRIES_PER_PAGE != nextRRN) + 1     \
 
 //struct header contains the header for a binary file
 typedef struct{
@@ -46,11 +51,15 @@ void writeHeader(FILE *fp, header *head);
  */
 table* readTableBinary(FILE* fp);
 
+table* createEmptyTable(char* table_name);
+
 /*
  * readNextEntry reads the next entry from the table, the returned entry must be
  * deleted afterwards.
  */
 entry* readNextEntry(table* t);
+
+void writeEntryOnTable(table* t, entry* es);
 
 /*
  * hasNextEntry returns true if the table can read another entry, meaning if 
@@ -69,6 +78,8 @@ void seekTable(table* t, size_t entry_number);
  * seekTable(t, 0).
  */
 void rewindTable(table* t);
+
+void closeTable(table *t);
 
 //deleteTable deletes the table and the header associated with it.
 void deleteTable(table* t);

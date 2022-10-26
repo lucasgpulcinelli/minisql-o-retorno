@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
 
 #include "commands.h"
 #include "entries.h"
@@ -11,27 +12,23 @@
 
 void commandCreate(void){
     char* csv_input_name;
-    char* bin_output_name;
-    READ_INPUT("%ms %ms", &csv_input_name, &bin_output_name);
+    char* table_output_name;
+    READ_INPUT("%ms %ms", &csv_input_name, &table_output_name);
 
     FILE* fp_in;
-    FILE* fp_out;
     OPEN_FILE(fp_in, csv_input_name, "rb");
-    OPEN_FILE(fp_out, bin_output_name, "wb");
     free(csv_input_name);
-
-    header *head;
-    XALLOC(header, head, 1);
-    INIT_FILE_HEADER(head, ERR_HEADER, EMPTY_STACK, 0, NO_ENTRIES_REMOVED, 1, NOT_COMPACTED);
-
-    writeHeader(fp_out, head);
 
     char* csv_header;
     readFirstLine(&csv_header, fp_in);
     if(strcmp(csv_header, CSV_HEADER)){
-        ABORT_PROGRAM("Falha no processamento do arquivo.\n");
+        errno = EINVAL;
+        ABORT_PROGRAM("Invalid CSV header");
     }
     free(csv_header);
+
+    table* t = createEmptyTable(table_output_name);
+    entry *es = createEntry(1);
 
     while(!feof(fp_in)) {
         char *line;
@@ -41,24 +38,18 @@ void commandCreate(void){
             break;
         }
 
-        entry *es = createEntry(1);
         readEntryFromCSV(line, es);
         free(line);
-
-        writeEntry(fp_out, es);
-        deleteEntry(es, 1);
-        head->nextRRN++;
+        writeEntryOnTable(t, es);
+        clearEntry(es);
     }
+
+    deleteEntry(es, 1);
     fclose(fp_in);
+    closeTable(t);
 
-    head->pages = head->nextRRN/ENTRIES_PER_PAGE + ((head->nextRRN/ENTRIES_PER_PAGE)*ENTRIES_PER_PAGE != head->nextRRN) + 1;
-    head->status = OK_HEADER;
-    writeHeader(fp_out, head);
-    free(head);
-    fclose(fp_out);
-
-    binaryOnScreen(bin_output_name);
-    free(bin_output_name);
+    binaryOnScreen(table_output_name);
+    free(table_output_name);
 }
 
 void commandFrom(void){
