@@ -29,9 +29,10 @@ void commandCreate(void){
 
     table* t = createEmptyTable(table_output_name);
     entry *es = createEntry(1);
+    free(table_output_name);
 
     while(!feof(fp_in)) {
-        char *line;
+        char* line;
         readFirstLine(&line, fp_in);
         if(!strcmp(line, "")){
             free(line);
@@ -47,9 +48,6 @@ void commandCreate(void){
     deleteEntry(es, 1);
     fclose(fp_in);
     closeTable(t);
-
-    binaryOnScreen(table_output_name);
-    free(table_output_name);
 }
 
 void commandFrom(void){

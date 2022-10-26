@@ -81,6 +81,8 @@ void rewindTable(table* t);
 
 void closeTable(table *t);
 
+void tableHashOnScreen(table* t);
+
 //deleteTable deletes the table and the header associated with it.
 void deleteTable(table* t);
 

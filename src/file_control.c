@@ -58,7 +58,7 @@ table* createEmptyTable(char* table_name) {
     XALLOC(table, new_table, 1);
     XALLOC(header, new_table->header, 1);
 
-    OPEN_FILE(new_table->fp, table_name, "wb");
+    OPEN_FILE(new_table->fp, table_name, "w+b");
     new_table->header->status = ERR_HEADER;
     new_table->header->stack = EMPTY_STACK;
     new_table->header->nextRRN = 0;
@@ -107,14 +107,24 @@ void closeTable(table *t) {
     t->header->status = OK_HEADER;
 
     writeHeader(t->fp, t->header);
+    tableHashOnScreen(t);
     deleteTable(t);
+}
+
+void tableHashOnScreen(table* t) {
+    rewind(t->fp);
+    uint32_t sum = 0;
+	for(int c = getc(t->fp); c != EOF; c = getc(t->fp)) {
+		sum += c;
+	}
+
+	printf("%lf\n", sum / (double) 100);
 }
 
 void deleteTable(table* t){
     deleteHeader(t->header);
     free(t);
 }
-
 
 void deleteHeader(header* h){
     free(h);
