@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdbool.h>
+#include <string.h>
 
 #include "file_control.h"
 #include "entries.h"
@@ -37,26 +38,11 @@ void writeHeader(FILE *fp, header *head) {
     }
 }
 
-table* readTableBinary(FILE* fp){
-    table* t;
-    XALLOC(table, t, 1);
-
-    t->header = readHeader(fp);
-    if(t->header->status != OK_HEADER){
-        deleteHeader(t->header);
-        free(t);
-        return NULL;
-    }
-
-    t->fp = fp;
-
-    return t;
-}
-
 table* createEmptyTable(char* table_name) {
     table* new_table;
     XALLOC(table, new_table, 1);
     XALLOC(header, new_table->header, 1);
+    new_table->read_only = false;
 
     OPEN_FILE(new_table->fp, table_name, "w+b");
     new_table->header->status = ERR_HEADER;
@@ -70,14 +56,22 @@ table* createEmptyTable(char* table_name) {
     return new_table;
 }
 
-table* openTable(char* table_name) {
+table* openTable(char* table_name, const char* mode) {
     table* t;
     XALLOC(table, t, 1);
 
-    OPEN_FILE(t->fp, table_name, "r+b");
+    OPEN_FILE(t->fp, table_name, mode);
     t->header = readHeader(t->fp);
     if(t->header->status == ERR_HEADER) {
         EXIT_ERROR();
+    }
+
+    if(strchr(mode, 'w') != NULL || strchr(mode, '+') != NULL){
+        t->header->status = ERR_HEADER;
+        writeHeader(t->fp, t->header);
+        t->read_only = false;
+    }else{
+        t->read_only = true;
     }
 
     return t;
@@ -110,7 +104,7 @@ entry* readNextEntry(table* t){
     return new_entry;
 }
 
-void writeEntryOnTable(table* t, entry* es) {
+void appendEntryOnTable(table* t, entry* es) {
     if(t->header->stack != EMPTY_STACK) {
         fseek(t->fp, PAGE_SIZE + t->header->stack*MAX_SIZE_ENTRY, SEEK_SET);
         entry* erased = createEntry(1);
@@ -132,14 +126,24 @@ void writeEntryOnTable(table* t, entry* es) {
     t->header->nextRRN++;
 }
 
+void removeEntryFromTable(table* t, size_t rrn){
+    seekTable(t, rrn);
+    writeEmptyEntry(t->fp, t->header->stack);
+    t->header->entries_removed++;
+    t->header->stack = rrn;
+}
+
 void closeTable(table *t) {
     t->header->pages = NUM_PAGES_FORMULA(t->header->nextRRN);
     t->header->status = OK_HEADER;
 
-    writeHeader(t->fp, t->header);
-    tableHashOnScreen(t);
+    if(!t->read_only){
+        writeHeader(t->fp, t->header);
+        tableHashOnScreen(t);
+    }
     fclose(t->fp);
-    deleteTable(t);
+    free(t->header);
+    free(t);
 }
 
 void tableHashOnScreen(table* t) {
@@ -150,15 +154,6 @@ void tableHashOnScreen(table* t) {
 	}
 
 	printf("%lf\n", sum / (double) 100);
-}
-
-void deleteTable(table* t){
-    deleteHeader(t->header);
-    free(t);
-}
-
-void deleteHeader(header* h){
-    free(h);
 }
 
 uint32_t getTimesCompacted(table* t) {

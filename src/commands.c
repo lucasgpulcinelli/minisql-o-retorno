@@ -41,7 +41,7 @@ void commandCreate(void){
 
         readEntryFromCSV(line, es);
         free(line);
-        writeEntryOnTable(t, es);
+        appendEntryOnTable(t, es);
         clearEntry(es);
     }
 
@@ -54,14 +54,7 @@ void commandFrom(void){
     char* bin_filename;
     READ_INPUT("%ms", &bin_filename);
 
-    FILE* fp;
-    OPEN_FILE(fp, bin_filename, "rb");
-
-    table* t = readTableBinary(fp);
-    if(t == NULL){
-        printf("Falha no processamento do arquivo.\n");
-        exit(EXIT_SUCCESS);
-    }
+    table* t = openTable(bin_filename, "rb");
 
     int printed = 0;
     for(entry* e; (e = readNextEntry(t)) != NULL; deleteEntry(e, 1)){
@@ -79,8 +72,7 @@ void commandFrom(void){
 
     printf("Numero de paginas de disco: %d\n\n", t->header->pages);
 
-    deleteTable(t);
-    fclose(fp);
+    closeTable(t);
     free(bin_filename);
 }
 
@@ -90,14 +82,7 @@ void commandWhere(void){
     READ_INPUT("%ms %d", &bin_filename, &n);
     field* where = readTuples(n);
 
-    FILE* fp;
-    OPEN_FILE(fp, bin_filename, "rb");
-
-    table* t = readTableBinary(fp);
-    if(t == NULL){
-        printf("Falha no processamento do arquivo.\n");
-        exit(EXIT_SUCCESS);
-    }
+    table* t = openTable(bin_filename, "rb");
 
     for(int i = 0; i < n; i++, rewindTable(t)){
         int printed = 0;
@@ -125,8 +110,7 @@ void commandWhere(void){
         printf("Numero de paginas de disco: %d\n\n", t->header->pages);
     }
 
-    deleteTable(t);
-    fclose(fp);
+    closeTable(t);
     freeTuples(where, n);
     free(bin_filename);
 }
@@ -137,21 +121,10 @@ void commandDelete(void){
     READ_INPUT("%ms %d", &bin_filename, &n);
     field* where = readTuples(n);
 
-    FILE* fp;
-    // needs a + for overwriting headers and deleting entries
-    OPEN_FILE(fp, bin_filename, "rb+");
-
-    table* t = readTableBinary(fp);
-    if(t == NULL){
-        printf("Falha no processamento do arquivo.\n");
-        exit(EXIT_SUCCESS);
-    }
-
-    t->header->status = ERR_HEADER;
-    writeHeader(t->fp, t->header);
+    table* t = openTable(bin_filename, "r+b");
 
     for(int i = 0; i < n; i++, rewindTable(t)){
-        int rrn = 0;
+        size_t rrn = 0;
         for(entry* e; (e = readNextEntry(t)) != NULL; deleteEntry(e, 1), rrn++){
             if(ENTRY_REMOVED(e)){
                 continue;
@@ -163,22 +136,12 @@ void commandDelete(void){
                 continue;
             }
 
-            seekTable(t, rrn);
-            writeEmptyEntry(t->fp, t->header->stack);
-            t->header->entries_removed++;
-            t->header->stack = rrn;
+            removeEntryFromTable(t, rrn);
         }
     }
 
-
-    t->header->status = OK_HEADER;
-    writeHeader(t->fp, t->header);
-
-    deleteTable(t);
-    fclose(fp);
+    closeTable(t);
     freeTuples(where, n);
-
-    binaryOnScreen(bin_filename);
     free(bin_filename);
 }
 
@@ -187,13 +150,13 @@ void commandInsert(void){
     int32_t num_insertions;
     READ_INPUT("%ms %d", &table_filename, &num_insertions);
     
-    table* t = openTable(table_filename);
+    table* t = openTable(table_filename, "r+b");
     entry* es = createEntry(1);
     free(table_filename);
 
     while(num_insertions > 0) {
         readEntryFromStdin(es);
-        writeEntryOnTable(t, es);
+        appendEntryOnTable(t, es);
 
         clearEntry(es);
         num_insertions--;
@@ -212,18 +175,18 @@ void commandCompact(void){
     out_bin[0] = '_';
     strcat(out_bin, bin_filename);
 
-    table* t_in = openTable(bin_filename);
+    table* t_in = openTable(bin_filename, "rb");
     table* t_out = createEmptyTable(out_bin);
 
     for(entry* e; (e = readNextEntry(t_in)) != NULL; deleteEntry(e, 1)){
         if(e->fields[removed].value.carray[0] == NOT_REMOVED){
-            writeEntryOnTable(t_out, e);
+            appendEntryOnTable(t_out, e);
         }
     }
 
     setTimesCompacted(t_out, getTimesCompacted(t_in) + 1);
 
-    deleteTable(t_in);
+    closeTable(t_in);
     closeTable(t_out);
 
     free(bin_filename);

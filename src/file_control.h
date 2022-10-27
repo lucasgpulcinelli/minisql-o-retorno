@@ -37,23 +37,17 @@ typedef struct{
 typedef struct{
     header* header;
     FILE* fp;
+    bool read_only;
 } table;
 
 //readHeader reads a header from a file pointer fp.
 header* readHeader(FILE* fp);
 
-
 void writeHeader(FILE *fp, header *head);
-
-/*
- * readTableBinary reads a table from a binary file, returning NULL if there was
- * any error.
- */
-table* readTableBinary(FILE* fp);
 
 table* createEmptyTable(char* table_name);
 
-table* openTable(char* table_name);
+table* openTable(char* table_name, const char* mode);
 
 /*
  * readNextEntry reads the next entry from the table, the returned entry must be
@@ -61,7 +55,9 @@ table* openTable(char* table_name);
  */
 entry* readNextEntry(table* t);
 
-void writeEntryOnTable(table* t, entry* es);
+void appendEntryOnTable(table* t, entry* es);
+
+void removeEntryFromTable(table* t, size_t rrn);
 
 /*
  * hasNextEntry returns true if the table can read another entry, meaning if 
@@ -84,12 +80,6 @@ void rewindTable(table* t);
 void closeTable(table *t);
 
 void tableHashOnScreen(table* t);
-
-//deleteTable deletes the table and the header associated with it.
-void deleteTable(table* t);
-
-//deleteHeader deletes a header.
-void deleteHeader(header* h);
 
 //getTimesCompacted returns the number of times the table has been compacted.
 uint32_t getTimesCompacted(table* t);
