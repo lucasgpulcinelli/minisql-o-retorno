@@ -3,21 +3,6 @@
 
 #include "file_control.h"
 
-#define START 0
-#define FROM_POSITION 0
-
-#define EMPTY_STACK -1
-#define NO_ENTRIES_REMOVED 0
-#define NOT_COMPACTED 0
-
-#define INIT_FILE_HEADER(p, stat, top, next, removed, num_pages, compacted)    \
-    p->status = stat;              /*File consistency status*/                 \
-    p->stack = top;                /*Pointer to the top of stack*/             \
-    p->nextRRN = next;             /*Next entry index*/                        \
-    p->entries_removed = removed;  /*Number of entries removed*/               \
-    p->pages = num_pages;          /*Number of disk pages used*/               \
-    p->times_compacted = compacted;/*Number of times file was compacted*/      
-
 #define COMMANDS_SIZE 6
 #define CSV_HEADER "idConecta,nomePoPs,nomePais,siglaPais,idPoPsConectado,"   \
                    "unidadeMedida,velocidade"
@@ -36,7 +21,7 @@ enum Commands {
 };
 
 /*
- * commandCreate reads a headerless CSV and stores it in a newly
+ * commandCreate reads a CSV and stores it in a newly
  * created table (stored as a binary file).
  */
 void commandCreate(void);
