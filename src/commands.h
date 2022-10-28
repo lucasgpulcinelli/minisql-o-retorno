@@ -7,6 +7,9 @@
 #define CSV_HEADER "idConecta,nomePoPs,nomePais,siglaPais,idPoPsConectado,"   \
                    "unidadeMedida,velocidade"
 
+/*
+ * enum Commands enumerates the 6 commands the user may call.
+ */
 enum Commands {
     create = 1,
     /*
@@ -22,7 +25,8 @@ enum Commands {
 
 /*
  * commandCreate reads a CSV and stores it in a newly
- * created table (stored as a binary file).
+ * created table (stored as a binary file). The name of the CSV file 
+ * and the name of the table are passed through stdin.
  */
 void commandCreate(void);
 
@@ -47,8 +51,17 @@ void commandWhere(void);
  */
 void commandDelete(void);
 
+/*
+ * commandInsert reads a specified number of entries from stdin
+ * and inserts them in a table. The number n of entries and the name of
+ * the table are read from stdin.
+ */
 void commandInsert(void);
 
+/*
+ * commandCompact compacts a table specified by the user. It only throws away
+ * the entries that were deleted in the table, reducing its size in bytes.
+ */
 void commandCompact(void);
 
 
