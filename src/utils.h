@@ -4,8 +4,8 @@
 #include <stdlib.h>
 #include <sys/types.h>
 
-#define INIT_LEN 64
-#define STR_GROWTH_FACTOR 2
+#define INIT_LEN 64           //Initial string size in readFirstLine
+#define STR_GROWTH_FACTOR 2   //Rate at which string grows in readFirstLine
 
 /*
  * Returns the first argument passed to a variadic macro.
@@ -33,10 +33,16 @@
 
 /*
  * ABORTPROGRAM aborts the program; showing the file, line, errno
- * and a message with printf-like formattinga
+ * and a message with printf-like formatting.
  */
 #define ABORT_PROGRAM(...) fatalError(__LINE__, __FILE__, ##__VA_ARGS__);
 
+/*
+ * EXIT_ERROR has the same purpose as ABORT_PROGRAM, but it follows the
+ * guidelines for this assignment. It has a major drawback, though: it
+ * does not give any specific details of the error, only a generic error
+ * message.
+ */
 #define EXIT_ERROR()                                        \
     printf("Falha no processamento do arquivo.\n");         \
     exit(EXIT_SUCCESS);                                     \
@@ -116,10 +122,15 @@ void readFirstLine(char **line, FILE *fp);
 ssize_t min(ssize_t a, ssize_t b);
 
 /*
- * binaryOnScreen returns a hash of the file of name filename
+ * binaryOnScreen returns a hash of the table passed
+ * in the argument filename.
  */
 void binaryOnScreen(char* filename);
 
+/*
+ * strStrip trims all the blanck characters (as defined in ctype.h)
+ * from the beggining and the end of a string.
+ */
 void strStrip(char **str_ptr);
 
 #endif
