@@ -10,9 +10,9 @@
 
 /*
  * NullTypes represents the same data types as enum DataTypes, 
- * but any field with a type in enum NullTypes has been 
- * initialized to a null value. Conversely, any field with type in
- * enum DataTypes has been initialized to a non-null value.
+ * but initialized to a null value. Conversely, any field with type in
+ * enum DataTypes has been initialized to a non-null value. 
+ * By adding 3 to a data type in DataTypes, one gets its null counterpart.
  */
 enum NullTypes {
     null_int = 4,
