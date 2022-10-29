@@ -188,6 +188,7 @@ void commandCompact(void){
 
     closeTable(t_in);
     closeTable(t_out);
+    rename(out_bin, bin_filename);
 
     free(bin_filename);
     free(out_bin);
