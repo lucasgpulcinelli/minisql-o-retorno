@@ -95,7 +95,7 @@ void clearEntry(entry* e);
  * having an extra value to keep track of the read index for the associated 
  * entry, not letting the read index be greater than the maximum size.
  */
-int readField(FILE* fp, field* f, int read_for_entry);
+int32_t readField(FILE* fp, field* f, int read_for_entry);
 
 //readEntry reads a full entry from fp.
 void readEntry(FILE* fp, entry* e);
@@ -105,7 +105,7 @@ void readEntry(FILE* fp, entry* e);
  * of the field are less than or equal to size. On success, it
  * returns the size of used space. Otherwise, it returns -1.
  */
-int writeField(FILE* fp, field* f, ssize_t size);
+int32_t writeField(FILE* fp, field* f, ssize_t size);
 
 // writeEmptyEntry writes a single entry as removed with a stack index.
 void writeEmptyEntry(FILE* fp, int stack);
@@ -127,13 +127,13 @@ void printEntry(entry* e);
  * fieldCmp compares two fields of the same type, returning in the same way as 
  * strcmp, and aborting the program if the field types are different.
  */
-int fieldCmp(field f1, field f2);
+int32_t fieldCmp(field f1, field f2);
 
 /*
  * findFieldType returns the FieldType enum number for a given string, or -1 if
  * no match was found.
  */
-int findFieldType(char* str);
+int32_t findFieldType(char* str);
 
 /*
  * copyEntry copies a single entry from src to dest, trowing all data from dest

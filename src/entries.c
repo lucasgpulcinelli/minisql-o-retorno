@@ -75,7 +75,7 @@ void clearEntry(entry* e){
     initEntry(e);
 }
 
-int readField(FILE* fp, field* f, int read_for_entry){
+int32_t readField(FILE* fp, field* f, int read_for_entry){
     //an entry cannot be bigger than its max size
     if(read_for_entry >= MAX_SIZE_ENTRY){
         return read_for_entry;
@@ -84,7 +84,7 @@ int readField(FILE* fp, field* f, int read_for_entry){
     if(fields_size_arr[f->field_type] > 0){
         //fixed sized fields
 
-        int ret = fread(&(f->value), fields_size_arr[f->field_type], 1, fp);
+        int32_t ret = fread(&(f->value), fields_size_arr[f->field_type], 1, fp);
         if(ret != 1){
             ABORT_PROGRAM("unexpected EOF in read field %s",
                 fields_str_arr[f->field_type]
@@ -97,7 +97,7 @@ int readField(FILE* fp, field* f, int read_for_entry){
     char* str;
     XALLOC(char, str, MAX_SIZE_ENTRY);
 
-    int i, c;
+    int32_t i, c;
     for(i = 0; (c = getc(fp)) != '|' &&
         read_for_entry < MAX_SIZE_ENTRY; //if we go past the max size, break
         i++, read_for_entry++
@@ -121,7 +121,7 @@ int readField(FILE* fp, field* f, int read_for_entry){
 }
 
 void readEntry(FILE* fp, entry* e){
-    int read_for_entry = readField(fp, e->fields, 0);
+    int32_t read_for_entry = readField(fp, e->fields, 0);
     if(ENTRY_REMOVED(e)){
         //if the entry is deleted, only read the meta fields
 
@@ -136,7 +136,7 @@ void readEntry(FILE* fp, entry* e){
     fseek(fp, MAX_SIZE_ENTRY-read_for_entry, SEEK_CUR);
 }
 
-int writeField(FILE* fp, field* f, ssize_t size){
+int32_t writeField(FILE* fp, field* f, ssize_t size){
     if(fields_size_arr[f->field_type] > 0){
         //fixed sized fields
         fwrite(&(f->value), fields_size_arr[f->field_type], 1, fp);
@@ -159,7 +159,7 @@ int writeField(FILE* fp, field* f, ssize_t size){
 }
 
 void writeEmptyEntry(FILE* fp, int stack){
-    int i = 0;
+    int32_t i = 0;
 
     putc(REMOVED, fp);
     i++;
@@ -248,7 +248,7 @@ void printEntry(entry* e){
     printf("\n");
 }
 
-int fieldCmp(field f1, field f2){
+int32_t fieldCmp(field f1, field f2){
     if(f1.field_type != f2.field_type){
         return 1; //diferentes
     }
@@ -269,8 +269,8 @@ int fieldCmp(field f1, field f2){
     }
 }
 
-int findFieldType(char* str){
-    for(int i = 0; i < FIELD_AMOUNT; i++){
+int32_t findFieldType(char* str){
+    for(int32_t i = 0; i < FIELD_AMOUNT; i++){
         if(strcmp(str, fields_str_arr[i]) == 0){
             return i;
         }
@@ -306,7 +306,7 @@ void copyField(field* dest, field* src){
 }
 
 void copyEntry(entry* dest, entry* src){
-    for(int i = 0; i < FIELD_AMOUNT; i++){
+    for(int32_t i = 0; i < FIELD_AMOUNT; i++){
         copyField(dest->fields+i, src->fields+i);
     }
 }
