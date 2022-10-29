@@ -28,10 +28,10 @@ void commandCreate(void){
     free(csv_header);
 
     table* t = createEmptyTable(table_output_name);
-    entry *es = createEntry(1);
+    entry* es = createEntry(1);
     free(table_output_name);
 
-    while(!feof(fp_in)) {
+    while(!feof(fp_in)){
         char* line;
         readFirstLine(&line, fp_in);
         if(!strcmp(line, "")){
@@ -154,7 +154,7 @@ void commandInsert(void){
     entry* es = createEntry(1);
     free(table_filename);
 
-    while(num_insertions > 0) {
+    while(num_insertions > 0){
         readEntryFromStdin(es);
         appendEntryOnTable(t, es);
 
