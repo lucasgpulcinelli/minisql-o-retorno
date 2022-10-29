@@ -24,22 +24,22 @@ enum NullTypes {
  * readTuples reads n lines of key-value pairs with field names followed by 
  * values, returning the associated fields.
  */
-field* readTuples(int n);
+field* readTuples(int32_t n);
 
 //freeTuples frees a collection of tuples alloced by readTuples
-void freeTuples(field* fs, int n);
+void freeTuples(field* fs, int32_t n);
 
 /*
  * readEntryFromCSV reads an entry from the string csv_line
  * that must follow a csv ("comma separated values") format.
  */
-void readEntryFromCSV(char *csv_line, entry *es);
+void readEntryFromCSV(char* csv_line, entry* es);
 
 /*
  * readEntryFromStdin reads an entry from stdin in format
  * specified by commandInsert.
  */
-void readEntryFromStdin(entry *es);
+void readEntryFromStdin(entry* es);
 
 /*
  * readFieldFromStdin reads a string from Stdin formated to be
@@ -52,6 +52,6 @@ void readFieldFromStdin(char** field_str);
  * and its data type (int8_t type). If a field has null value, you
  * should pass a nullType.
  */
-void storeField(entry *es, size_t field, int8_t type, char* field_str);
+void storeField(entry* es, size_t field, int8_t type, char* field_str);
 
 #endif

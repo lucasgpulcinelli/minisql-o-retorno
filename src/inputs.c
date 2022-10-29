@@ -18,16 +18,16 @@ static const int8_t order[] = {
 };
 
 
-field* readTuples(int n){
+field* readTuples(int32_t n){
     field* fs;
     XALLOC(field, fs, n);
 
     char* field_name;
     char* field_value;
-    for(int i = 0; i < n; i++){
+    for(int32_t i = 0; i < n; i++){
         READ_INPUT("%ms %m[^\n]", &field_name, &field_value);
 
-        int type = findFieldType(field_name);
+        int32_t type = findFieldType(field_name);
         if(type == -1){
             ABORT_PROGRAM("invalid type of field");
         }
@@ -90,8 +90,8 @@ field* readTuples(int n){
     return fs;
 }
 
-void freeTuples(field* fs, int n){
-    for(int i = 0; i < n; i++){
+void freeTuples(field* fs, int32_t n){
+    for(int32_t i = 0; i < n; i++){
         if(fs[i].field_type == poPsName || fs[i].field_type == countryName){
             free(fs[i].value.cpointer);
         }
@@ -99,34 +99,34 @@ void freeTuples(field* fs, int n){
     free(fs);
 }
 
-void readEntryFromCSV(char *csv_line, entry *es){
-    char *field = (char *)strsep(&csv_line, ",");
+void readEntryFromCSV(char* csv_line, entry* es){
+    char* field = (char*)strsep(&csv_line, ",");
     size_t num_fields = 0;
 
     for(num_fields = idConnect; field && num_fields < FIELD_AMOUNT; 
-        num_fields++, field = (char *)strsep(&csv_line, ",")) {
+        num_fields++, field = (char*)strsep(&csv_line, ",")){
         ssize_t data_type = data_types_map[order[num_fields]];
-        if(IS_NULL(field)) {
+        if(IS_NULL(field)){
             data_type += NULL_DATA_TYPES_OFFSET;
         }
         
         storeField(es, order[num_fields], data_type, field);
     }
 
-    if(num_fields < CSV_FIELD_AMOUNT) {
+    if(num_fields < CSV_FIELD_AMOUNT){
         errno = EINVAL;
         ABORT_PROGRAM("Bad number of fields: found %lu in input, "
                       "but there should be %d",
                       num_fields, CSV_FIELD_AMOUNT);
 
-    } else if(field) {
+    }else if(field){
         errno = EINVAL;
         ABORT_PROGRAM("Bad number of fields: found more then"
                       " %lu in input.", FIELD_AMOUNT);
     }
 }
 
-void readEntryFromStdin(entry *es){
+void readEntryFromStdin(entry* es){
     for(size_t field = idConnect; field < FIELD_AMOUNT; field++){
         char* field_str;
         readFieldFromStdin(&field_str);
@@ -141,12 +141,12 @@ void readEntryFromStdin(entry *es){
     }
 }
 
-void readFieldFromStdin(char** field_str) {
+void readFieldFromStdin(char** field_str){
     char first_char;
     while((first_char = fgetc(stdin)) == ' ');
     ungetc(first_char, stdin);
 
-    if(first_char != '"') {
+    if(first_char != '"'){
         READ_INPUT("%ms", field_str);
         return;
     }
@@ -156,20 +156,20 @@ void readFieldFromStdin(char** field_str) {
     size_t char_index = 0;
     XALLOC(char, *field_str, field_len);
 
-    do {
-        if (field_len == char_index) {
+    do{
+        if(field_len == char_index){
             field_len *= STR_GROWTH_FACTOR;
             XREALLOC(char, *field_str, field_len);
         }
 
         (*field_str)[char_index] = fgetc(stdin);
         char_index++;
-    } while(!feof(stdin) && (*field_str)[char_index - 1] != '"');
+    }while(!feof(stdin) && (*field_str)[char_index - 1] != '"');
 
     (*field_str)[char_index - 1] = '\0';
 }
 
-void storeField(entry *es, size_t field, int8_t type, char* field_str) {
+void storeField(entry* es, size_t field, int8_t type, char* field_str){
     char* copy = strdup(field_str);
     strStrip(&copy);
     switch(type){
