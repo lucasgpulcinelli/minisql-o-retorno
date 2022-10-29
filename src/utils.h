@@ -67,7 +67,7 @@
 //XCALLOC does the same as XALLOC, but uses calloc to set memory to '0's.
 #define XCALLOC(type, p, size)                \
     p = calloc(size, sizeof(type));           \
-    if(!(p)) {                                \
+    if(!(p)){                                 \
         ABORT_PROGRAM("calloc");              \
     }                                         \
 
@@ -76,7 +76,7 @@
 //cases, a simple printf and a silent exit were used.
 #define OPEN_FILE(file_pointer, filename, mode)         \
     (file_pointer) = fopen((filename), (mode));         \
-    if ((file_pointer) == NULL) {                       \
+    if((file_pointer) == NULL){                         \
         EXIT_ERROR()                                    \
     }                                                   \
 
@@ -90,18 +90,18 @@
  * has a valid format and throws an appropriate error message.
  */
 #define READ_INPUT(...)                                                     \
-    do {                                                                    \
+    do{                                                                     \
         int32_t matches = scanf(__VA_ARGS__);                               \
-        if (matches == EOF) {                                               \
+        if(matches == EOF){                                                 \
             ABORT_PROGRAM("Invalid input format");                          \
         }                                                                   \
-        if (matches != NUM_VA_ARGS(__VA_ARGS__) - 1) {                      \
+        if(matches != NUM_VA_ARGS(__VA_ARGS__) - 1){                        \
             ABORT_PROGRAM("Invalid input format: matched "                  \
                           "%d patterns of %d required. Use %s",             \
                           matches, NUM_VA_ARGS(__VA_ARGS__) - 1,            \
                           _GET_FIRST_ARG(__VA_ARGS__))                      \
         }                                                                   \
-    } while(false)                                                          \
+    }while(false)                                                           \
 
 /*
  * fatalError aborts the program with the file and line of the error, and a
@@ -114,7 +114,7 @@ void fatalError(int line, char* file, char* fmt, ...);
  * and stores it in line. The function deals with memory allocation, do not
  * pass a malloced pointer to it.
  */
-void readFirstLine(char **line, FILE *fp);
+void readFirstLine(char** line, FILE* fp);
 
 /*
  * min takes two ssize_ts and returns the smallest one.
@@ -125,7 +125,7 @@ ssize_t min(ssize_t a, ssize_t b);
  * strStrip trims all the blanck characters (as defined in ctype.h)
  * from the beggining and the end of a string.
  */
-void strStrip(char **str_ptr);
+void strStrip(char** str_ptr);
 
 #endif
 

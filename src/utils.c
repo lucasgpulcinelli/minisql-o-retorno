@@ -21,8 +21,8 @@ void fatalError(int line, char* file, char* fmt, ...){
     if(!errno){
         //errno is SUCESS
         fprintf(stderr, "\n");
-    }
-    else{
+
+    }else{
         fprintf(stderr, ": %s\n", strerror(ini_errno));
     }
 
@@ -32,41 +32,41 @@ void fatalError(int line, char* file, char* fmt, ...){
     exit(EXIT_FAILURE);
 }
 
-void readFirstLine(char **line, FILE *fp){
+void readFirstLine(char** line, FILE* fp){
     size_t line_len = INIT_LEN;
     size_t char_index = 0;
     XALLOC(char, *line, line_len);
 
-    do {
-        if (line_len == char_index) {
+    do{
+        if(line_len == char_index){
             line_len *= STR_GROWTH_FACTOR;
             XREALLOC(char, *line, line_len);
         }
 
         (*line)[char_index] = fgetc(fp);
         char_index++;
-    } while (!feof(fp) && (*line)[char_index - 1] != '\n');
+    }while(!feof(fp) && (*line)[char_index - 1] != '\n');
 
     (*line)[char_index - 1] = '\0';
 }
 
-ssize_t min(ssize_t a, ssize_t b) {
+ssize_t min(ssize_t a, ssize_t b){
     return a*(a <= b) + b*(b < a);
 }
 
-void strStrip(char **str_ptr) {
+void strStrip(char** str_ptr){
     ssize_t len = strlen(*str_ptr);
     ssize_t end = len;
-    while(len > 0 && isblank((*str_ptr)[len - 1])) {
+    while(len > 0 && isblank((*str_ptr)[len - 1])){
         len--;
     }
 
     ssize_t start = 0;
-    while(start <= len && isblank((*str_ptr)[start])) {
+    while(start <= len && isblank((*str_ptr)[start])){
         start++;
     }
 
-    if(start == 0 && len == end) {
+    if(start == 0 && len == end){
         return;
     }
 
