@@ -54,24 +54,6 @@ ssize_t min(ssize_t a, ssize_t b) {
     return a*(a <= b) + b*(b < a);
 }
 
-void binaryOnScreen(char* filename){
-	FILE *fp;
-
-	if(filename == NULL) {
-        ABORT_PROGRAM("binaryOnScreen got NULL filename as input");
-	}
-    
-    OPEN_FILE(fp, filename, "rb");
-
-    uint32_t sum = 0;
-	for(int c = getc(fp); c != EOF; c = getc(fp)) {
-		sum += c;
-	}
-
-	printf("%lf\n", sum / (double) 100);
-    fclose(fp);
-}
-
 void strStrip(char **str_ptr) {
     ssize_t len = strlen(*str_ptr);
     ssize_t end = len;

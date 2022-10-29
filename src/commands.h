@@ -4,7 +4,7 @@
 #include "file_control.h"
 
 #define COMMANDS_SIZE 6
-#define CSV_HEADER "idConecta,nomePoPs,nomePais,siglaPais,idPoPsConectado,"   \
+#define CSV_HEADER "idConecta,nomePoPs,nomePais,siglaPais,idPoPsConectado," \
                    "unidadeMedida,velocidade"
 
 /*

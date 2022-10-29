@@ -122,12 +122,6 @@ void readFirstLine(char **line, FILE *fp);
 ssize_t min(ssize_t a, ssize_t b);
 
 /*
- * binaryOnScreen returns a hash of the table passed
- * in the argument filename.
- */
-void binaryOnScreen(char* filename);
-
-/*
  * strStrip trims all the blanck characters (as defined in ctype.h)
  * from the beggining and the end of a string.
  */
