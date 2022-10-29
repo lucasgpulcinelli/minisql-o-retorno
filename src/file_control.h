@@ -110,7 +110,7 @@ void rewindTable(table* t);
  * updates its header and prints a hash of the table on screen by calling
  * tableHashOnScreen.
  */
-void closeTable(table *t);
+void closeTable(table* t);
 
 //tableHashOnScreen prints very unreliable hash of the table on stdout.
 void tableHashOnScreen(table* t);
