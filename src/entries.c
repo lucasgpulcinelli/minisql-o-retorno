@@ -146,15 +146,22 @@ int32_t writeField(FILE* fp, field* f, ssize_t size){
     //variable sized fields
     if(f->value.cpointer == NULL || 
         (!strcmp(f->value.cpointer, NULL_STR))){
-            
+        //string is empty, so just write separator char.
         putc('|', fp);
         return 1;
     }
 
-    ssize_t write_len = min(strlen(f->value.cpointer), size - (FIELD_AMOUNT - f->field_type));
+    /*
+     * If the string fits in the remaining bytes of the entry,
+     * write_len is simply its size. Otherwise,
+     * write_len is the number of bytes that are available
+     * for writing, minus the number of separator chars that
+     * are left to be written. 
+     */
+    ssize_t write_len = min(strlen(f->value.cpointer), 
+                            size - (FIELD_AMOUNT - f->field_type));
     fwrite(f->value.cpointer, write_len, 1, fp);
     putc('|', fp);
-
     return write_len + 1;
 }
 
