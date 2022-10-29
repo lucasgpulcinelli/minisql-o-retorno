@@ -145,7 +145,7 @@ int32_t writeField(FILE* fp, field* f, ssize_t size){
 
     //variable sized fields
     if(f->value.cpointer == NULL || 
-        (!strncmp(f->value.cpointer, NULL_STR, strlen(f->value.cpointer)))){
+        (!strcmp(f->value.cpointer, NULL_STR))){
             
         putc('|', fp);
         return 1;
@@ -178,7 +178,7 @@ void writeEntry(FILE* fp, entry* e){
         bytes -= writeField(fp, e->fields+i, bytes);
     }
 
-    while(bytes > 0) {
+    while(bytes > 0){
         putc('$', fp);
         bytes--;
     }
