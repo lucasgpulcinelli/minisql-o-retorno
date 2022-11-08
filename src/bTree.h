@@ -11,7 +11,7 @@
 #define SEARCH_KEYS (BRANCHES-1)
 
 enum dataIndices {
-    branch_rnn = 0,
+    branch_rrn = 0,
     data_value,
     data_rnn
 };
@@ -60,6 +60,8 @@ void closeIndexTree(indexTree* it);
 indexNode* readIndexNode(indexTree* it);
 
 void freeIndexNode(indexNode* in);
+
+int32_t indexNodeSearch(indexTree* it, int32_t curr_rrn, int32_t value){
 
 entry* bTreeSearch(bTree* bt, int32_t value);
 

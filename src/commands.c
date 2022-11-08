@@ -126,5 +126,47 @@ void commandInsert(void){
 }
 
 void commandJoin(void){
-    
+    char *table1_filename, *table2_filename;
+    char *field1_name, *field2_name;
+    char *indices2_filename;
+
+    READ_INPUT("%ms %ms", &table1_filename, &table2_filename);
+    READ_INPUT("%ms %ms", &field1_name, &field2_name);
+    READ_INPUT("%ms", &indices2_filename);
+
+    if(findFieldType(field1_name) != connPoPsId 
+       || findFieldType(field2_name) != idConnect){
+
+        errno = ENOSYS;
+        ABORT_PROGRAM("Invalid field names");
+    }
+
+    table* t = openTable(table1_filename, "rb");
+    bTree* bt = openBTree(table2_filename, indices2_filename, "rb");
+
+    int printed = 0;
+    for(entry* e1; (e1 = tableReadNextEntry(t)) != NULL; deleteEntry(e1, 1)){
+        entry* e2 = bTreeSearch(bt, e1->fields[connPoPsId].value.integer);
+        if(e2 == NULL){
+            continue;
+        }
+
+        printEntry(e1);
+        printEntry(e2);
+        
+        printed++;
+        deleteEntry(e2, 1);
+    }
+
+    if(printed == 0){
+        printf("Registro inexistente.\n\n");
+    }
+
+    closeBTree(bt);
+    closeTable(t);
+    free(table1_filename);
+    free(table2_filename);
+    free(field1_name);
+    free(field2_name);
+    free(indices2_filename);
 }

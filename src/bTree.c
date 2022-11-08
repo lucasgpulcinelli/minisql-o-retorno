@@ -28,8 +28,6 @@ indexTree* openIndexTree(char* filename, const char* mode){
     fread(&(it->height), sizeof(int32_t), 1, it->fp);
     fread(&(it->next_node_rrn), sizeof(int32_t), 1, it->fp);
 
-    fseek(it->fp, it->root_node_rrn*INDICES_PAGE_SIZE, SEEK_SET);
-
     return it;
 }
 
@@ -70,7 +68,7 @@ indexNode* readIndexNode(indexTree* it){
         }
     }
 
-    fread(&(in->data[BRANCHES-1][branch_rnn]), sizeof(int32_t), 1, it->fp);
+    fread(&(in->data[BRANCHES-1][branch_rrn]), sizeof(int32_t), 1, it->fp);
 
     return in;
 }
@@ -79,6 +77,41 @@ void freeIndexNode(indexNode* in){
     free(in);
 }
 
+int32_t indexNodeSearch(indexTree* it, int32_t curr_rrn, int32_t value){
+    if(curr_rrn == -1){
+        return -1;
+    }
+
+    fseek(it->fp, (curr_rrn+1) * INDICES_PAGE_SIZE, SEEK_SET);
+    indexNode* node = readIndexNode(it);
+
+    for(int i = 0; i < SEARCH_KEYS; i++){
+        if(node->data[i][data_value] == value){
+            int32_t ret = node->data[i][data_rnn];
+            freeIndexNode(node);
+            return ret;
+        }
+        if(node->data[i][data_value] > value 
+           || node->data[i][data_value] == -1){
+
+            int rrn = node->data[i][branch_rrn];
+            freeIndexNode(node);
+            return indexNodeSearch(it, rrn, value);
+        }
+    }
+
+    int rrn = node->data[SEARCH_KEYS][branch_rrn];
+    freeIndexNode(node);
+    return indexNodeSearch(it, rrn, value);
+}
+
+
 entry* bTreeSearch(bTree* bt, int32_t value){
-    return NULL;
+    int32_t rrn = indexNodeSearch(bt->tree, bt->tree->root_node_rrn, value);
+    if(rrn == -1){
+        return NULL;
+    }
+
+    seekTable(bt->table, rrn);
+    return tableReadNextEntry(bt->table);
 }
