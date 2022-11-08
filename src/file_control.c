@@ -85,7 +85,7 @@ void rewindTable(table* t){
     fseek(t->fp, PAGE_SIZE, SEEK_SET);
 }
 
-bool hasNextEntry(table* t){
+bool tableHasNextEntry(table* t){
     int c;
     if((c = getc(t->fp)) == EOF){
         return false;
@@ -95,8 +95,8 @@ bool hasNextEntry(table* t){
 }
 
 
-entry* readNextEntry(table* t){
-    if(!hasNextEntry(t)){
+entry* tableReadNextEntry(table* t){
+    if(!tableHasNextEntry(t)){
         return NULL;
     }
     entry* new_entry = createEntry(1);

@@ -8,6 +8,7 @@
 #include "file_control.h"
 #include "inputs.h"
 #include "utils.h"
+#include "bTree.h"
 
 
 void commandCreate(void){
@@ -50,99 +51,57 @@ void commandCreate(void){
     closeTable(t);
 }
 
-void commandFrom(void){
-    char* bin_filename;
-    READ_INPUT("%ms", &bin_filename);
-
-    table* t = openTable(bin_filename, "rb");
-
-    int printed = 0;
-    for(entry* e; (e = readNextEntry(t)) != NULL; deleteEntry(e, 1)){
-        if(ENTRY_REMOVED(e)){
-            continue;
-        }
-
-        printed++;
-        printEntry(e);
-    }
-
-    if(printed == 0){
-        printf("Registro inexistente.\n\n");
-    }
-
-    printf("Numero de paginas de disco: %d\n\n", t->header->pages);
-
-    closeTable(t);
-    free(bin_filename);
-}
-
 void commandWhere(void){
-    char* bin_filename;
+    char* data_filename;
+    char* indices_filename;
     int n;
-    READ_INPUT("%ms %d", &bin_filename, &n);
+    READ_INPUT("%ms %ms %d", &data_filename, &indices_filename, &n);
     field* where = readTuples(n);
 
-    table* t = openTable(bin_filename, "rb");
+    bTree* bt = openBTree(data_filename, indices_filename, "rb");
 
-    for(int i = 0; i < n; i++, rewindTable(t)){
+    for(int i = 0; i < n; i++, rewindBTree(bt)){
         int printed = 0;
         printf("Busca %d\n", i+1);
 
-        for(entry* e; (e = readNextEntry(t)) != NULL; deleteEntry(e, 1)){
-            if(ENTRY_REMOVED(e)){
-                continue;
+        if(where[i].field_type == idConnect){
+            entry* e = bTreeSearch(bt, where[i].value.integer);
+            if(e != NULL){
+                printed++;
+                printEntry(e);
+                deleteEntry(e, 1);
             }
+        }
+        else{
+            for(entry* e; (e = bTreeReadNextEntry(bt)) != NULL; 
+                deleteEntry(e, 1)){
 
-            field f_cmp = e->fields[where[i].field_type];
+                if(ENTRY_REMOVED(e)){
+                    continue;
+                }
 
-            if(fieldCmp(where[i], f_cmp) != 0){
-                continue;
+                field f_cmp = e->fields[where[i].field_type];
+
+                if(fieldCmp(where[i], f_cmp) != 0){
+                    continue;
+                }
+
+                printed++;
+                printEntry(e);
             }
-
-            printed++;
-            printEntry(e);
         }
 
         if(printed == 0){
             printf("Registro inexistente.\n\n");
         }
 
-        printf("Numero de paginas de disco: %d\n\n", t->header->pages);
+        printf("Numero de paginas de disco: %d\n\n", bt->table->header->pages);
     }
 
-    closeTable(t);
+    closeBTree(bt);
     freeTuples(where, n);
-    free(bin_filename);
-}
-
-void commandDelete(void){
-    char* bin_filename;
-    int n;
-    READ_INPUT("%ms %d", &bin_filename, &n);
-    field* where = readTuples(n);
-
-    table* t = openTable(bin_filename, "r+b");
-
-    for(int i = 0; i < n; i++, rewindTable(t)){
-        size_t rrn = 0;
-        for(entry* e; (e = readNextEntry(t)) != NULL; deleteEntry(e, 1), rrn++){
-            if(ENTRY_REMOVED(e)){
-                continue;
-            }
-
-            field f_cmp = e->fields[where[i].field_type];
-
-            if(fieldCmp(where[i], f_cmp) != 0){
-                continue;
-            }
-
-            removeEntryFromTable(t, rrn);
-        }
-    }
-
-    closeTable(t);
-    freeTuples(where, n);
-    free(bin_filename);
+    free(data_filename);
+    free(indices_filename);
 }
 
 void commandInsert(void){
@@ -166,30 +125,6 @@ void commandInsert(void){
     closeTable(t);
 }
 
-void commandCompact(void){
-    char* bin_filename;
-    READ_INPUT("%ms", &bin_filename);
-
-    char* out_bin;
-    XCALLOC(char, out_bin, strlen(bin_filename) + 2);
-    out_bin[0] = '_';
-    strcat(out_bin, bin_filename);
-
-    table* t_in = openTable(bin_filename, "rb");
-    table* t_out = createEmptyTable(out_bin);
-
-    for(entry* e; (e = readNextEntry(t_in)) != NULL; deleteEntry(e, 1)){
-        if(e->fields[removed].value.carray[0] == NOT_REMOVED){
-            appendEntryOnTable(t_out, e);
-        }
-    }
-
-    setTimesCompacted(t_out, getTimesCompacted(t_in) + 1);
-
-    closeTable(t_in);
-    closeTable(t_out);
-    rename(out_bin, bin_filename);
-
-    free(bin_filename);
-    free(out_bin);
+void commandJoin(void){
+    
 }

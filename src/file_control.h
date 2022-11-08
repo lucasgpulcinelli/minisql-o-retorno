@@ -71,10 +71,10 @@ table* createEmptyTable(char* table_name);
 table* openTable(char* table_name, const char* mode);
 
 /*
- * readNextEntry reads the next entry from the table, the returned entry must be
+ * tableReadNextEntry reads the next entry from the table, the returned entry must be
  * deleted afterwards.
  */
-entry* readNextEntry(table* t);
+entry* tableReadNextEntry(table* t);
 
 /*
  * appendEntryOnTable writes entry es on table t. If the stack of
@@ -88,13 +88,13 @@ void removeEntryFromTable(table* t, size_t rrn);
 
 /*
  * hasNextEntry returns true if the table can read another entry, meaning if 
- * readNextEntry(t) will not be NULL in the next call.
+ * tableReadNextEntry(t) will not be NULL in the next call.
  */
-bool hasNextEntry(table* t);
+bool tableHasNextEntry(table* t);
 
 /*
  * seekTable seeks to the index of the entry provided, such that the 
- * readNextEntry(t) will return the entry with the RRN provided.
+ * tableReadNextEntry(t) will return the entry with the RRN provided.
  */
 void seekTable(table* t, size_t entry_number);
 
