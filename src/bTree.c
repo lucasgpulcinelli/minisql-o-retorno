@@ -6,8 +6,9 @@
 
 bTree* openBTree(char* data_filename, char* indices_filename,
                    const char* mode){
-    
-    bTree* bt = malloc(sizeof(bTree));
+    bTree* bt;
+    XALLOC(bTree, bt, 1);
+
     bt->table = openTable(data_filename, mode);
     bt->tree = openIndexTree(indices_filename, mode);
 
@@ -15,7 +16,8 @@ bTree* openBTree(char* data_filename, char* indices_filename,
 }
 
 indexTree* openIndexTree(char* filename, const char* mode){
-    indexTree* it = malloc(sizeof(indexTree));
+    indexTree* it;
+    XALLOC(indexTree, it, 1);
     OPEN_FILE(it->fp, filename, mode);
 
     it->status = fgetc(it->fp);
@@ -55,7 +57,8 @@ bool bTreeHasNextEntry(bTree* bt){
 }
 
 indexNode* readIndexNode(indexTree* it){
-    indexNode* in = malloc(sizeof(indexNode));
+    indexNode* in;
+    XALLOC(indexNode, in, 1);
 
     in->leaf = getc(it->fp);
     fread(&(in->keys), sizeof(int32_t), 1, it->fp);

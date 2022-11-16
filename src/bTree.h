@@ -44,7 +44,7 @@ typedef struct {
 
 
 bTree* openBTree(char* data_filename, char* indices_filename, 
-    const char* mode);
+                 const char* mode);
 
 void closeBTree(bTree* bt);
 
