@@ -118,7 +118,7 @@ void writeEmptyEntry(FILE* fp, int stack);
 void writeEntry(FILE* fp, entry* e);
 
 //printField prints a single field to stdout.
-void printField(field* f);
+void printField(field* f, bool connected_node);
 
 //printEntry prints a single entry to stdout.
 void printEntry(entry* e);
@@ -140,5 +140,11 @@ int32_t findFieldType(char* str);
  * away.
  */
 void copyEntry(entry* dest, entry* src);
+
+/*
+ * printJointEntry prints two entries: one is the main entry and the other is
+ * the entry connected to the first
+ */
+void printJointEntry(entry* e1, entry* e2);
 
 #endif

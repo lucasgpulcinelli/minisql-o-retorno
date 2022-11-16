@@ -61,7 +61,7 @@ indexNode* readIndexNode(indexTree* it);
 
 void freeIndexNode(indexNode* in);
 
-int32_t indexNodeSearch(indexTree* it, int32_t curr_rrn, int32_t value){
+int32_t indexNodeSearch(indexTree* it, int32_t curr_rrn, int32_t value);
 
 entry* bTreeSearch(bTree* bt, int32_t value);
 

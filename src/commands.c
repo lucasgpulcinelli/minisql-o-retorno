@@ -151,8 +151,7 @@ void commandJoin(void){
             continue;
         }
 
-        printEntry(e1);
-        printEntry(e2);
+        printJointEntry(e1, e2);
         
         printed++;
         deleteEntry(e2, 1);

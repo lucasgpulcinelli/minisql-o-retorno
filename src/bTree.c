@@ -105,7 +105,6 @@ int32_t indexNodeSearch(indexTree* it, int32_t curr_rrn, int32_t value){
     return indexNodeSearch(it, rrn, value);
 }
 
-
 entry* bTreeSearch(bTree* bt, int32_t value){
     int32_t rrn = indexNodeSearch(bt->tree, bt->tree->root_node_rrn, value);
     if(rrn == -1){

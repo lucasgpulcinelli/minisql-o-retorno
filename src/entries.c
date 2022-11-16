@@ -31,6 +31,10 @@ static const char fields_print_arr[FIELD_AMOUNT][35] = {
     "Nome do ponto", "Pais de localizacao"
 };
 
+static const char conn_fields_print_arr[FIELD_AMOUNT][35] = {
+    "", "", "", "Sigla do pais", "", "", "", "Nome do ponto conectado", 
+    "Nome do pais conectado"
+};
 
 entry* createEntry(uint32_t size){
     entry* es;
@@ -191,7 +195,7 @@ void writeEntry(FILE* fp, entry* e){
     }
 }
 
-void printField(field* f){
+void printField(field* f, bool connected_node){
     switch(f->field_type){
     case removed:
     case linking:
@@ -227,7 +231,12 @@ void printField(field* f){
         if(f->value.cpointer == NULL || f->value.cpointer[0] == '\0'){
             return;
         }
-        printf("%s: %s\n", fields_print_arr[f->field_type], f->value.cpointer);
+        if(!connected_node){
+            printf("%s: %s\n", fields_print_arr[f->field_type], f->value.cpointer);
+        }
+        else{
+            printf("%s: %s\n", conn_fields_print_arr[f->field_type], f->value.cpointer);
+        }
         break;
 
     default:
@@ -236,11 +245,11 @@ void printField(field* f){
 }
 
 void printEntry(entry* e){
-    printField(e->fields + idConnect);
-    printField(e->fields + poPsName);
-    printField(e->fields + countryName);
-    printField(e->fields + countryAcro);
-    printField(e->fields + connPoPsId);
+    printField(e->fields + idConnect, false);
+    printField(e->fields + poPsName, false);
+    printField(e->fields + countryName, false);
+    printField(e->fields + countryAcro, false);
+    printField(e->fields + connPoPsId, false);
 
     //esses dois campos estão diretamente relacionados, se qualquer um deles 
     //for vazio, não coloca nenhum na tela
@@ -248,8 +257,8 @@ void printEntry(entry* e){
        e->fields[measurmentUnit].value.carray[0] != '$' &&
        e->fields[measurmentUnit].value.carray[0] != '\0'){
 
-        printField(e->fields + speed);
-        printField(e->fields + measurmentUnit);
+        printField(e->fields + speed, false);
+        printField(e->fields + measurmentUnit, false);
     }
     
     printf("\n");
@@ -316,4 +325,26 @@ void copyEntry(entry* dest, entry* src){
     for(int32_t i = 0; i < FIELD_AMOUNT; i++){
         copyField(dest->fields+i, src->fields+i);
     }
+}
+
+void printJointEntry(entry* e1, entry* e2){
+    printField(e1->fields + idConnect, false);
+    printField(e1->fields + poPsName, false);
+    printField(e1->fields + countryName, false);
+    printField(e1->fields + countryAcro, false);
+    printField(e1->fields + connPoPsId, false);
+
+    printField(e2->fields + poPsName, true);
+    printField(e2->fields + countryName, true);
+    printField(e2->fields + countryAcro, true);
+
+    if(e1->fields[speed].value.integer != -1 && 
+       e1->fields[measurmentUnit].value.carray[0] != '$' &&
+       e1->fields[measurmentUnit].value.carray[0] != '\0'){
+
+        printField(e1->fields + speed, false);
+        printField(e1->fields + measurmentUnit, false);
+    }
+    
+    printf("\n");    
 }
