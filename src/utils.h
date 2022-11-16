@@ -80,10 +80,10 @@
         EXIT_ERROR()                                    \
     }                                                   \
 
-//MEMSET_ALLOC does the same as XALLOC, but it initializes all bytes to '$'
-#define MEMSET_ALLOC(type, p, size)          \
-    XALLOC(type, p, size)                    \
-    memset(p, '$', sizeof(type)*size);       \
+//MEMSET_ALLOC does the same as XALLOC, but it initializes all bytes to chr
+#define MEMSET_ALLOC(type, p, size, chr)          \
+    XALLOC(type, p, size)                         \
+    memset(p, chr, sizeof(type)*size);            \
 
 /*
  * READ_INPUT does the same as scanf, but it verifies if the input

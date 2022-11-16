@@ -38,7 +38,7 @@ static const char conn_fields_print_arr[FIELD_AMOUNT][35] = {
 
 entry* createEntry(uint32_t size){
     entry* es;
-    XALLOC(entry, es, size);
+    MEMSET_ALLOC(entry, es, size, '$');
 
     for(uint32_t i = 0; i < size; i++){
         initEntry(es+i);
@@ -56,8 +56,6 @@ void deleteEntry(entry* es, uint32_t size){
 }
 
 void initEntry(entry* e){
-    memset(e, '$', sizeof(entry));
-
     for(uint32_t i = 0; i < FIELD_AMOUNT; i++){
         e->fields[i].field_type = i;
     }
