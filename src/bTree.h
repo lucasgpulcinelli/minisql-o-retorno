@@ -66,6 +66,8 @@ entry* bTreeReadNextEntry(bTree* bt);
 
 bool bTreeHasNextEntry(bTree* bt);
 
+indexNode* createIndexNode(int height, int node_rrn);
+
 indexTree* openIndexTree(char* filename, const char* mode);
 
 void closeIndexTree(indexTree* it);
@@ -81,5 +83,7 @@ entry* bTreeSearch(bTree* bt, int32_t value);
 void writeIndexTreeHeader(indexTree* it);
 
 indexTree* createIndexTree(char* indices_filename);
+
+void insertEntryInIndexTree(indexTree* it, entry* es, int32_t data_rrn);
 
 #endif

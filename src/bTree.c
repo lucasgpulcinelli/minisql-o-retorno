@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <errno.h>
 
 #include "bTree.h"
 #include "file_control.h"
@@ -55,6 +56,52 @@ entry* bTreeReadNextEntry(bTree* bt){
 
 bool bTreeHasNextEntry(bTree* bt){
     return tableHasNextEntry(bt->table);
+}
+
+indexNode* createIndexNode(int height, int node_rrn){
+    indexNode* in;
+    MEMSET_ALLOC(indexNode, in, 1, EMPTY_VALUE);
+
+    in->leaf = LEAF;
+    in->keys = 0;
+    in->height = height;
+    in->node_rrn = node_rrn;
+
+    return in;
+}
+
+void swapValues(int32_t** data, ssize_t index) {
+    int32_t temp_data_value = data[index - 1][data_value];
+    int32_t temp_data_rrn = data[index - 1][data_rrn];
+
+    data[index - 1][data_value] = data[index][data_value];
+    data[index - 1][data_rrn] = data[index][data_rrn];
+
+    data[index][data_value] = temp_data_value;
+    data[index][data_rrn] = temp_data_rrn;
+}
+
+int32_t insertEntryInIndexNode(indexNode* in, entry* es, int32_t data_rnn){
+    if(IS_NOT_LEAF(in)){
+        errno = EINVAL;
+        ABORT_PROGRAM("cannot insert in non-leaf node");
+    }
+
+    if(in->keys == SEARCH_KEYS){
+        return FULL_NODE;
+    }
+
+    in->data[SEARCH_KEYS][data_value] = es->fields[idConnect].value.integer;
+    in->data[SEARCH_KEYS][data_rnn] = data_rnn;
+
+    for(ssize_t swap = SEARCH_KEYS; swap > 0; swap--){
+        if(in->data[swap - 1][data_value] == EMPTY_VALUE ||
+           in->data[swap - 1][data_value] > in->data[swap][data_value]){
+            swapValues(in->data, swap);
+        }
+    }
+
+    return INSERTION_SUCCESS;
 }
 
 indexNode* readIndexNode(indexTree* it){
@@ -137,7 +184,7 @@ indexTree* createIndexTree(char* indices_filename){
 
     OPEN_FILE(it->fp, indices_filename, "w+b");
     it->status = ERR_HEADER;
-    it->root_node_rrn = EMPTY_TREE_ROOT_RRN;
+    it->root_node_rrn = EMPTY_RRN;
     it->total_keys = 0;
     it->height = 0;
     it->next_node_rrn = 0;
