@@ -13,12 +13,20 @@
 #define SEARCH_KEYS (BRANCHES-1)
 #define BRANCH_METADATA_SIZE 3
 
-#define EMPTY_TREE_ROOT_RRN -1
+#define EMPTY_RRN -1
+#define EMPTY_VALUE -1
+
+#define FULL_NODE -2
+#define INSERTION_SUCCESS 0
+
+#define LEAF '1'
+#define NOT_LEAF '0'
+#define IS_NOT_LEAF(in) (in->leaf == NOT_LEAF)
 
 enum dataIndices {
     branch_rrn = 0,
     data_value,
-    data_rnn
+    data_rrn
 };
 
 typedef struct {

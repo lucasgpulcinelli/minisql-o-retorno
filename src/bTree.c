@@ -91,7 +91,7 @@ int32_t indexNodeSearch(indexTree* it, int32_t curr_rrn, int32_t value){
 
     for(int i = 0; i < SEARCH_KEYS; i++){
         if(node->data[i][data_value] == value){
-            int32_t ret = node->data[i][data_rnn];
+            int32_t ret = node->data[i][data_rrn];
             freeIndexNode(node);
             return ret;
         }
