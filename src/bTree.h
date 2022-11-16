@@ -9,6 +9,7 @@
 #define INDICES_PAGE_SIZE 65
 #define BRANCHES 5
 #define SEARCH_KEYS (BRANCHES-1)
+#define BRANCH_METADATA_SIZE 3
 
 enum dataIndices {
     branch_rrn = 0,
@@ -22,7 +23,7 @@ typedef struct {
     int32_t height;
     int32_t node_rrn;
 
-    int32_t data[BRANCHES][3];
+    int32_t data[BRANCHES][BRANCH_METADATA_SIZE];
 } indexNode;
 
 typedef struct {
