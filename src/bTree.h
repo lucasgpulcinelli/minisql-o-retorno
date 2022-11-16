@@ -7,9 +7,13 @@
 #include "file_control.h"
 
 #define INDICES_PAGE_SIZE 65
+#define INDICES_HEADER_SIZE 17
+
 #define BRANCHES 5
 #define SEARCH_KEYS (BRANCHES-1)
 #define BRANCH_METADATA_SIZE 3
+
+#define EMPTY_TREE_ROOT_RRN -1
 
 enum dataIndices {
     branch_rrn = 0,
@@ -65,5 +69,9 @@ void freeIndexNode(indexNode* in);
 int32_t indexNodeSearch(indexTree* it, int32_t curr_rrn, int32_t value);
 
 entry* bTreeSearch(bTree* bt, int32_t value);
+
+void writeIndexTreeHeader(indexTree* it);
+
+indexTree* createIndexTree(char* indices_filename);
 
 #endif
