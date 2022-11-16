@@ -34,6 +34,7 @@ indexTree* openIndexTree(char* filename, const char* mode){
 }
 
 void closeIndexTree(indexTree* it){
+    writeIndexTreeHeader(it);
     fclose(it->fp);
     free(it);
 }
@@ -116,4 +117,31 @@ entry* bTreeSearch(bTree* bt, int32_t value){
 
     seekTable(bt->table, rrn);
     return tableReadNextEntry(bt->table);
+}
+
+void writeIndexTreeHeader(indexTree* it){
+    rewind(it->fp);
+
+    fwrite(it->status, sizeof(char), 1, it->fp);
+    fwrite(it->root_node_rrn, sizeof(int32_t), 1, it->fp);
+    fwrite(it->total_keys, sizeof(int32_t), 1, it->fp);
+    fwrite(it->height, sizeof(int32_t), 1, it->fp);
+    fwrite(it->next_node_rrn, sizeof(int32_t), 1, it->fp);
+    fwrite('$', sizeof(char), INDICES_PAGE_SIZE - INDICES_HEADER_SIZE, 
+        it->fp);
+}
+
+indexTree* createIndexTree(char* indices_filename){
+    indexTree* it;
+    XALLOC(indexTree, it, 1);
+
+    OPEN_FILE(it->fp, indices_filename, "w+b");
+    it->status = ERR_HEADER;
+    it->root_node_rrn = EMPTY_TREE_ROOT_RRN;
+    it->total_keys = 0;
+    it->height = 0;
+    it->next_node_rrn = 0;
+
+    writeIndexTreeHeader(it);
+    return it;
 }
