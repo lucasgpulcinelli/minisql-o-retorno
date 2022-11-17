@@ -91,8 +91,8 @@ int32_t insertEntryInIndexNode(indexNode* in, entry* es, int32_t data_rnn){
         return FULL_NODE;
     }
 
-    in->data[SEARCH_KEYS][data_value] = es->fields[idConnect].value.integer;
-    in->data[SEARCH_KEYS][data_rnn] = data_rnn;
+    in->data[SEARCH_KEYS][data_value] = te->idConnect;
+    in->data[SEARCH_KEYS][data_rrn] = te->rrn;
 
     for(ssize_t swap = SEARCH_KEYS; swap > 0; swap--){
         if(in->data[swap - 1][data_value] == EMPTY_VALUE ||
@@ -191,4 +191,25 @@ indexTree* createIndexTree(char* indices_filename){
 
     writeIndexTreeHeader(it);
     return it;
+}
+
+treeEntry* createTreeEntry(entry* es, int32_t rrn) {
+    treeEntry* te;
+    XALLOC(treeEntry, te, 1);
+
+    te->idConnect = es->fields[idConnect].value.integer;
+    te->rrn = rrn;
+
+    return te;
+}
+
+void freeTreeEntry(treeEntry* te) {
+    free(te);
+}
+
+void insertEntryInIndexTree(indexTree* it, entry* es){
+    if(it->root_node_rrn == EMPTY_RRN) {
+        indexNode* root_node = createIndexNode(1, 0);
+        root_node->leaf = '0';
+    }
 }

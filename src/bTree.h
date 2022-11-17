@@ -30,6 +30,11 @@ enum dataIndices {
 };
 
 typedef struct {
+    int32_t idConnect;
+    int32_t rrn;
+} treeEntry;
+
+typedef struct {
     char leaf;
     int32_t keys;
     int32_t height;
@@ -83,6 +88,10 @@ entry* bTreeSearch(bTree* bt, int32_t value);
 void writeIndexTreeHeader(indexTree* it);
 
 indexTree* createIndexTree(char* indices_filename);
+
+treeEntry* createTreeEntry(entry* es, int32_t rrn);
+
+void freeTreeEntry(treeEntry* te);
 
 void insertEntryInIndexTree(indexTree* it, entry* es, int32_t data_rrn);
 
