@@ -71,13 +71,17 @@ entry* bTreeReadNextEntry(bTree* bt);
 
 bool bTreeHasNextEntry(bTree* bt);
 
-indexNode* createIndexNode(int height, int node_rrn);
+indexNode* createIndexNode(int height, int node_rrn, char leaf);
 
 indexTree* openIndexTree(char* filename, const char* mode);
 
 void closeIndexTree(indexTree* it);
 
-indexNode* readIndexNode(indexTree* it);
+indexNode* readCurNode(indexTree* it);
+
+indexNode* readIndexNode(indexTree* it, int32_t rrn);
+
+void writeIndexNode(indexTree* it, indexNode* in);
 
 void freeIndexNode(indexNode* in);
 

@@ -81,30 +81,30 @@ void swapValues(int32_t** data, ssize_t index) {
     data[index][data_rrn] = temp_data_rrn;
 }
 
-int32_t insertEntryInIndexNode(indexNode* in, entry* es, int32_t data_rnn){
+void insertEntryInLeaf(indexNode* in, treeEntry* te){
     if(IS_NOT_LEAF(in)){
         errno = EINVAL;
-        ABORT_PROGRAM("cannot insert in non-leaf node");
+        ABORT_PROGRAM("cannot insert in non-leaf node\n");
     }
 
     if(in->keys == SEARCH_KEYS){
-        return FULL_NODE;
+        errno = EINVAL;
+        ABORT_PROGRAM("cannot insert in a leaf node that is full\n");
     }
 
-    in->data[SEARCH_KEYS][data_value] = te->idConnect;
-    in->data[SEARCH_KEYS][data_rrn] = te->rrn;
+    in->data[SEARCH_KEYS - 1][data_value] = te->idConnect;
+    in->data[SEARCH_KEYS - 1][data_rrn] = te->rrn;
+    in->keys++;
 
-    for(ssize_t swap = SEARCH_KEYS; swap > 0; swap--){
+    for(ssize_t swap = SEARCH_KEYS - 1; swap > 0; swap--){
         if(in->data[swap - 1][data_value] == EMPTY_VALUE ||
            in->data[swap - 1][data_value] > in->data[swap][data_value]){
             swapValues(in->data, swap);
         }
     }
-
-    return INSERTION_SUCCESS;
 }
 
-indexNode* readIndexNode(indexTree* it){
+indexNode* readCurNode(indexTree* it){
     indexNode* in;
     XALLOC(indexNode, in, 1);
 
@@ -133,9 +133,7 @@ int32_t indexNodeSearch(indexTree* it, int32_t curr_rrn, int32_t value){
         return -1;
     }
 
-    fseek(it->fp, (curr_rrn+1) * INDICES_PAGE_SIZE, SEEK_SET);
-    indexNode* node = readIndexNode(it);
-
+    indexNode* node = readIndexNode(it, curr_rrn);
     for(int i = 0; i < SEARCH_KEYS; i++){
         if(node->data[i][data_value] == value){
             int32_t ret = node->data[i][data_rrn];
