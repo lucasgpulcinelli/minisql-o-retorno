@@ -58,11 +58,11 @@ bool bTreeHasNextEntry(bTree* bt){
     return tableHasNextEntry(bt->table);
 }
 
-indexNode* createIndexNode(int height, int node_rrn){
+indexNode* createIndexNode(int height, int node_rrn, char leaf){
     indexNode* in;
     MEMSET_ALLOC(indexNode, in, 1, EMPTY_VALUE);
 
-    in->leaf = LEAF;
+    in->leaf = leaf;
     in->keys = 0;
     in->height = height;
     in->node_rrn = node_rrn;
