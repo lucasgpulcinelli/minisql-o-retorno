@@ -34,10 +34,46 @@ indexTree* openIndexTree(char* filename, const char* mode){
     return it;
 }
 
+bTree* createBTreeFromTable(char* table_name, char* indices_filename){
+    bTree* new_tree;
+    XALLOC(bTree, new_tree, 1);
+
+    new_tree->table = openTable(table_name, "r+b");
+    new_tree->tree = createEmptyIndexTree(indices_filename);
+
+    while(tableHasNextEntry(new_tree->table)){
+        entry* es = tableReadNextEntry(new_tree->table);
+
+        if(!ENTRY_REMOVED(es)){
+            treeEntry* te = createTreeEntry(es, new_tree->tree->next_node_rrn);
+            insertEntryInIndexTree(new_tree->tree, te);
+            freeTreeEntry(te);
+        }
+
+        deleteEntry(es, 1);
+    }
+
+    return new_tree;
+}
+
 void closeIndexTree(indexTree* it){
     writeIndexTreeHeader(it);
     fclose(it->fp);
     free(it);
+}
+
+void bTreeTablehashOnScreen(bTree* bt){
+    tableHashOnScreen(bt->table);
+}
+
+void bTreeIndexTreehashOnScreen(bTree* bt){
+    rewind(bt->tree->fp);
+    uint32_t sum = 0;
+	for(int c = getc(bt->tree->fp); c != EOF; c = getc(bt->tree->fp)){
+		sum += c;
+	}
+
+	printf("%lf\n", sum / (double) 100);
 }
 
 void closeBTree(bTree* bt){
@@ -199,7 +235,7 @@ void writeIndexTreeHeader(indexTree* it){
         it->fp);
 }
 
-indexTree* createIndexTree(char* indices_filename){
+indexTree* createEmptyIndexTree(char* indices_filename){
     indexTree* it;
     XALLOC(indexTree, it, 1);
 

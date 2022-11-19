@@ -139,8 +139,8 @@ void closeTable(table *t){
 
     if(!t->read_only){
         writeHeader(t->fp, t->header);
-        tableHashOnScreen(t);
     }
+    
     fclose(t->fp);
     free(t->header);
     free(t);

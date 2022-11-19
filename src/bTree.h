@@ -68,9 +68,15 @@ bTree* openBTree(char* data_filename, char* indices_filename,
 
 void closeBTree(bTree* bt);
 
+bTree* createBTreeFromTable(char* table_name, char* indices_filename);
+
 void rewindBTree(bTree* bt);
 
 entry* bTreeReadNextEntry(bTree* bt);
+
+void bTreeTablehashOnScreen(bTree* bt);
+
+void bTreeIndexTreehashOnScreen(bTree* bt);
 
 bool bTreeHasNextEntry(bTree* bt);
 
@@ -94,7 +100,7 @@ entry* bTreeSearch(bTree* bt, int32_t value);
 
 void writeIndexTreeHeader(indexTree* it);
 
-indexTree* createIndexTree(char* indices_filename);
+indexTree* createEmptyIndexTree(char* indices_filename);
 
 treeEntry* createTreeEntry(entry* es, int32_t rrn);
 
