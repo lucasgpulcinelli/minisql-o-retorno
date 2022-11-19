@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <sys/types.h>
+#include <string.h>
 
 #define INIT_LEN 64           //Initial string size in readFirstLine
 #define STR_GROWTH_FACTOR 2   //Rate at which string grows in readFirstLine

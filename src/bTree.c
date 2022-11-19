@@ -70,7 +70,7 @@ indexNode* createIndexNode(int height, int node_rrn){
     return in;
 }
 
-void swapValues(int32_t** data, ssize_t index) {
+void swapValues(int32_t (*data)[BRANCH_METADATA_SIZE], ssize_t index) {
     int32_t temp_data_value = data[index - 1][data_value];
     int32_t temp_data_rrn = data[index - 1][data_rrn];
 
@@ -166,13 +166,14 @@ entry* bTreeSearch(bTree* bt, int32_t value){
 
 void writeIndexTreeHeader(indexTree* it){
     rewind(it->fp);
+    char dollar_sign = '$';
 
-    fwrite(it->status, sizeof(char), 1, it->fp);
-    fwrite(it->root_node_rrn, sizeof(int32_t), 1, it->fp);
-    fwrite(it->total_keys, sizeof(int32_t), 1, it->fp);
-    fwrite(it->height, sizeof(int32_t), 1, it->fp);
-    fwrite(it->next_node_rrn, sizeof(int32_t), 1, it->fp);
-    fwrite('$', sizeof(char), INDICES_PAGE_SIZE - INDICES_HEADER_SIZE, 
+    fwrite(&(it->status), sizeof(char), 1, it->fp);
+    fwrite(&(it->root_node_rrn), sizeof(int32_t), 1, it->fp);
+    fwrite(&(it->total_keys), sizeof(int32_t), 1, it->fp);
+    fwrite(&(it->height), sizeof(int32_t), 1, it->fp);
+    fwrite(&(it->next_node_rrn), sizeof(int32_t), 1, it->fp);
+    fwrite(&dollar_sign, sizeof(char), INDICES_PAGE_SIZE - INDICES_HEADER_SIZE,
         it->fp);
 }
 
