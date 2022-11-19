@@ -70,7 +70,7 @@ indexNode* createIndexNode(int height, int node_rrn, char leaf){
     return in;
 }
 
-void swapValues(int32_t (*data)[BRANCH_METADATA_SIZE], ssize_t index) {
+void swapValues(int32_t (*data)[BRANCH_METADATA_SIZE], ssize_t index){
     int32_t temp_data_value = data[index - 1][data_value];
     int32_t temp_data_rrn = data[index - 1][data_rrn];
 
@@ -128,7 +128,7 @@ indexNode* readIndexNode(indexTree* it, int32_t rrn){
     return readCurNode(it);
 }
 
-void writeIndexNode(indexTree* it, indexNode* in) {
+void writeIndexNode(indexTree* it, indexNode* in){
     fseek(it->fp, INDICES_PAGE_SIZE*(in->node_rrn + 1), SEEK_SET);
 
     fwrite(&(in->leaf), sizeof(char), 1, it->fp);
@@ -161,6 +161,7 @@ int32_t indexNodeSearch(indexTree* it, int32_t curr_rrn, int32_t value){
             freeIndexNode(node);
             return ret;
         }
+
         if(node->data[i][data_value] > value 
            || node->data[i][data_value] == -1){
 
@@ -271,7 +272,7 @@ void recursiveNodeInsert(indexTree* it, indexNode* in, treeEntry* te){
             recursiveNodeInsert(it, subtree, te);
             free(subtree);
 
-        } else {
+        }else{
             free(subtree);
             recursiveNodeInsert(it, split, te);
         }
