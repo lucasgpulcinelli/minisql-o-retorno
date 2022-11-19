@@ -12,6 +12,7 @@
 #define BRANCHES 5
 #define SEARCH_KEYS (BRANCHES-1)
 #define BRANCH_METADATA_SIZE 3
+#define MEDIAN SEARCH_KEYS/2
 
 #define EMPTY_RRN -1
 #define EMPTY_VALUE -1
@@ -21,7 +22,9 @@
 
 #define LEAF '1'
 #define NOT_LEAF '0'
+
 #define IS_NOT_LEAF(in) (in->leaf == NOT_LEAF)
+#define IS_FULL(in) (in->keys == SEARCH_KEYS)
 
 enum dataIndices {
     branch_rrn = 0,
@@ -97,6 +100,10 @@ treeEntry* createTreeEntry(entry* es, int32_t rrn);
 
 void freeTreeEntry(treeEntry* te);
 
-void insertEntryInIndexTree(indexTree* it, entry* es, int32_t data_rrn);
+void insertEntryInIndexTree(indexTree* it, treeEntry* te);
+
+void recursiveNodeInsert(indexTree* it, indexNode* in, treeEntry* te);
+
+indexNode* splitNode(indexTree* it, indexNode* father, indexNode* child, int32_t subtree);
 
 #endif

@@ -120,8 +120,29 @@ indexNode* readCurNode(indexTree* it){
     }
 
     fread(&(in->data[BRANCHES-1][branch_rrn]), sizeof(int32_t), 1, it->fp);
-
     return in;
+}
+
+indexNode* readIndexNode(indexTree* it, int32_t rrn){
+    fseek(it->fp, INDICES_PAGE_SIZE*(rrn + 1), SEEK_SET);
+    return readCurNode(it);
+}
+
+void writeIndexNode(indexTree* it, indexNode* in) {
+    fseek(it->fp, INDICES_PAGE_SIZE*(in->node_rrn + 1), SEEK_SET);
+
+    fwrite(&(in->leaf), sizeof(char), 1, it->fp);
+    fwrite(&(in->keys), sizeof(int32_t), 1, it->fp);
+    fwrite(&(in->height), sizeof(int32_t), 1, it->fp);
+    fwrite(&(in->node_rrn), sizeof(int32_t), 1, it->fp);
+
+    for(size_t index = 0; index < SEARCH_KEYS; index++){
+        fwrite(&(in->data[index][branch_rrn]), sizeof(int32_t), 1, it->fp);
+        fwrite(&(in->data[index][data_value]), sizeof(int32_t), 1, it->fp);
+        fwrite(&(in->data[index][data_rrn]), sizeof(int32_t), 1, it->fp);
+    }   
+
+    fwrite(&(in->data[BRANCHES][branch_rrn]), sizeof(int32_t), 1, it->fp);
 }
 
 void freeIndexNode(indexNode* in){
@@ -192,7 +213,7 @@ indexTree* createIndexTree(char* indices_filename){
     return it;
 }
 
-treeEntry* createTreeEntry(entry* es, int32_t rrn) {
+treeEntry* createTreeEntry(entry* es, int32_t rrn){
     treeEntry* te;
     XALLOC(treeEntry, te, 1);
 
@@ -202,13 +223,100 @@ treeEntry* createTreeEntry(entry* es, int32_t rrn) {
     return te;
 }
 
-void freeTreeEntry(treeEntry* te) {
+void freeTreeEntry(treeEntry* te){
     free(te);
 }
 
-void insertEntryInIndexTree(indexTree* it, entry* es){
-    if(it->root_node_rrn == EMPTY_RRN) {
-        indexNode* root_node = createIndexNode(1, 0);
-        root_node->leaf = '0';
+void insertEntryInIndexTree(indexTree* it, treeEntry* te){
+    if(it == NULL){
+        errno = EINVAL;
+        ABORT_PROGRAM("pointer to index tree is null\n");
+
+    } else if (te == NULL){
+        errno = EINVAL;
+        ABORT_PROGRAM("pointer to tree entry is null\n");
     }
+
+    indexNode* in = readIndexNode(it, it->root_node_rrn);
+    if(IS_FULL(in)){
+        indexNode* new_root = createIndexNode(it->height, 
+                                              it->next_node_rrn, NOT_LEAF);
+        it->height++;
+        it->root_node_rrn = new_root->node_rrn;
+        it->next_node_rrn++;
+
+        splitNode(it, new_root, in, 0);
+        free(in);
+        in = readIndexNode(it, it->root_node_rrn);
+    }
+
+    recursiveNodeInsert(it, in, te);
+    free(in);
+    it->total_keys++;
+}
+
+void recursiveNodeInsert(indexTree* it, indexNode* in, treeEntry* te){
+    if(IS_NOT_LEAF(in)){
+        int32_t branch = 0;
+        while(in->data[branch][data_value] != EMPTY_VALUE &&
+              in->data[branch][data_value] < te->idConnect && branch++);
+
+        indexNode* subtree = readIndexNode(it, in->data[branch][branch_rrn]);
+        indexNode* split = NULL;
+        if(IS_FULL(subtree)){
+            split = splitNode(it, in, subtree, branch);
+        }
+        
+        if(split == NULL || te->idConnect <= in->data[branch][data_value]){
+            recursiveNodeInsert(it, subtree, te);
+            free(subtree);
+
+        } else {
+            free(subtree);
+            recursiveNodeInsert(it, split, te);
+        }
+
+        if(split){
+            free(split);
+        }
+    }
+
+    insertEntryInLeaf(in, te);
+}
+
+indexNode* splitNode(indexTree* it, indexNode* father, indexNode* child, 
+                     int32_t subtree){
+    indexNode* split = createIndexNode(child->height, it->next_node_rrn, child->leaf);
+
+    for(int32_t key = MEDIAN + 1; key < SEARCH_KEYS; key++){
+        split->data[key - MEDIAN][branch_rrn] = child->data[key][branch_rrn];
+        split->data[key - MEDIAN][data_value] = child->data[key][data_value];
+        split->data[key - MEDIAN][data_rrn] = child->data[key][data_rrn];
+        split->keys++;
+
+        child->data[key][branch_rrn] = EMPTY_RRN;
+        child->data[key][data_value] = EMPTY_VALUE;
+        child->data[key][data_rrn] = EMPTY_RRN;
+    }
+    
+    for(int32_t key = BRANCHES; key > subtree; key--){
+        father->data[key][branch_rrn] = father->data[key - 1][branch_rrn];
+        father->data[key][data_value] = father->data[key - 1][data_value];
+        father->data[key][data_rrn] = father->data[key - 1][data_rrn];
+    }
+
+    father->data[subtree][branch_rrn] = child->node_rrn;
+    father->data[subtree][data_value] = child->data[MEDIAN][data_value];
+    father->data[subtree][data_rrn] = child->data[MEDIAN][data_rrn];
+    father->data[subtree + 1][branch_rrn] = split->node_rrn;
+
+    child->data[MEDIAN][data_value] = EMPTY_VALUE;
+    child->data[MEDIAN][data_rrn] = EMPTY_RRN;
+
+    writeIndexNode(it, father);
+    writeIndexNode(it, child);
+    writeIndexNode(it, split);
+    it->next_node_rrn++;
+
+    return split;
 }
