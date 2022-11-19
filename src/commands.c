@@ -12,43 +12,13 @@
 
 
 void commandCreate(void){
-    char* csv_input_name;
-    char* table_output_name;
-    READ_INPUT("%ms %ms", &csv_input_name, &table_output_name);
+    char* table_name;
+    char* indices_name;
+    READ_INPUT("%ms %ms", &table_name, &indices_name);
 
-    FILE* fp_in;
-    OPEN_FILE(fp_in, csv_input_name, "rb");
-    free(csv_input_name);
-
-    char* csv_header;
-    readFirstLine(&csv_header, fp_in);
-    if(strcmp(csv_header, CSV_HEADER)){
-        errno = EINVAL;
-        ABORT_PROGRAM("Invalid CSV header");
-    }
-    free(csv_header);
-
-    table* t = createEmptyTable(table_output_name);
-    entry* es = createEntry(1);
-    free(table_output_name);
-
-    while(!feof(fp_in)){
-        char* line;
-        readFirstLine(&line, fp_in);
-        if(!strcmp(line, "")){
-            free(line);
-            break;
-        }
-
-        readEntryFromCSV(line, es);
-        free(line);
-        appendEntryOnTable(t, es);
-        clearEntry(es);
-    }
-
-    deleteEntry(es, 1);
-    fclose(fp_in);
-    closeTable(t);
+    bTree* tree = createBTreeFromTable(table_name, indices_name);
+    bTreeIndexTreehashOnScreen(tree);
+    closeBTree(tree);
 }
 
 void commandWhere(void){
