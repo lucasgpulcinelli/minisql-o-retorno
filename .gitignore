@@ -8,3 +8,4 @@ build/
 *.csv
 arquivos/*
 casos_de_teste/*
+*.zip
