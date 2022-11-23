@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include <errno.h>
 
 #include "file_control.h"
 #include "entries.h"
@@ -105,6 +106,11 @@ entry* tableReadNextEntry(table* t){
 }
 
 void appendEntryOnTable(table* t, entry* es){
+    if(t->read_only){
+        errno = EACCES;
+        ABORT_PROGRAM("cannot insert in table opened in read-only mode");
+    }
+
     if(t->header->stack != EMPTY_STACK){
         fseek(t->fp, PAGE_SIZE + t->header->stack*MAX_SIZE_ENTRY, SEEK_SET);
         entry* erased = createEntry(1);
@@ -127,6 +133,11 @@ void appendEntryOnTable(table* t, entry* es){
 }
 
 void removeEntryFromTable(table* t, size_t rrn){
+    if(t->read_only){
+        errno = EACCES;
+        ABORT_PROGRAM("cannot remove from table opened in read-only mode");
+    }
+
     seekTable(t, rrn);
     writeEmptyEntry(t->fp, t->header->stack);
     t->header->entries_removed++;
