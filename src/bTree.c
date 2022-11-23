@@ -31,6 +31,15 @@ indexTree* openIndexTree(char* filename, const char* mode){
     fread(&(it->height), sizeof(int32_t), 1, it->fp);
     fread(&(it->next_node_rrn), sizeof(int32_t), 1, it->fp);
 
+    if(strchr(mode, 'w') != NULL || strchr(mode, '+') != NULL){
+        it->status = ERR_HEADER;
+        it->read_only = false;
+        writeIndexTreeHeader(it);
+
+    } else {
+        it->read_only = true;
+    }
+
     return it;
 }
 
@@ -57,7 +66,11 @@ bTree* createBTreeFromTable(char* table_name, char* indices_filename){
 }
 
 void closeIndexTree(indexTree* it){
-    writeIndexTreeHeader(it);
+    if(!(it->read_only)){
+        it->status = OK_HEADER;
+        writeIndexTreeHeader(it);
+    }
+    
     fclose(it->fp);
     free(it);
 }
@@ -181,8 +194,12 @@ indexNode* readIndexNode(indexTree* it, int32_t rrn){
 }
 
 void writeIndexNode(indexTree* it, indexNode* in){
+    if(it->read_only){
+        errno = EACCES;
+        ABORT_PROGRAM("index tree opened in read only mode");
+    }
+    
     fseek(it->fp, INDICES_PAGE_SIZE*(in->node_rrn + 1), SEEK_SET);
-
     fwrite(&(in->leaf), sizeof(char), 1, it->fp);
     fwrite(&(in->keys), sizeof(int32_t), 1, it->fp);
     fwrite(&(in->height), sizeof(int32_t), 1, it->fp);
@@ -239,6 +256,11 @@ entry* bTreeSearch(bTree* bt, int32_t value){
 }
 
 void writeIndexTreeHeader(indexTree* it){
+    if(it->read_only){
+        errno = EACCES;
+        ABORT_PROGRAM("index tree opened in read only mode");
+    }
+
     rewind(it->fp);
     char dollar_sign = '$';
 
@@ -280,6 +302,13 @@ void freeTreeEntry(treeEntry* te){
     free(te);
 }
 
+void insertEntryInBTree(bTree* bt, entry* es){
+    if(bt->tree->read_only || bt->table->read_only){
+        errno = EACCES;
+        ABORT_PROGRAM("index tree opened in read only mode");
+    }
+}
+
 void insertEntryInIndexTree(indexTree* it, treeEntry* te){
     if(it == NULL){
         errno = EINVAL;
@@ -288,7 +317,6 @@ void insertEntryInIndexTree(indexTree* it, treeEntry* te){
     } else if (te == NULL){
         errno = EINVAL;
         ABORT_PROGRAM("pointer to tree entry is null\n");
-
     }
 
     treeCarryOn* carry_on = recursiveNodeInsert(it, it->root_node_rrn, te);

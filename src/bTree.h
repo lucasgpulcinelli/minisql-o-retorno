@@ -2,6 +2,7 @@
 #define __BTREE_H__
 
 #include <inttypes.h>
+#include <stdbool.h>
 #include <stdio.h>
 
 #include "file_control.h"
@@ -49,6 +50,7 @@ typedef struct {
 
 typedef struct {
     FILE* fp;
+    bool read_only;
 
     char status;
     int32_t root_node_rrn;
