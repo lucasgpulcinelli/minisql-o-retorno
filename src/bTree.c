@@ -117,15 +117,24 @@ void swapValues(int32_t (*data)[BRANCH_METADATA_SIZE], ssize_t index){
     data[index][data_rrn] = temp_data_rrn;
 }
 
-void insertEntryInLeaf(indexNode* in, treeEntry* te){
+treeCarryOn* insertEntryInLeaf(indexTree* it, indexNode* in, treeEntry* te){
     if(IS_NOT_LEAF(in)){
         errno = EINVAL;
         ABORT_PROGRAM("cannot insert in non-leaf node\n");
     }
 
     if(in->keys == SEARCH_KEYS){
-        errno = EINVAL;
-        ABORT_PROGRAM("cannot insert in a leaf node that is full\n");
+        treeCarryOn* carry = splitNode(it, in);
+
+        if(carry->key.idConnect < te->idConnect){
+            indexNode* upper = readIndexNode(it, carry->upper_subtree);
+            insertEntryInLeaf(it, upper, te);
+            free(upper);
+        } else {
+            insertEntryInLeaf(it, in, te);
+        }
+
+        return carry;
     }
 
     in->data[SEARCH_KEYS - 1][data_value] = te->idConnect;
@@ -138,6 +147,9 @@ void insertEntryInLeaf(indexNode* in, treeEntry* te){
             swapValues(in->data, swap);
         }
     }
+
+    writeIndexNode(it, in);
+    return NULL;
 }
 
 indexNode* readCurNode(indexTree* it){
@@ -160,8 +172,12 @@ indexNode* readCurNode(indexTree* it){
 }
 
 indexNode* readIndexNode(indexTree* it, int32_t rrn){
-    fseek(it->fp, INDICES_PAGE_SIZE*(rrn + 1), SEEK_SET);
-    return readCurNode(it);
+    if(rrn == EMPTY_RRN){
+        return NULL;
+    }else{
+        fseek(it->fp, INDICES_PAGE_SIZE*(rrn + 1), SEEK_SET);
+        return readCurNode(it);
+    }
 }
 
 void writeIndexNode(indexTree* it, indexNode* in){
@@ -272,88 +288,118 @@ void insertEntryInIndexTree(indexTree* it, treeEntry* te){
     } else if (te == NULL){
         errno = EINVAL;
         ABORT_PROGRAM("pointer to tree entry is null\n");
+
     }
 
-    indexNode* in = readIndexNode(it, it->root_node_rrn);
-    if(IS_FULL(in)){
-        indexNode* new_root = createIndexNode(it->height, 
-                                              it->next_node_rrn, NOT_LEAF);
+    treeCarryOn* carry_on = recursiveNodeInsert(it, it->root_node_rrn, te);
+
+    if(it->root_node_rrn == EMPTY_RRN || carry_on != NULL){
         it->height++;
-        it->root_node_rrn = new_root->node_rrn;
+        indexNode* root = createIndexNode(it->height, it->next_node_rrn,
+                                         (carry_on == NULL)? LEAF : NOT_LEAF);
+        it->root_node_rrn = root->node_rrn;
         it->next_node_rrn++;
+        it->total_keys++;
 
-        splitNode(it, new_root, in, 0);
+        if(carry_on != NULL){
+            root->data[0][branch_rrn] = carry_on->lower_subtree;
+            root->data[0][data_value] = carry_on->key.idConnect;
+            root->data[0][data_rrn] = carry_on->key.rrn;
+            root->data[1][branch_rrn] = carry_on->upper_subtree;
+            free(carry_on);
+        }
+
+        writeIndexNode(it, root);
+        free(root);
+    }
+}
+
+treeCarryOn* recursiveNodeInsert(indexTree* it, int32_t rrn, treeEntry* te){
+    indexNode* in = readIndexNode(it, rrn);
+    if(in == NULL){
+        return NULL;
+
+    } else if(IS_LEAF(in)){
+        return insertEntryInLeaf(it, in, te);
+    }
+
+    int32_t branch = 0;
+    while(in->data[branch][data_value] != EMPTY_VALUE &&
+          in->data[branch][data_value] < te->idConnect && branch++);
+
+    treeCarryOn* carry_on = recursiveNodeInsert(it, in->data[branch][branch_rrn], te);
+    if(carry_on != NULL){
+        treeCarryOn* next_carry = insertCarryOn(it, carry_on, branch, in);
+        free(carry_on);
         free(in);
-        in = readIndexNode(it, it->root_node_rrn);
+
+        return next_carry;
     }
 
-    recursiveNodeInsert(it, in, te);
     free(in);
-    it->total_keys++;
+    return NULL;
 }
 
-void recursiveNodeInsert(indexTree* it, indexNode* in, treeEntry* te){
-    if(IS_NOT_LEAF(in)){
-        int32_t branch = 0;
-        while(in->data[branch][data_value] != EMPTY_VALUE &&
-              in->data[branch][data_value] < te->idConnect && branch++);
+treeCarryOn* insertCarryOn(indexTree* it, treeCarryOn* carry_on, int32_t branch, 
+                           indexNode* in){
+    if(in->keys == SEARCH_KEYS){
+        treeCarryOn* carry = splitNode(it, in);
 
-        indexNode* subtree = readIndexNode(it, in->data[branch][branch_rrn]);
-        indexNode* split = NULL;
-        if(IS_FULL(subtree)){
-            split = splitNode(it, in, subtree, branch);
-        }
-        
-        if(split == NULL || te->idConnect <= in->data[branch][data_value]){
-            recursiveNodeInsert(it, subtree, te);
-            free(subtree);
-
-        }else{
-            free(subtree);
-            recursiveNodeInsert(it, split, te);
+        if(branch > MEDIAN){
+            indexNode* upper = readIndexNode(it, carry->upper_subtree);
+            insertCarryOn(it, carry_on, branch - MEDIAN - 1, in);
+            free(upper);
+        } else {
+            insertCarryOn(it, carry_on, branch, in);
         }
 
-        if(split){
-            free(split);
-        }
+        return carry;
     }
 
-    insertEntryInLeaf(in, te);
+    for(int32_t key = SEARCH_KEYS; key > branch; key--){
+        in->data[key][branch_rrn] = in->data[key - 1][branch_rrn];
+        in->data[key][data_value] = in->data[key - 1][data_value];
+        in->data[key][data_rrn] = in->data[key - 1][data_rrn];
+    }
+
+    in->data[branch][branch_rrn] = carry_on->lower_subtree;
+    in->data[branch][data_value] = carry_on->key.idConnect;
+    in->data[branch][data_rrn] = carry_on->key.rrn;
+    in->data[branch + 1][branch_rrn] = carry_on->upper_subtree;
+
+    return NULL;
 }
 
-indexNode* splitNode(indexTree* it, indexNode* father, indexNode* child, 
-                     int32_t subtree){
-    indexNode* split = createIndexNode(child->height, it->next_node_rrn, child->leaf);
-
-    for(int32_t key = MEDIAN + 1; key < SEARCH_KEYS; key++){
-        split->data[key - MEDIAN][branch_rrn] = child->data[key][branch_rrn];
-        split->data[key - MEDIAN][data_value] = child->data[key][data_value];
-        split->data[key - MEDIAN][data_rrn] = child->data[key][data_rrn];
-        split->keys++;
-
-        child->data[key][branch_rrn] = EMPTY_RRN;
-        child->data[key][data_value] = EMPTY_VALUE;
-        child->data[key][data_rrn] = EMPTY_RRN;
-    }
-    
-    for(int32_t key = BRANCHES; key > subtree; key--){
-        father->data[key][branch_rrn] = father->data[key - 1][branch_rrn];
-        father->data[key][data_value] = father->data[key - 1][data_value];
-        father->data[key][data_rrn] = father->data[key - 1][data_rrn];
+treeCarryOn* splitNode(indexTree* it, indexNode* in){
+    if(in->keys < SEARCH_KEYS){
+        errno = ENOTSUP;
+        ABORT_PROGRAM("Cannot split a node that is not full");
     }
 
-    father->data[subtree][branch_rrn] = child->node_rrn;
-    father->data[subtree][data_value] = child->data[MEDIAN][data_value];
-    father->data[subtree][data_rrn] = child->data[MEDIAN][data_rrn];
-    father->data[subtree + 1][branch_rrn] = split->node_rrn;
-
-    child->data[MEDIAN][data_value] = EMPTY_VALUE;
-    child->data[MEDIAN][data_rrn] = EMPTY_RRN;
-
-    writeIndexNode(it, father);
-    writeIndexNode(it, child);
-    writeIndexNode(it, split);
+    indexNode* split = createIndexNode(in->height, it->next_node_rrn, in->leaf);
     it->next_node_rrn++;
 
-    return split;
+    for(int32_t key = MEDIAN + 1; key < SEARCH_KEYS; key++){
+        split->data[key - MEDIAN][branch_rrn] = in->data[key][branch_rrn];
+        split->data[key - MEDIAN][data_value] = in->data[key][data_value];
+        split->data[key - MEDIAN][data_rrn] = in->data[key][data_rrn];
+        split->keys++;
+
+        in->data[key][branch_rrn] = EMPTY_RRN;
+        in->data[key][data_value] = EMPTY_VALUE;
+        in->data[key][data_rrn] = EMPTY_RRN;
+    }
+    
+    treeCarryOn* carry;
+    XALLOC(treeCarryOn, carry, 1);
+    carry->lower_subtree = in->node_rrn;
+    carry->upper_subtree = split->node_rrn;
+
+    in->data[MEDIAN][data_value] = EMPTY_VALUE;
+    in->data[MEDIAN][data_rrn] = EMPTY_RRN;
+
+    writeIndexNode(it, in);
+    writeIndexNode(it, split);
+
+    return carry;
 }

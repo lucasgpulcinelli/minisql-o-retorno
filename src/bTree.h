@@ -24,6 +24,7 @@
 #define NOT_LEAF '0'
 
 #define IS_NOT_LEAF(in) (in->leaf == NOT_LEAF)
+#define IS_LEAF(in) (in->leaf == LEAF)
 #define IS_FULL(in) (in->keys == SEARCH_KEYS)
 
 enum dataIndices {
@@ -56,11 +57,16 @@ typedef struct {
     int32_t next_node_rrn;
 } indexTree;
 
-
 typedef struct {
     indexTree* tree;
     table* table;
 } bTree;
+
+typedef struct {
+    int32_t lower_subtree;
+    int32_t upper_subtree;
+    treeEntry key;
+} treeCarryOn;
 
 
 bTree* openBTree(char* data_filename, char* indices_filename, 
@@ -108,8 +114,13 @@ void freeTreeEntry(treeEntry* te);
 
 void insertEntryInIndexTree(indexTree* it, treeEntry* te);
 
-void recursiveNodeInsert(indexTree* it, indexNode* in, treeEntry* te);
+treeCarryOn* recursiveNodeInsert(indexTree* it, int32_t node_rrn, treeEntry* te);
 
-indexNode* splitNode(indexTree* it, indexNode* father, indexNode* child, int32_t subtree);
+treeCarryOn* insertEntryInLeaf(indexTree* it, indexNode* in, treeEntry* te);
+
+treeCarryOn* insertCarryOn(indexTree* it, treeCarryOn* carry_on, int32_t branch, 
+                           indexNode* in);
+
+treeCarryOn* splitNode(indexTree* it, indexNode* in);
 
 #endif
