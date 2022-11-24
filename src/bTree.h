@@ -25,6 +25,8 @@
 #define IS_LEAF(in) (in->leaf == LEAF)
 #define IS_FULL(in) (in->keys == SEARCH_KEYS)
 
+#define EMPTY_TREE_ROOT_RRN -1
+
 enum dataIndices {
     branch_rrn = 0,
     data_value,
@@ -48,6 +50,7 @@ typedef struct {
 typedef struct {
     FILE* fp;
     bool read_only;
+    int nodes_read;
 
     char status;
     int32_t root_node_rrn;
@@ -105,7 +108,7 @@ entry* bTreeSearch(bTree* bt, int32_t value);
 
 void writeIndexTreeHeader(indexTree* it);
 
-indexTree* createEmptyIndexTree(char* indices_filename);
+indexTree* createIndexTree(char* indices_filename);
 
 treeEntry* createTreeEntry(entry* es, int32_t rrn);
 
@@ -121,5 +124,6 @@ treeCarryOn* insertCarryOn(indexTree* it, treeCarryOn* carry_on, int32_t branch,
                            indexNode* in);
 
 treeCarryOn* splitNode(indexTree* it, indexNode* in);
+
 
 #endif

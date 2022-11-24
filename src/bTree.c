@@ -30,6 +30,7 @@ indexTree* openIndexTree(char* filename, const char* mode){
     fread(&(it->total_keys), sizeof(int32_t), 1, it->fp);
     fread(&(it->height), sizeof(int32_t), 1, it->fp);
     fread(&(it->next_node_rrn), sizeof(int32_t), 1, it->fp);
+    it->nodes_read = 0;
 
     if(strchr(mode, 'w') != NULL || strchr(mode, '+') != NULL){
         it->status = ERR_HEADER;
@@ -48,7 +49,7 @@ bTree* createBTreeFromTable(char* table_name, char* indices_filename){
     XALLOC(bTree, new_tree, 1);
 
     new_tree->table = openTable(table_name, "r+b");
-    new_tree->tree = createEmptyIndexTree(indices_filename);
+    new_tree->tree = createIndexTree(indices_filename);
 
     while(tableHasNextEntry(new_tree->table)){
         entry* es = tableReadNextEntry(new_tree->table);
@@ -223,7 +224,10 @@ int32_t indexNodeSearch(indexTree* it, int32_t curr_rrn, int32_t value){
         return -1;
     }
 
-    indexNode* node = readIndexNode(it, curr_rrn);
+    fseek(it->fp, (curr_rrn+1) * INDICES_PAGE_SIZE, SEEK_SET);
+    indexNode* node = readCurNode(it);
+    it->nodes_read++;
+
     for(int i = 0; i < SEARCH_KEYS; i++){
         if(node->data[i][data_value] == value){
             int32_t ret = node->data[i][data_rrn];
@@ -262,24 +266,25 @@ void writeIndexTreeHeader(indexTree* it){
     }
 
     rewind(it->fp);
-    char dollar_sign = '$';
 
     fwrite(&(it->status), sizeof(char), 1, it->fp);
     fwrite(&(it->root_node_rrn), sizeof(int32_t), 1, it->fp);
     fwrite(&(it->total_keys), sizeof(int32_t), 1, it->fp);
     fwrite(&(it->height), sizeof(int32_t), 1, it->fp);
     fwrite(&(it->next_node_rrn), sizeof(int32_t), 1, it->fp);
-    fwrite(&dollar_sign, sizeof(char), INDICES_PAGE_SIZE - INDICES_HEADER_SIZE,
-        it->fp);
+
+    for(uint32_t i = 0; i < INDICES_PAGE_SIZE - INDICES_HEADER_SIZE; i++){
+        putc('$', it->fp);
+    }
 }
 
-indexTree* createEmptyIndexTree(char* indices_filename){
+indexTree* createIndexTree(char* indices_filename){
     indexTree* it;
     XALLOC(indexTree, it, 1);
 
-    OPEN_FILE(it->fp, indices_filename, "w+b");
+    it->fp = fopen(indices_filename, "w+b");
     it->status = ERR_HEADER;
-    it->root_node_rrn = EMPTY_RRN;
+    it->root_node_rrn = EMPTY_TREE_ROOT_RRN;
     it->total_keys = 0;
     it->height = 0;
     it->next_node_rrn = 0;
@@ -307,6 +312,8 @@ void insertEntryInBTree(bTree* bt, entry* es){
         errno = EACCES;
         ABORT_PROGRAM("index tree opened in read only mode");
     }
+
+    es++;
 }
 
 void insertEntryInIndexTree(indexTree* it, treeEntry* te){
@@ -431,3 +438,4 @@ treeCarryOn* splitNode(indexTree* it, indexNode* in){
 
     return carry;
 }
+
