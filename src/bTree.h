@@ -18,9 +18,6 @@
 #define EMPTY_RRN -1
 #define EMPTY_VALUE -1
 
-#define FULL_NODE -2
-#define INSERTION_SUCCESS 0
-
 #define LEAF '1'
 #define NOT_LEAF '0'
 
