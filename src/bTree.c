@@ -30,6 +30,8 @@ indexTree* openIndexTree(char* filename, const char* mode){
     fread(&(it->height), sizeof(int32_t), 1, it->fp);
     fread(&(it->next_node_rrn), sizeof(int32_t), 1, it->fp);
 
+    it->nodes_read = 0;
+
     return it;
 }
 
@@ -88,6 +90,7 @@ int32_t indexNodeSearch(indexTree* it, int32_t curr_rrn, int32_t value){
 
     fseek(it->fp, (curr_rrn+1) * INDICES_PAGE_SIZE, SEEK_SET);
     indexNode* node = readIndexNode(it);
+    it->nodes_read++;
 
     for(int i = 0; i < SEARCH_KEYS; i++){
         if(node->data[i][data_value] == value){
@@ -122,12 +125,12 @@ entry* bTreeSearch(bTree* bt, int32_t value){
 void writeIndexTreeHeader(indexTree* it){
     rewind(it->fp);
 
-    fwrite(it->status, sizeof(char), 1, it->fp);
-    fwrite(it->root_node_rrn, sizeof(int32_t), 1, it->fp);
-    fwrite(it->total_keys, sizeof(int32_t), 1, it->fp);
-    fwrite(it->height, sizeof(int32_t), 1, it->fp);
-    fwrite(it->next_node_rrn, sizeof(int32_t), 1, it->fp);
-    fwrite('$', sizeof(char), INDICES_PAGE_SIZE - INDICES_HEADER_SIZE, 
+    fwrite(&(it->status), sizeof(char), 1, it->fp);
+    fwrite(&(it->root_node_rrn), sizeof(int32_t), 1, it->fp);
+    fwrite(&(it->total_keys), sizeof(int32_t), 1, it->fp);
+    fwrite(&(it->height), sizeof(int32_t), 1, it->fp);
+    fwrite(&(it->next_node_rrn), sizeof(int32_t), 1, it->fp);
+    fwrite("$", sizeof(char), INDICES_PAGE_SIZE - INDICES_HEADER_SIZE, 
         it->fp);
 }
 

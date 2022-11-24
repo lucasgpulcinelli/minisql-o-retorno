@@ -60,6 +60,7 @@ void commandWhere(void){
 
     bTree* bt = openBTree(data_filename, indices_filename, "rb");
 
+    int nodes_read_prev = 0;
     for(int i = 0; i < n; i++, rewindBTree(bt)){
         int printed = 0;
         printf("Busca %d\n", i+1);
@@ -71,24 +72,32 @@ void commandWhere(void){
                 printEntry(e);
                 deleteEntry(e, 1);
             }
-        }
-        else{
-            for(entry* e; (e = bTreeReadNextEntry(bt)) != NULL; 
-                deleteEntry(e, 1)){
 
-                if(ENTRY_REMOVED(e)){
-                    continue;
-                }
-
-                field f_cmp = e->fields[where[i].field_type];
-
-                if(fieldCmp(where[i], f_cmp) != 0){
-                    continue;
-                }
-
-                printed++;
-                printEntry(e);
+            if(printed == 0){
+                printf("Registro inexistente.\n\n");
             }
+
+            printf("Numero de paginas de disco: %d\n\n",
+                bt->tree->nodes_read - nodes_read_prev + 3);
+            nodes_read_prev = bt->tree->nodes_read;
+
+            continue;
+        }
+
+        for(entry* e; (e = bTreeReadNextEntry(bt)) != NULL; deleteEntry(e, 1)){
+
+            if(ENTRY_REMOVED(e)){
+                continue;
+            }
+
+            field f_cmp = e->fields[where[i].field_type];
+
+            if(fieldCmp(where[i], f_cmp) != 0){
+                continue;
+            }
+
+            printed++;
+            printEntry(e);
         }
 
         if(printed == 0){

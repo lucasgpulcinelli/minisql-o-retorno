@@ -32,6 +32,7 @@ typedef struct {
 
 typedef struct {
     FILE* fp;
+    int nodes_read;
 
     char status;
     int32_t root_node_rrn;
