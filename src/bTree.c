@@ -51,11 +51,11 @@ bTree* createBTreeFromTable(char* table_name, char* indices_filename){
     new_tree->table = openTable(table_name, "r+b");
     new_tree->tree = createIndexTree(indices_filename);
 
-    while(tableHasNextEntry(new_tree->table)){
+    for(uint32_t table_rrn = 0;tableHasNextEntry(new_tree->table); table_rrn++){
         entry* es = tableReadNextEntry(new_tree->table);
 
         if(!ENTRY_REMOVED(es)){
-            treeEntry* te = createTreeEntry(es, new_tree->tree->next_node_rrn);
+            treeEntry* te = createTreeEntry(es, table_rrn);
             insertEntryInIndexTree(new_tree->tree, te);
             freeTreeEntry(te);
         }
@@ -139,15 +139,17 @@ treeCarryOn* insertEntryInLeaf(indexTree* it, indexNode* in, treeEntry* te){
 
     if(in->keys == SEARCH_KEYS){
         treeCarryOn* carry = splitNode(it, in);
+        indexNode* upper = readIndexNode(it, carry->upper_subtree);
 
         if(carry->key.idConnect < te->idConnect){
-            indexNode* upper = readIndexNode(it, carry->upper_subtree);
             insertEntryInLeaf(it, upper, te);
-            free(upper);
         } else {
             insertEntryInLeaf(it, in, te);
         }
 
+        writeIndexNode(it, in);
+        writeIndexNode(it, upper);
+        free(upper);
         return carry;
     }
 
@@ -199,7 +201,7 @@ void writeIndexNode(indexTree* it, indexNode* in){
         errno = EACCES;
         ABORT_PROGRAM("index tree opened in read only mode");
     }
-    
+
     fseek(it->fp, INDICES_PAGE_SIZE*(in->node_rrn + 1), SEEK_SET);
     fwrite(&(in->leaf), sizeof(char), 1, it->fp);
     fwrite(&(in->keys), sizeof(int32_t), 1, it->fp);
@@ -266,7 +268,6 @@ void writeIndexTreeHeader(indexTree* it){
     }
 
     rewind(it->fp);
-
     fwrite(&(it->status), sizeof(char), 1, it->fp);
     fwrite(&(it->root_node_rrn), sizeof(int32_t), 1, it->fp);
     fwrite(&(it->total_keys), sizeof(int32_t), 1, it->fp);
@@ -282,7 +283,8 @@ indexTree* createIndexTree(char* indices_filename){
     indexTree* it;
     XALLOC(indexTree, it, 1);
 
-    it->fp = fopen(indices_filename, "w+b");
+    OPEN_FILE(it->fp, indices_filename, "w+b");
+    it->read_only = false;
     it->status = ERR_HEADER;
     it->root_node_rrn = EMPTY_TREE_ROOT_RRN;
     it->total_keys = 0;
@@ -327,6 +329,7 @@ void insertEntryInIndexTree(indexTree* it, treeEntry* te){
     }
 
     treeCarryOn* carry_on = recursiveNodeInsert(it, it->root_node_rrn, te);
+    it->total_keys++;
 
     if(it->root_node_rrn == EMPTY_RRN || carry_on != NULL){
         it->height++;
@@ -334,7 +337,6 @@ void insertEntryInIndexTree(indexTree* it, treeEntry* te){
                                          (carry_on == NULL)? LEAF : NOT_LEAF);
         it->root_node_rrn = root->node_rrn;
         it->next_node_rrn++;
-        it->total_keys++;
 
         if(carry_on != NULL){
             root->data[0][branch_rrn] = carry_on->lower_subtree;
@@ -342,8 +344,13 @@ void insertEntryInIndexTree(indexTree* it, treeEntry* te){
             root->data[0][data_rrn] = carry_on->key.rrn;
             root->data[1][branch_rrn] = carry_on->upper_subtree;
             free(carry_on);
+
+        } else {
+            root->data[0][data_value] = te->idConnect;
+            root->data[0][data_rrn] = te->rrn;
         }
 
+        root->keys++;
         writeIndexNode(it, root);
         free(root);
     }
@@ -355,7 +362,9 @@ treeCarryOn* recursiveNodeInsert(indexTree* it, int32_t rrn, treeEntry* te){
         return NULL;
 
     } else if(IS_LEAF(in)){
-        return insertEntryInLeaf(it, in, te);
+        treeCarryOn* carry = insertEntryInLeaf(it, in, te);
+        free(in);
+        return carry;
     }
 
     int32_t branch = 0;
@@ -379,15 +388,17 @@ treeCarryOn* insertCarryOn(indexTree* it, treeCarryOn* carry_on, int32_t branch,
                            indexNode* in){
     if(in->keys == SEARCH_KEYS){
         treeCarryOn* carry = splitNode(it, in);
+        indexNode* upper = readIndexNode(it, carry->upper_subtree);
 
         if(branch > MEDIAN){
-            indexNode* upper = readIndexNode(it, carry->upper_subtree);
             insertCarryOn(it, carry_on, branch - MEDIAN - 1, in);
-            free(upper);
         } else {
             insertCarryOn(it, carry_on, branch, in);
         }
 
+        writeIndexNode(it, in);
+        writeIndexNode(it, upper);
+        free(upper);
         return carry;
     }
 
@@ -401,7 +412,9 @@ treeCarryOn* insertCarryOn(indexTree* it, treeCarryOn* carry_on, int32_t branch,
     in->data[branch][data_value] = carry_on->key.idConnect;
     in->data[branch][data_rrn] = carry_on->key.rrn;
     in->data[branch + 1][branch_rrn] = carry_on->upper_subtree;
+    in->keys++;
 
+    writeIndexNode(it, in);
     return NULL;
 }
 
@@ -415,9 +428,9 @@ treeCarryOn* splitNode(indexTree* it, indexNode* in){
     it->next_node_rrn++;
 
     for(int32_t key = MEDIAN + 1; key < SEARCH_KEYS; key++){
-        split->data[key - MEDIAN][branch_rrn] = in->data[key][branch_rrn];
-        split->data[key - MEDIAN][data_value] = in->data[key][data_value];
-        split->data[key - MEDIAN][data_rrn] = in->data[key][data_rrn];
+        split->data[key - MEDIAN - 1][branch_rrn] = in->data[key][branch_rrn];
+        split->data[key - MEDIAN - 1][data_value] = in->data[key][data_value];
+        split->data[key - MEDIAN - 1][data_rrn] = in->data[key][data_rrn];
         split->keys++;
 
         in->data[key][branch_rrn] = EMPTY_RRN;
@@ -429,12 +442,13 @@ treeCarryOn* splitNode(indexTree* it, indexNode* in){
     XALLOC(treeCarryOn, carry, 1);
     carry->lower_subtree = in->node_rrn;
     carry->upper_subtree = split->node_rrn;
+    carry->key.idConnect = in->data[MEDIAN][data_value];
+    carry->key.rrn = in->data[MEDIAN][data_rrn];
+    free(split);
 
     in->data[MEDIAN][data_value] = EMPTY_VALUE;
     in->data[MEDIAN][data_rrn] = EMPTY_RRN;
-
-    writeIndexNode(it, in);
-    writeIndexNode(it, split);
+    in->keys = SEARCH_KEYS/2;
 
     return carry;
 }
