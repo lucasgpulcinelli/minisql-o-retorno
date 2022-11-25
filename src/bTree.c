@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 
 #include "bTree.h"
 #include "file_control.h"
@@ -26,6 +27,14 @@ indexTree* openIndexTree(char* filename, const char* mode){
         //the program with an error message.
         EXIT_ERROR();
     }
+    if(strchr(mode, 'w') != NULL || strchr(mode, '+') != NULL){
+        //if we are opening for writing, write an error header in the file
+        it->status = ERR_HEADER;
+        writeIndexTreeHeader(it);
+        it->read_only = false;
+    }else{
+        it->read_only = true;   
+    }
 
     fread(&(it->root_node_rrn), sizeof(int32_t), 1, it->fp);
     fread(&(it->total_keys), sizeof(int32_t), 1, it->fp);
@@ -38,7 +47,10 @@ indexTree* openIndexTree(char* filename, const char* mode){
 }
 
 void closeIndexTree(indexTree* it){
-    writeIndexTreeHeader(it);
+    if(!it->read_only){
+        it->status = OK_HEADER;
+        writeIndexTreeHeader(it);
+    }
     fclose(it->fp);
     free(it);
 }
