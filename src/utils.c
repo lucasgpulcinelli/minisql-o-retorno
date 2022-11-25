@@ -19,7 +19,7 @@ void fatalError(int line, char* file, char* fmt, ...){
     vfprintf(stderr, fmt, ap);
     
     if(!errno){
-        //errno is SUCESS
+        //errno is SUCESS, no strerror needed
         fprintf(stderr, "\n");
 
     }else{

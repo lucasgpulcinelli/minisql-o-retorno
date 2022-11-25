@@ -251,8 +251,7 @@ void printEntry(entry* e){
     printField(e->fields + countryAcro, false);
     printField(e->fields + connPoPsId, false);
 
-    //esses dois campos estão diretamente relacionados, se qualquer um deles 
-    //for vazio, não coloca nenhum na tela
+    //both fields are printed together, so if any is null, do not print neither
     if(e->fields[speed].value.integer != -1 && 
        e->fields[measurmentUnit].value.carray[0] != '$' &&
        e->fields[measurmentUnit].value.carray[0] != '\0'){
@@ -266,7 +265,7 @@ void printEntry(entry* e){
 
 int32_t fieldCmp(field f1, field f2){
     if(f1.field_type != f2.field_type){
-        return 1; //diferentes
+        return 1; //different
     }
 
     switch(f1.field_type){

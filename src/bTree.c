@@ -22,6 +22,8 @@ indexTree* openIndexTree(char* filename, const char* mode){
 
     it->status = fgetc(it->fp);
     if(it->status != OK_HEADER){
+        //if the header is not right, nothing can be considered valid, abort 
+        //the program with an error message.
         EXIT_ERROR();
     }
 
@@ -63,17 +65,22 @@ indexNode* readIndexNode(indexTree* it){
     indexNode* in;
     XALLOC(indexNode, in, 1);
 
+    //read node metadata
     in->leaf = getc(it->fp);
     fread(&(in->keys), sizeof(int32_t), 1, it->fp);
     fread(&(in->height), sizeof(int32_t), 1, it->fp);
     fread(&(in->node_rrn), sizeof(int32_t), 1, it->fp);
 
+    //read all search keys (all an not just in->key ensures in->data is not RAM
+    //trash data but well defined -1 and '$'). Because this is a single disk 
+    //page there is no practical difference in time.
     for(int i = 0; i < SEARCH_KEYS; i++){
         for(int j = 0; j < 3; j++){
             fread(&(in->data[i][j]), sizeof(int32_t), 1, it->fp);
         }
     }
 
+    //last array index does not have an entry associated.
     fread(&(in->data[BRANCHES-1][branch_rrn]), sizeof(int32_t), 1, it->fp);
 
     return in;
@@ -84,40 +91,49 @@ void freeIndexNode(indexNode* in){
 }
 
 int32_t indexNodeSearch(indexTree* it, int32_t curr_rrn, int32_t value){
+    //if we are in an invalid node, the value does not exist in the tree
     if(curr_rrn == -1){
         return -1;
     }
 
+    //go to the index provided and read the node
     fseek(it->fp, (curr_rrn+1) * INDICES_PAGE_SIZE, SEEK_SET);
     indexNode* node = readIndexNode(it);
     it->nodes_read++;
 
     for(int i = 0; i < SEARCH_KEYS; i++){
         if(node->data[i][data_value] == value){
-            int32_t ret = node->data[i][data_rnn];
+            //if the entry has the primary key value, we found the answer
+            int32_t ret = node->data[i][data_rrn];
             freeIndexNode(node);
             return ret;
         }
         if(node->data[i][data_value] > value 
            || node->data[i][data_value] == -1){
-
+            //if the entry key is greater than what we need, the value could be 
+            //on the left (in our case the same index in the array)
             int rrn = node->data[i][branch_rrn];
             freeIndexNode(node);
             return indexNodeSearch(it, rrn, value);
         }
     }
 
+    //if the value is greater than all entries, it could only be in the last
+    //branch
     int rrn = node->data[SEARCH_KEYS][branch_rrn];
     freeIndexNode(node);
     return indexNodeSearch(it, rrn, value);
 }
 
 entry* bTreeSearch(bTree* bt, int32_t value){
+    //search starts at the root node
     int32_t rrn = indexNodeSearch(bt->tree, bt->tree->root_node_rrn, value);
     if(rrn == -1){
+        //if it is not found, return NULL
         return NULL;
     }
 
+    //return the entry at the given rrn
     seekTable(bt->table, rrn);
     return tableReadNextEntry(bt->table);
 }
