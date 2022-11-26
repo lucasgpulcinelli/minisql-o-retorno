@@ -17,6 +17,7 @@
 
 #define EMPTY_RRN -1
 #define EMPTY_VALUE -1
+#define EMPTY_TREE_ROOT_RRN -1
 
 #define LEAF '1'
 #define NOT_LEAF '0'
@@ -25,18 +26,11 @@
 #define IS_LEAF(in) (in->leaf == LEAF)
 #define IS_FULL(in) (in->keys == SEARCH_KEYS)
 
-#define EMPTY_TREE_ROOT_RRN -1
-
 enum dataIndices {
     branch_rrn = 0,
     data_value,
     data_rrn
 };
-
-typedef struct {
-    int32_t idConnect;
-    int32_t rrn;
-} treeEntry;
 
 typedef struct {
     char leaf;
@@ -65,10 +59,15 @@ typedef struct {
 } bTree;
 
 typedef struct {
+    int32_t idConnect;
+    int32_t rrn;
+} key_struct;
+
+typedef struct {
     int32_t lower_subtree;
     int32_t upper_subtree;
-    treeEntry key;
-} treeCarryOn;
+    key_struct key;
+} treeEntry;
 
 
 bTree* openBTree(char* data_filename, char* indices_filename, 
@@ -116,14 +115,17 @@ void freeTreeEntry(treeEntry* te);
 
 void insertEntryInIndexTree(indexTree* it, treeEntry* te);
 
-treeCarryOn* recursiveNodeInsert(indexTree* it, int32_t node_rrn, treeEntry* te);
+void setIndexNode(indexNode* in, treeEntry* te, size_t index);
 
-treeCarryOn* insertEntryInLeaf(indexTree* it, indexNode* in, treeEntry* te);
+treeEntry* recursiveNodeInsert(indexTree* it, int32_t rrn, treeEntry* te);
 
-treeCarryOn* insertCarryOn(indexTree* it, treeCarryOn* carry_on, int32_t branch, 
-                           indexNode* in);
+treeEntry* insertEntryInNode(indexTree* it, indexNode* in, treeEntry* te);
 
-treeCarryOn* splitNode(indexTree* it, indexNode* in);
+void translateToTheRight(int32_t data[BRANCHES][BRANCH_METADATA_SIZE], 
+                         ssize_t index);
 
+treeEntry* splitAndInsert(indexTree* it, indexNode* in, treeEntry* te);
+
+void setTreeEntry(treeEntry* te, treeEntry* set);
 
 #endif
