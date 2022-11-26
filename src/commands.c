@@ -85,23 +85,37 @@ void commandWhere(void){
 
 void commandInsert(void){
     char* table_filename;
+    char* indices_filename;
     int32_t num_insertions;
-    READ_INPUT("%ms %d", &table_filename, &num_insertions);
+    READ_INPUT("%ms %ms %d\n", &table_filename, &indices_filename, 
+                               &num_insertions);
     
-    table* t = openTable(table_filename, "r+b");
+    bTree* bt = openBTree(table_filename, indices_filename, "r+b");
     entry* es = createEntry(1);
-    free(table_filename);
 
     while(num_insertions > 0){
         readEntryFromStdin(es);
-        appendEntryOnTable(t, es);
+        insertEntryInBTree(bt, es);
 
         clearEntry(es);
         num_insertions--;
     }
 
     deleteEntry(es, 1);
-    closeTable(t);
+    closeBTree(bt);
+
+    FILE* table;
+    FILE* indices;
+
+    OPEN_FILE(table, table_filename, "rb");
+    OPEN_FILE(indices, indices_filename, "rb");
+    binaryOnScreen(table);
+    binaryOnScreen(indices);
+
+    fclose(table);
+    fclose(indices);
+    free(table_filename);
+    free(indices_filename);
 }
 
 void commandJoin(void){
