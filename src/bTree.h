@@ -113,6 +113,8 @@ treeEntry* createTreeEntry(entry* es, int32_t rrn);
 
 void freeTreeEntry(treeEntry* te);
 
+void insertEntryInBTree(bTree* bt, entry* es);
+
 void insertEntryInIndexTree(indexTree* it, treeEntry* te);
 
 void setIndexNode(indexNode* in, treeEntry* te, size_t index);

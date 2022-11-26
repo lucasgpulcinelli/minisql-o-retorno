@@ -266,7 +266,11 @@ void insertEntryInBTree(bTree* bt, entry* es){
         ABORT_PROGRAM("index tree opened in read only mode");
     }
 
-    es++;
+    int32_t rrn = appendEntryOnTable(bt->table, es);
+
+    treeEntry* te = createTreeEntry(es, rrn);
+    insertEntryInIndexTree(bt->tree, te);
+    free(te);
 }
 
 void insertEntryInIndexTree(indexTree* it, treeEntry* te){
