@@ -5,8 +5,6 @@
 
 #define COMMANDS_SIZE 4
 #define COMMANDS_OFFSET 7
-#define CSV_HEADER "idConecta,nomePoPs,nomePais,siglaPais,idPoPsConectado," \
-                   "unidadeMedida,velocidade"
 
 /*
  * enum Commands enumerates the 6 commands the user may call.
