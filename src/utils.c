@@ -79,3 +79,13 @@ void strStrip(char** str_ptr){
     free(*str_ptr);
     *str_ptr = striped_str;
 } 
+
+void binaryOnScreen(FILE* fp){
+    rewind(fp);
+    uint32_t sum = 0;
+	for(int c = getc(fp); c != EOF; c = getc(fp)){
+		sum += c;
+	}
+
+	printf("%lf\n", sum / (double) 100);
+}

@@ -128,5 +128,8 @@ ssize_t min(ssize_t a, ssize_t b);
  */
 void strStrip(char** str_ptr);
 
+//binaryOnScreen prints a very unreliable hash of the file on stdout.
+void binaryOnScreen(FILE* fp);
+
 #endif
 
