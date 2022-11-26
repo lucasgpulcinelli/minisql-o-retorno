@@ -80,8 +80,9 @@ entry* tableReadNextEntry(table* t);
  * appendEntryOnTable writes entry es on table t. If the stack of
  * deleted entries is empty, it appends the entry at the end of the table.
  * Otherwise, it overwrites the first deleted entry and updates the stack.
+ * It returns the rrn of the newly appended entry.
  */
-void appendEntryOnTable(table* t, entry* es);
+int32_t appendEntryOnTable(table* t, entry* es);
 
 //removeEntryFromTable deletes the entry of number rrn from the table.
 void removeEntryFromTable(table* t, size_t rrn);

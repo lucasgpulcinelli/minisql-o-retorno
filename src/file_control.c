@@ -105,7 +105,7 @@ entry* tableReadNextEntry(table* t){
     return new_entry;
 }
 
-void appendEntryOnTable(table* t, entry* es){
+int32_t appendEntryOnTable(table* t, entry* es){
     if(t->read_only){
         errno = EACCES;
         ABORT_PROGRAM("cannot insert in table opened in read-only mode");
@@ -117,12 +117,13 @@ void appendEntryOnTable(table* t, entry* es){
         readEntry(t->fp, erased);
 
         fseek(t->fp, -MAX_SIZE_ENTRY, SEEK_CUR);
+        int32_t new_entry_rrn = t->header->stack;
         t->header->stack = erased->fields[linking].value.integer;
         t->header->entries_removed--;
         deleteEntry(erased, 1);
 
         writeEntry(t->fp, es);
-        return;
+        return new_entry_rrn;
 
     }else if(!feof(t->fp)){
         fseek(t->fp, 0, SEEK_END);
@@ -130,6 +131,7 @@ void appendEntryOnTable(table* t, entry* es){
 
     writeEntry(t->fp, es);
     t->header->nextRRN++;
+    return (t->header->nextRRN - 1); //new entry's rrn.
 }
 
 void removeEntryFromTable(table* t, size_t rrn){
