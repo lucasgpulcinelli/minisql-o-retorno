@@ -43,6 +43,7 @@ void commandWhere(void){
         printf("Busca %d\n", i+1);
 
         if(where[i].field_type == idConnect){
+            //if the field can be search in the BTree, do it
             entry* e = bTreeSearch(bt, where[i].value.integer);
             if(e != NULL){
                 printed++;
@@ -61,6 +62,7 @@ void commandWhere(void){
             continue;
         }
 
+        //if the field cannot use the BTree, use a simple linear search 
         for(entry* e; (e = bTreeReadNextEntry(bt)) != NULL; deleteEntry(e, 1)){
 
             if(ENTRY_REMOVED(e)){
@@ -136,6 +138,7 @@ void commandJoin(void){
 
     if(findFieldType(field1_name) != connPoPsId 
        || findFieldType(field2_name) != idConnect){
+        //any other operation is invalid (as given by the assignment description)
 
         errno = ENOSYS;
         ABORT_PROGRAM("Invalid field names");
@@ -146,10 +149,13 @@ void commandJoin(void){
 
     int printed = 0;
     for(entry* e1; (e1 = tableReadNextEntry(t)) != NULL; deleteEntry(e1, 1)){
+        //for each entry in the first table, search for the value in the BTree
         entry* e2 = bTreeSearch(bt, e1->fields[connPoPsId].value.integer);
         if(e2 == NULL){
             continue;
         }
+        //if the value exists, print the jointed entries (the same as two 
+        //printEntry with some redundant strings removed and pretty formatting)
 
         printJointEntry(e1, e2);
         

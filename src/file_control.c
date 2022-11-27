@@ -64,10 +64,14 @@ table* openTable(char* table_name, const char* mode){
     OPEN_FILE(t->fp, table_name, mode);
     t->header = readHeader(t->fp);
     if(t->header->status == ERR_HEADER){
+        //if the header is not OK, the whole file is invalid and an error is 
+        //generated
         EXIT_ERROR();
     }
 
     if(strchr(mode, 'w') != NULL || strchr(mode, '+') != NULL){
+        //if we are opening the file for writing, write that the file is 
+        //invalid (the status will be restored at closeTable)
         t->header->status = ERR_HEADER;
         writeHeader(t->fp, t->header);
         t->read_only = false;
@@ -151,6 +155,7 @@ void closeTable(table *t){
     t->header->status = OK_HEADER;
 
     if(!t->read_only){
+        //if the file is not read only, restore the header status as OK
         writeHeader(t->fp, t->header);
     }
     

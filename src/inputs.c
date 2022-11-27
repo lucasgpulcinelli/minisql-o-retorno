@@ -25,14 +25,17 @@ field* readTuples(int32_t n){
     char* field_name;
     char* field_value;
     for(int32_t i = 0; i < n; i++){
+        //for each input, read the line
         READ_INPUT("%ms %m[^\n]", &field_name, &field_value);
 
+        //find the reffered field
         int32_t type = findFieldType(field_name);
         if(type == -1){
             ABORT_PROGRAM("invalid type of field");
         }
         fs[i].field_type = type;
 
+        //if the value is null, set the value as null for the field type
         if(strcmp(NULL_STR, field_value) == 0){
             //NULL value
 
@@ -55,6 +58,7 @@ field* readTuples(int32_t n){
             continue;
         }
 
+        //if the value is an integer, just read it
         if(field_value[0] != '\"'){
             //integer value
             fs[i].value.integer = atoi(field_value);
@@ -63,7 +67,7 @@ field* readTuples(int32_t n){
             continue;
         }
         
-        //string value
+        //if the value is a string, read it and copy to the right field
 
         field_value[strlen(field_value)-1] = '\0';
 
