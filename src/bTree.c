@@ -122,7 +122,7 @@ indexNode* createIndexNode(int height, int node_rrn, char leaf){
 
 indexNode* readCurNode(indexTree* it){
     indexNode* in;
-    XALLOC(indexNode, in, 1);
+    MEMSET_ALLOC(indexNode, in, 1, -1);
 
     in->leaf = getc(it->fp);
     fread(&(in->keys), sizeof(int32_t), 1, it->fp);
