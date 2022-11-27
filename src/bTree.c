@@ -410,7 +410,7 @@ treeEntry* splitAndInsert(indexTree* it, indexNode* in, treeEntry* te){
         setIndexNode(in, entries + te_index, te_index);
 
     } else if(te_index > MEDIAN){
-        setIndexNode(split, entries + te_index, te_index);
+        setIndexNode(split, entries + te_index, te_index - MEDIAN - 1);
     }
 
     in->keys = SEARCH_KEYS/2;
