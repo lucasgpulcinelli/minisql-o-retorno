@@ -299,7 +299,7 @@ indexTree* createIndexTree(char* indices_filename){
     OPEN_FILE(it->fp, indices_filename, "w+b");
     it->read_only = false;
     it->status = ERR_HEADER;
-    it->root_node_rrn = EMPTY_TREE_ROOT_RRN;
+    it->root_node_rrn = EMPTY_RRN;
     it->total_keys = 0;
     it->height = 0;
     it->next_node_rrn = 0;
@@ -350,11 +350,11 @@ void insertEntryInIndexTree(indexTree* it, treeEntry* te){
 
     if(carry_on != NULL){
         indexNode* root = createIndexNode(it->height + 1, it->next_node_rrn,
-            (it->root_node_rrn == EMPTY_TREE_ROOT_RRN)? LEAF : NOT_LEAF);
+            (it->root_node_rrn == EMPTY_RRN)? LEAF : NOT_LEAF);
         setIndexNode(root, carry_on, 0);
         root->keys++;
 
-        if(it->root_node_rrn != EMPTY_TREE_ROOT_RRN){
+        if(it->root_node_rrn != EMPTY_RRN){
             free(carry_on);
         }
 

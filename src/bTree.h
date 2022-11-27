@@ -18,11 +18,11 @@
 //dataIndices enum)
 #define BRANCH_METADATA_SIZE 3
 #define MEDIAN SEARCH_KEYS/2
-
+//Empty keys and empty rrns are stored as -1 in the indices file.
 #define EMPTY_RRN -1
 #define EMPTY_VALUE -1
-#define EMPTY_TREE_ROOT_RRN -1
-
+//The boolean field that tells if indexNode is leaf or not is stored as
+//char '0' or char '1'.
 #define LEAF '1'
 #define NOT_LEAF '0'
 
