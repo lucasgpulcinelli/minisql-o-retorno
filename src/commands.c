@@ -17,8 +17,15 @@ void commandCreate(void){
     READ_INPUT("%ms %ms", &table_name, &indices_name);
 
     bTree* tree = createBTreeFromTable(table_name, indices_name);
-    bTreeIndexTreehashOnScreen(tree);
     closeBTree(tree);
+
+    FILE* indices;
+    OPEN_FILE(indices, indices_name, "rb");
+    binaryOnScreen(indices);
+    fclose(indices);
+
+    free(table_name);
+    free(indices_name);
 }
 
 void commandWhere(void){
