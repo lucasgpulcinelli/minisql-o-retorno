@@ -79,20 +79,6 @@ void closeIndexTree(indexTree* it){
     free(it);
 }
 
-void bTreeTablehashOnScreen(bTree* bt){
-    tableHashOnScreen(bt->table);
-}
-
-void bTreeIndexTreehashOnScreen(bTree* bt){
-    rewind(bt->tree->fp);
-    uint32_t sum = 0;
-	for(int c = getc(bt->tree->fp); c != EOF; c = getc(bt->tree->fp)){
-		sum += c;
-	}
-
-	printf("%lf\n", sum / (double) 100);
-}
-
 void closeBTree(bTree* bt){
     closeTable(bt->table);
     closeIndexTree(bt->tree);

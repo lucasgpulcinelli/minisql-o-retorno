@@ -120,10 +120,6 @@ void rewindBTree(bTree* bt);
  */
 entry* bTreeReadNextEntry(bTree* bt);
 
-void bTreeTablehashOnScreen(bTree* bt);
-
-void bTreeIndexTreehashOnScreen(bTree* bt);
-
 /*
  * bTreeHasNextEntry is equivalent to tableHasNextEntry(bt->table).
  */
