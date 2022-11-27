@@ -411,6 +411,10 @@ treeEntry* splitAndInsert(indexTree* it, indexNode* in, treeEntry* te){
 
     } else if(te_index > MEDIAN){
         setIndexNode(split, entries + te_index, te_index - MEDIAN - 1);
+
+    } else {
+        in->data[MEDIAN][branch_rrn] = entries[MEDIAN].lower_subtree;
+        split->data[0][branch_rrn] = entries[MEDIAN].upper_subtree;
     }
 
     in->keys = SEARCH_KEYS/2;
