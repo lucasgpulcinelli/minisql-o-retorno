@@ -97,6 +97,10 @@ indexNode* readCurNode(indexTree* it);
 
 indexNode* readIndexNode(indexTree* it, int32_t rrn);
 
+void printIndexNode(indexTree* it, indexNode* in);
+
+void printIndexTree(indexTree* it);
+
 void writeIndexNode(indexTree* it, indexNode* in);
 
 void freeIndexNode(indexNode* in);

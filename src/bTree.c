@@ -41,6 +41,8 @@ indexTree* openIndexTree(char* filename, const char* mode){
         it->read_only = true;
     }
 
+    fseek(it->fp, INDICES_PAGE_SIZE, SEEK_SET);
+
     return it;
 }
 
@@ -120,11 +122,55 @@ indexNode* createIndexNode(int height, int node_rrn, char leaf){
     return in;
 }
 
+void printIndexNode(indexTree* it, indexNode* in){
+    if(in == NULL){
+        return;
+    }
+
+    int i;
+    for(i = 0; i < in->keys; i++){
+        indexNode* next = readIndexNode(it, in->data[i][branch_rrn]);
+        printIndexNode(it, next);
+        if(next != NULL){
+            free(next);
+        }
+
+        if(in->data[i][data_value] == -1){
+            continue;
+        }
+        printf("C%d_%d: %d\n", i+1, in->node_rrn, in->data[i][data_value]);
+    }
+
+    indexNode* next = readIndexNode(it, in->data[i][branch_rrn]);
+
+    printIndexNode(it, next);
+
+    if(next != NULL){
+        free(next);
+    }
+}
+
+void printIndexTree(indexTree* it){
+    printf("header: \n");
+    printf("status: %d, root_node_rrn: %d, total_keys: %d\n", 
+           it->status, it->root_node_rrn, it->total_keys);
+    printf("height: %d, next_node_rnn: %d\n\n", it->height, it->next_node_rrn);
+
+    indexNode* in = readIndexNode(it, it->root_node_rrn);
+    printIndexNode(it, in);
+}
+
 indexNode* readCurNode(indexTree* it){
     indexNode* in;
     MEMSET_ALLOC(indexNode, in, 1, -1);
 
-    in->leaf = getc(it->fp);
+    int read = getc(it->fp);
+    if(read == EOF){
+        //if we can't read a char, we are at the end of the file, so return NULL
+        free(in);
+        return NULL;
+    }
+    in->leaf = read;
     fread(&(in->keys), sizeof(int32_t), 1, it->fp);
     fread(&(in->height), sizeof(int32_t), 1, it->fp);
     fread(&(in->node_rrn), sizeof(int32_t), 1, it->fp);
