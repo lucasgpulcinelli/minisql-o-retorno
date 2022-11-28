@@ -40,7 +40,7 @@ indexTree* openIndexTree(char* filename, const char* mode){
         writeIndexTreeHeader(it);
 
     } else {
-        it->read_only = true;
+        it->read_only = true; //Any writing operations are denied.
     }
 
     fseek(it->fp, INDICES_PAGE_SIZE, SEEK_SET);
@@ -58,6 +58,7 @@ bTree* createBTreeFromTable(char* table_name, char* indices_filename){
         entry* es = tableReadNextEntry(new_tree->table);
 
         if(!ENTRY_REMOVED(es)){
+            //removed entries are not inserted in the indexTree.
             treeEntry* te = createTreeEntry(es, table_rrn);
             insertEntryInIndexTree(new_tree->tree, te);
             freeTreeEntry(te);
@@ -70,7 +71,8 @@ bTree* createBTreeFromTable(char* table_name, char* indices_filename){
 }
 
 void closeIndexTree(indexTree* it){
-    if(!(it->read_only)){
+    if(!(it->read_only)){ 
+        //Update header if indexTree was allowed to do writing operations.
         it->status = OK_HEADER;
         writeIndexTreeHeader(it);
     }
@@ -149,7 +151,7 @@ void printIndexTree(indexTree* it){
 
 indexNode* readCurNode(indexTree* it){
     indexNode* in;
-    MEMSET_ALLOC(indexNode, in, 1, -1);
+    MEMSET_ALLOC(indexNode, in, 1, EMPTY_VALUE);
 
     int read = getc(it->fp);
     if(read == EOF){
@@ -180,31 +182,36 @@ indexNode* readCurNode(indexTree* it){
 
 indexNode* readIndexNode(indexTree* it, int32_t rrn){
     if(rrn == EMPTY_RRN){
+        //Return NULL if rrn's value is null.
         return NULL;
     }else{
+        //Seek node position and read it.
         fseek(it->fp, INDICES_PAGE_SIZE*(rrn + 1), SEEK_SET);
         return readCurNode(it);
     }
 }
 
 void writeIndexNode(indexTree* it, indexNode* in){
-    if(it->read_only){
+    if(it->read_only){ //No writing operations allowed in read-only trees.
         errno = EACCES;
         ABORT_PROGRAM("index tree opened in read only mode");
     }
 
+    //Seek node's position and write its metadata.
     fseek(it->fp, INDICES_PAGE_SIZE*(in->node_rrn + 1), SEEK_SET);
     fwrite(&(in->leaf), sizeof(char), 1, it->fp);
     fwrite(&(in->keys), sizeof(int32_t), 1, it->fp);
     fwrite(&(in->height), sizeof(int32_t), 1, it->fp);
     fwrite(&(in->node_rrn), sizeof(int32_t), 1, it->fp);
 
+    //Write node's keys and pointers to subtrees, except for the last pointer.
     for(size_t index = 0; index < SEARCH_KEYS; index++){
         fwrite(&(in->data[index][branch_rrn]), sizeof(int32_t), 1, it->fp);
         fwrite(&(in->data[index][data_value]), sizeof(int32_t), 1, it->fp);
         fwrite(&(in->data[index][data_rrn]), sizeof(int32_t), 1, it->fp);
     }   
 
+    //Write last pointer to subtree.
     fwrite(&(in->data[SEARCH_KEYS][branch_rrn]), sizeof(int32_t), 1, it->fp);
 }
 
@@ -261,18 +268,20 @@ entry* bTreeSearch(bTree* bt, int32_t value){
 }
 
 void writeIndexTreeHeader(indexTree* it){
-    if(it->read_only){
+    if(it->read_only){ //No writing operations allowed in read-only trees.
         errno = EACCES;
         ABORT_PROGRAM("index tree opened in read only mode");
     }
 
-    rewind(it->fp);
+    rewind(it->fp); //Seek header position.
+    //Write header information.
     fwrite(&(it->status), sizeof(char), 1, it->fp);
     fwrite(&(it->root_node_rrn), sizeof(int32_t), 1, it->fp);
     fwrite(&(it->total_keys), sizeof(int32_t), 1, it->fp);
     fwrite(&(it->height), sizeof(int32_t), 1, it->fp);
     fwrite(&(it->next_node_rrn), sizeof(int32_t), 1, it->fp);
 
+    //Fill the remaining space in the file page with trash.
     for(uint32_t i = 0; i < INDICES_PAGE_SIZE - INDICES_HEADER_SIZE; i++){
         putc('$', it->fp);
     }
@@ -296,7 +305,7 @@ indexTree* createIndexTree(char* indices_filename){
 
 treeEntry* createTreeEntry(entry* es, int32_t rrn){
     treeEntry* te;
-    MEMSET_ALLOC(treeEntry, te, 1, -1);
+    MEMSET_ALLOC(treeEntry, te, 1, EMPTY_RRN);
 
     te->key.idConnect = es->fields[idConnect].value.integer;
     te->key.rrn = rrn;
@@ -310,38 +319,50 @@ void freeTreeEntry(treeEntry* te){
 
 void insertEntryInBTree(bTree* bt, entry* es){
     if(bt->tree->read_only || bt->table->read_only){
+        //No writing operations allowed in read-only trees.
         errno = EACCES;
-        ABORT_PROGRAM("index tree opened in read only mode");
+        ABORT_PROGRAM("Btree opened in read only mode");
     }
 
+    //Insert entry in binary table and get pointer to its position
+    //in the table. The pointer together with the key must be inserted
+    //in the indexTree (bt->tree).
     int32_t rrn = appendEntryOnTable(bt->table, es);
 
+    //Create treeEntry for the pair (es.idConnect, rrn) and insert it in
+    //the indexTree (bt->tree).
     treeEntry* te = createTreeEntry(es, rrn);
     insertEntryInIndexTree(bt->tree, te);
     free(te);
 }
 
 void insertEntryInIndexTree(indexTree* it, treeEntry* te){
-    if(it == NULL){
+    if(it == NULL){    //"it" must be a valid pointer.
         errno = EINVAL;
         ABORT_PROGRAM("cannot insert in null index tree\n");
 
-    } else if (te == NULL){
+    } else if (te == NULL){    //"te" must be a valid pointer.
         errno = EINVAL;
         ABORT_PROGRAM("cannot insert null entry\n");
     }
 
+    //Recursively insert entry in indexTree's root node.
     treeEntry* carry_on = recursiveNodeInsert(it, it->root_node_rrn, te);
     it->total_keys++;
 
+    //If there was a split in root node.
     if(carry_on != NULL){
+        //Create new root node.
         indexNode* root = createIndexNode(it->height + 1, it->next_node_rrn,
             (it->root_node_rrn == EMPTY_RRN)? LEAF : NOT_LEAF);
-        setIndexNode(root, carry_on, 0);
+        setIndexNode(root, carry_on, 0); //Copy entry to be promoted to root.
         root->keys++;
 
+        //Free carry_on if this is not the first entry in the tree, since
+        //recursiveNodeInsert returns "te" when the root's rrn is set to
+        //EMPTY_RRN. Otherwise, carry_on must be freed because it was alloced.
         if(it->root_node_rrn != EMPTY_RRN){
-            free(carry_on);
+            freeTreeEntry(carry_on);
         }
 
         it->height++;
@@ -362,49 +383,57 @@ void setIndexNode(indexNode* in, treeEntry* te, size_t index){
 
 treeEntry* recursiveNodeInsert(indexTree* it, int32_t rrn, treeEntry* te){
     indexNode* in = readIndexNode(it, rrn);
-    if(in == NULL){
+    if(in == NULL){ //If rrn == EMPTY_RRN
         return te;
 
     } else if(IS_LEAF(in)){
         treeEntry* carry = insertEntryInNode(it, in, te);
-        free(in);
+        freeIndexNode(in);
         return carry;
     }
 
-    int32_t branch = 0;
+    //If node is not a leaf, determine which subtree to insert entry.
+    int32_t branch = 0; //Subtree pointer index.
     while(in->data[branch][data_value] != EMPTY_VALUE &&
           in->data[branch][data_value] < te->key.idConnect &&
           branch < SEARCH_KEYS){
         branch++;
     }
 
+    //Recursively insert in that subtree.
     treeEntry* carry_on = recursiveNodeInsert(it, in->data[branch][branch_rrn], te);
+    //If there was a split in the root of the subtree.
     if(carry_on != NULL){
+        //Insert entry that was promoted.
         treeEntry* next_carry = insertEntryInNode(it, in, carry_on);
-        free(carry_on);
-        carry_on = next_carry;
+        freeTreeEntry(carry_on);
+        carry_on = next_carry; //Set next entry to be promoted.
     }
 
-    free(in);
+    freeIndexNode(in);
     return carry_on;
 }
 
 treeEntry* insertEntryInNode(indexTree* it, indexNode* in, treeEntry* te){
+    //If node is full.
     if(in->keys == SEARCH_KEYS){
         return splitAndInsert(it, in, te);
     }
 
+    //If node is not full, do an ordered insertion in the node.
     ssize_t key_index = in->keys - 1;
     while(in->data[key_index][data_value] > te->key.idConnect){
+        //te must be to the left of this entry, so move it
+        //one position to the right
         translateToTheRight(in->data, key_index);
         key_index--;
     }
 
     key_index++;
-    setIndexNode(in, te, key_index);
+    setIndexNode(in, te, key_index); //Copy te's content to its appropriate position.
     in->keys++;
 
-    writeIndexNode(it, in);
+    writeIndexNode(it, in); //Update indexTree binary file.
     return NULL;
 }
 
@@ -422,6 +451,56 @@ treeEntry* splitAndInsert(indexTree* it, indexNode* in, treeEntry* te){
         ABORT_PROGRAM("Cannot split a node that is not full");
     }
 
+    int32_t te_index; //te's index in the ordered array of entries.
+    treeEntry* entries = sortEntries(in, te, &te_index);
+    //Create the root of the new subtree.
+    indexNode* split = createIndexNode(in->height, it->next_node_rrn, in->leaf);
+    it->next_node_rrn++;
+
+    //Erase data from indexNode "in" and redistribute the entries to
+    //two newly created subtrees.
+    memset(&(in->data), -1, BRANCHES*BRANCH_METADATA_SIZE*sizeof(int32_t));
+    for(size_t i = 0; i < MEDIAN; i++){
+        setIndexNode(in, entries + i, i);
+        setIndexNode(split, entries + i + MEDIAN + 1, i);
+    }
+
+    //Update the number of keys in both nodes
+    in->keys = SEARCH_KEYS/2;
+    split->keys = SEARCH_KEYS/2;
+
+    //Override pointers to subtrees that may be outdated
+    //(Depending on the order of copying in the last operation, 
+    //invalid pointer to subtrees can override the newly defined ones).
+    if(te_index < MEDIAN){
+        setIndexNode(in, entries + te_index, te_index);
+
+    } else if(te_index > MEDIAN){
+        setIndexNode(split, entries + te_index, te_index - MEDIAN - 1);
+
+    } else {
+        in->data[MEDIAN][branch_rrn] = entries[MEDIAN].lower_subtree;
+        split->data[0][branch_rrn] = entries[MEDIAN].upper_subtree;
+    }
+
+    //allocate and initialize entry to be promoted.
+    treeEntry* carry;
+    XALLOC(treeEntry, carry, 1);
+    setTreeEntry(carry, entries + MEDIAN);
+    carry->lower_subtree = in->node_rrn;
+    carry->upper_subtree = split->node_rrn;
+
+    //Update indexTree.
+    writeIndexNode(it, split);
+    writeIndexNode(it, in);
+
+    freeIndexNode(split);
+    freeTreeEntry(entries);
+
+    return carry;
+}
+
+treeEntry* sortEntries(indexNode* in, treeEntry* te, int32_t* te_index){
     treeEntry* entries;
     XALLOC(treeEntry, entries, SEARCH_KEYS + 1);
     for(size_t index = 0; index < SEARCH_KEYS; index++){
@@ -434,52 +513,19 @@ treeEntry* splitAndInsert(indexTree* it, indexNode* in, treeEntry* te){
     setTreeEntry(entries + SEARCH_KEYS, te);
 
     treeEntry *tmp;
-    ssize_t te_index = SEARCH_KEYS; 
     XALLOC(treeEntry, tmp, 1);
-    while(te_index > 0 && 
-          entries[te_index - 1].key.idConnect > entries[te_index].key.idConnect){
-        setTreeEntry(tmp, entries + te_index);
-        setTreeEntry(entries + te_index, entries + te_index - 1);
-        setTreeEntry(entries + te_index - 1, tmp);
-        te_index--;
+
+    *te_index = SEARCH_KEYS; 
+    while(*te_index > 0 && 
+          entries[*te_index - 1].key.idConnect > entries[*te_index].key.idConnect){
+        setTreeEntry(tmp, entries + *te_index);
+        setTreeEntry(entries + *te_index, entries + *te_index - 1);
+        setTreeEntry(entries + *te_index - 1, tmp);
+        (*te_index)--;
     }
 
-    free(tmp);
-    indexNode* split = createIndexNode(in->height, it->next_node_rrn, in->leaf);
-    it->next_node_rrn++;
-
-    memset(&(in->data), -1, BRANCHES*BRANCH_METADATA_SIZE*sizeof(int32_t));
-    for(size_t i = 0; i < MEDIAN; i++){
-        setIndexNode(in, entries + i, i);
-        setIndexNode(split, entries + i + MEDIAN + 1, i);
-    }
-
-    if(te_index < MEDIAN){
-        setIndexNode(in, entries + te_index, te_index);
-
-    } else if(te_index > MEDIAN){
-        setIndexNode(split, entries + te_index, te_index - MEDIAN - 1);
-
-    } else {
-        in->data[MEDIAN][branch_rrn] = entries[MEDIAN].lower_subtree;
-        split->data[0][branch_rrn] = entries[MEDIAN].upper_subtree;
-    }
-
-    in->keys = SEARCH_KEYS/2;
-    split->keys = SEARCH_KEYS/2;
-    
-    treeEntry* carry;
-    XALLOC(treeEntry, carry, 1);
-    setTreeEntry(carry, entries + MEDIAN);
-    carry->lower_subtree = in->node_rrn;
-    carry->upper_subtree = split->node_rrn;
-
-    writeIndexNode(it, split);
-    writeIndexNode(it, in);
-    free(split);
-    free(entries);
-
-    return carry;
+    freeTreeEntry(tmp);
+    return entries;
 }
 
 void setTreeEntry(treeEntry* te, treeEntry* set){
