@@ -3,11 +3,14 @@
 #include <string.h>
 #include <errno.h>
 
-#include "commands.h"
+#include "commands.hpp"
+#include "file_control.hpp"
+
+extern "C" {
 #include "entries.h"
-#include "file_control.h"
 #include "inputs.h"
 #include "utils.h"
+}
 
 void commandPrint(table* t){
 

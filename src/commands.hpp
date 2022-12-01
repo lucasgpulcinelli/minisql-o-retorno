@@ -1,7 +1,7 @@
 #ifndef __COMMANDS_H__
 #define __COMMANDS_H__
 
-#include "file_control.h"
+#include "file_control.hpp"
 
 #define COMMANDS_SIZE 4
 #define COMMANDS_OFFSET 10
