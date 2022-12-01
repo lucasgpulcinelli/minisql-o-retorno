@@ -19,7 +19,7 @@ extern "C" {
 }
 
 //command_funcs is a collection of functions to call depending on the input
-static void (*const command_funcs[])(table*) = {
+static void (*const command_funcs[])(const Table&) = {
     commandPrint, commandCicles, commandSpeed, commandTravel
 };
 
@@ -35,11 +35,12 @@ int main(){
     }
 
 
-    table* t = openTable(table_name, "rb");
+    Table* t = new Table();
+    t->openTable(table_name, "rb");
 
     //calls the function from the array with the correct order
-    command_funcs[command-COMMANDS_OFFSET](t);
+    command_funcs[command-COMMANDS_OFFSET](*t);
 
-    closeTable(t);
+    delete t;
     free(table_name);
 }
