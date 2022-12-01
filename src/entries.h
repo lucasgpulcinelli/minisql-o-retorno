@@ -3,7 +3,6 @@
 
 #include <stdio.h>
 #include <inttypes.h>
-#include <stdbool.h>
 #include <sys/types.h>
 
 #define FIELD_AMOUNT 9
