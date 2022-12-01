@@ -8,12 +8,15 @@
  * Licença de código GPL-V3.
  */
 
-#include <stdio.h>
-#include <errno.h>
+#include <cstdio>
+#include <cerrno>
 
-#include "commands.h"
+#include "commands.hpp"
+#include "file_control.hpp"
+
+extern "C" {
 #include "utils.h"
-#include "file_control.h"
+}
 
 //command_funcs is a collection of functions to call depending on the input
 static void (*const command_funcs[])(table*) = {
