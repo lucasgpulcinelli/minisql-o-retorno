@@ -1,6 +1,6 @@
-CFLAGS    += -std=gnu99 -Wall -Wextra -lstdc++
+CFLAGS    += -std=gnu99 -Wall -Wextra
 CPPFLAGS  += -Wall -Wextra
-LDFLAGS   += -lstdc++
+LDFLAGS   += 
 VDFLAGS    = --track-origins=yes -v --leak-check=full --show-leak-kinds=all
 
 EXECUTABLE ?= build/main
