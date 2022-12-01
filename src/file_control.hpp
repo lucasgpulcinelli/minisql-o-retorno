@@ -5,7 +5,9 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+extern "C"{
 #include "entries.h"
+}
 
 
 #define PAGE_SIZE 960
