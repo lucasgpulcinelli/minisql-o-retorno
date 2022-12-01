@@ -1,12 +1,13 @@
-#include <stdio.h>
-#include <stdbool.h>
-#include <string.h>
-#include <errno.h>
+#include <cstdio>
+#include <cstring>
+#include <cerrno>
 
-#include "file_control.h"
+#include "file_control.hpp"
+
+extern "C" {
 #include "entries.h"
 #include "utils.h"
-
+}
 
 header* readHeader(FILE* fp){
     header* h;
@@ -42,18 +43,18 @@ void writeHeader(FILE* fp, header* head){
 table* createEmptyTable(char* table_name){
     table* new_table;
     XALLOC(table, new_table, 1);
-    XALLOC(header, new_table->header, 1);
+    XALLOC(header, new_table->file_header, 1);
     new_table->read_only = false;
 
     OPEN_FILE(new_table->fp, table_name, "w+b");
-    new_table->header->status = ERR_HEADER;
-    new_table->header->stack = EMPTY_STACK;
-    new_table->header->nextRRN = 0;
-    new_table->header->entries_removed = 0;
-    new_table->header->pages = 1;
-    new_table->header->times_compacted = 0;
+    new_table->file_header->status = ERR_HEADER;
+    new_table->file_header->stack = EMPTY_STACK;
+    new_table->file_header->nextRRN = 0;
+    new_table->file_header->entries_removed = 0;
+    new_table->file_header->pages = 1;
+    new_table->file_header->times_compacted = 0;
 
-    writeHeader(new_table->fp, new_table->header);
+    writeHeader(new_table->fp, new_table->file_header);
     return new_table;
 }
 
@@ -62,8 +63,8 @@ table* openTable(char* table_name, const char* mode){
     XALLOC(table, t, 1);
 
     OPEN_FILE(t->fp, table_name, mode);
-    t->header = readHeader(t->fp);
-    if(t->header->status == ERR_HEADER){
+    t->file_header = readHeader(t->fp);
+    if(t->file_header->status == ERR_HEADER){
         //if the header is not OK, the whole file is invalid and an error is 
         //generated
         EXIT_ERROR();
@@ -72,8 +73,8 @@ table* openTable(char* table_name, const char* mode){
     if(strchr(mode, 'w') != NULL || strchr(mode, '+') != NULL){
         //if we are opening the file for writing, write that the file is 
         //invalid (the status will be restored at closeTable)
-        t->header->status = ERR_HEADER;
-        writeHeader(t->fp, t->header);
+        t->file_header->status = ERR_HEADER;
+        writeHeader(t->fp, t->file_header);
         t->read_only = false;
     }else{
         t->read_only = true;
@@ -115,15 +116,15 @@ int32_t appendEntryOnTable(table* t, entry* es){
         ABORT_PROGRAM("cannot insert in table opened in read-only mode");
     }
 
-    if(t->header->stack != EMPTY_STACK){
-        fseek(t->fp, PAGE_SIZE + t->header->stack*MAX_SIZE_ENTRY, SEEK_SET);
+    if(t->file_header->stack != EMPTY_STACK){
+        fseek(t->fp, PAGE_SIZE + t->file_header->stack*MAX_SIZE_ENTRY, SEEK_SET);
         entry* erased = createEntry(1);
         readEntry(t->fp, erased);
 
         fseek(t->fp, -MAX_SIZE_ENTRY, SEEK_CUR);
-        int32_t new_entry_rrn = t->header->stack;
-        t->header->stack = erased->fields[linking].value.integer;
-        t->header->entries_removed--;
+        int32_t new_entry_rrn = t->file_header->stack;
+        t->file_header->stack = erased->fields[linking].value.integer;
+        t->file_header->entries_removed--;
         deleteEntry(erased, 1);
 
         writeEntry(t->fp, es);
@@ -134,8 +135,8 @@ int32_t appendEntryOnTable(table* t, entry* es){
     }
 
     writeEntry(t->fp, es);
-    t->header->nextRRN++;
-    return (t->header->nextRRN - 1); //new entry's rrn.
+    t->file_header->nextRRN++;
+    return (t->file_header->nextRRN - 1); //new entry's rrn.
 }
 
 void removeEntryFromTable(table* t, size_t rrn){
@@ -145,22 +146,22 @@ void removeEntryFromTable(table* t, size_t rrn){
     }
 
     seekTable(t, rrn);
-    writeEmptyEntry(t->fp, t->header->stack);
-    t->header->entries_removed++;
-    t->header->stack = rrn;
+    writeEmptyEntry(t->fp, t->file_header->stack);
+    t->file_header->entries_removed++;
+    t->file_header->stack = rrn;
 }
 
 void closeTable(table *t){
-    t->header->pages = NUM_PAGES_FORMULA(t->header->nextRRN);
-    t->header->status = OK_HEADER;
+    t->file_header->pages = NUM_PAGES_FORMULA(t->file_header->nextRRN);
+    t->file_header->status = OK_HEADER;
 
     if(!t->read_only){
         //if the file is not read only, restore the header status as OK
-        writeHeader(t->fp, t->header);
+        writeHeader(t->fp, t->file_header);
     }
     
     fclose(t->fp);
-    free(t->header);
+    free(t->file_header);
     free(t);
 }
 
@@ -175,9 +176,9 @@ void tableHashOnScreen(table* t){
 }
 
 uint32_t getTimesCompacted(table* t){
-    return t->header->times_compacted;
+    return t->file_header->times_compacted;
 }
 
 void setTimesCompacted(table* t, uint32_t num_times_compacted){
-    t->header->times_compacted = num_times_compacted;
+    t->file_header->times_compacted = num_times_compacted;
 }

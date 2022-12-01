@@ -26,24 +26,24 @@
     ((nextRRN/ENTRIES_PER_PAGE)*ENTRIES_PER_PAGE != nextRRN) + 1     \
 
 //struct header contains the header for a binary file
-typedef struct{
+struct header {
     char status;
     int32_t stack;
     uint32_t nextRRN;
     uint32_t entries_removed;
     uint32_t pages;
     uint32_t times_compacted;
-} header;
+};
 
 /*
  * struct table is a abstract data type that represents a full binary file, with
  * functions for reading and writing entries in it.
  */
-typedef struct{
-    header* header;
+struct table {
+    header* file_header;
     FILE* fp;
     bool read_only;
-} table;
+};
 
 //readHeader reads a header from a file pointer fp.
 header* readHeader(FILE* fp);
