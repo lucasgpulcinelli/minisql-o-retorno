@@ -45,7 +45,7 @@
  * message.
  */
 #define EXIT_ERROR()                                        \
-    printf("Falha no processamento do arquivo.\n");         \
+    printf("Falha na execução da funcionalidade.\n");       \
     exit(EXIT_SUCCESS);                                     \
 
 /*

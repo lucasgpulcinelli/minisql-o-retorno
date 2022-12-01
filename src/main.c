@@ -13,23 +13,30 @@
 
 #include "commands.h"
 #include "utils.h"
-#include "inputs.h"
+#include "file_control.h"
 
 //command_funcs is a collection of functions to call depending on the input
-static void (*const command_funcs[])(void) = {
-    commandCreate, commandWhere, commandInsert, commandJoin
+static void (*const command_funcs[])(table*) = {
+    commandPrint, commandCicles, commandSpeed, commandTravel
 };
 
 
 int main(){
     int32_t command;
-    READ_INPUT("%d", &command);
+    char* table_name;
+    READ_INPUT("%d %ms", &command, &table_name);
 
     if(command < COMMANDS_OFFSET || command >= COMMANDS_SIZE+COMMANDS_OFFSET){
         errno = EINVAL;
         ABORT_PROGRAM("command number");
     }
 
+
+    table* t = openTable(table_name, "rb");
+
     //calls the function from the array with the correct order
-    command_funcs[command-COMMANDS_OFFSET]();
+    command_funcs[command-COMMANDS_OFFSET](t);
+
+    closeTable(t);
+    free(table_name);
 }
