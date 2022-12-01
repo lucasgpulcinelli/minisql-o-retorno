@@ -52,25 +52,25 @@
  * XALLOC allocates memory in the heap in the pointer p,
  * checking if the allocation failed and aborting the program if so
  */
-#define XALLOC(type, p, size)          \
-    (p) = malloc(sizeof(type)*(size)); \
-    if(!(p)){                          \
-        ABORT_PROGRAM("malloc");        \
+#define XALLOC(type, p, size)                 \
+    (p) = (type*)malloc(sizeof(type)*(size)); \
+    if(!(p)){                                 \
+        ABORT_PROGRAM("malloc");              \
     }
 
 //XREALLOC does the same as XALLOC, but uses realloc with a new size
-#define XREALLOC(type, p, newsize)            \
-    (p) = realloc(p, sizeof(type)*(newsize)); \
-    if(!(p)){                                 \
-        ABORT_PROGRAM("realloc");              \
+#define XREALLOC(type, p, newsize)                   \
+    (p) = (type*)realloc(p, sizeof(type)*(newsize)); \
+    if(!(p)){                                        \
+        ABORT_PROGRAM("realloc");                    \
     } \
 
 //XCALLOC does the same as XALLOC, but uses calloc to set memory to '0's.
-#define XCALLOC(type, p, size)                \
-    p = calloc(size, sizeof(type));           \
-    if(!(p)){                                 \
-        ABORT_PROGRAM("calloc");              \
-    }                                         \
+#define XCALLOC(type, p, size)                       \
+    p = (type*)calloc(size, sizeof(type));           \
+    if(!(p)){                                        \
+        ABORT_PROGRAM("calloc");                     \
+    }                                                \
 
 //OPEN_FILE does the same as fopen, but verifies if the specified file exists.
 //usually, this would call ABORT_PROGRAM, however, because of runcodes test
@@ -108,7 +108,7 @@
  * fatalError aborts the program with the file and line of the error, and a
  * printf-like formatted message
  */
-void fatalError(int line, char* file, char* fmt, ...);
+void fatalError(int line, const char* file, const char* fmt, ...);
 
 /*
  * readFirstLine reads the first line of fp (relative to current position)

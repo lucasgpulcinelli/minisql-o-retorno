@@ -8,7 +8,7 @@
 #include "utils.h"
 
 
-void fatalError(int line, char* file, char* fmt, ...){
+void fatalError(int line, const char* file, const char* fmt, ...){
     int ini_errno = errno; //fprintf can change the errno value, so store it
 
     //initialize variable arguments list
