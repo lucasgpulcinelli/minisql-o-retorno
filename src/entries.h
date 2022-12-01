@@ -2,6 +2,7 @@
 #define __ENTRIES_H__
 
 #include <stdio.h>
+#include <stdbool.h>
 #include <inttypes.h>
 #include <sys/types.h>
 
