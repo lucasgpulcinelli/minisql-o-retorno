@@ -81,6 +81,7 @@ class Table {
      * standart library.
      */
     void openTable(char* table_name, const char* mode);
+    void close();
 
 
     /*

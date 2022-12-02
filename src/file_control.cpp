@@ -45,6 +45,7 @@ void Table::writeHeader(){
 }
 
 void Table::openTable(char* table_name, const char* mode) {
+    XALLOC(header, metadata, 1);
     OPEN_FILE(fp, table_name, mode);
     readHeader();
 
@@ -63,6 +64,20 @@ void Table::openTable(char* table_name, const char* mode) {
     }else{
         read_only = true;
     }
+}
+
+void Table::close(){
+    metadata->pages = NUM_PAGES_FORMULA(metadata->nextRRN);
+    metadata->status = OK_HEADER;
+
+    if(!read_only){
+        //if the file is not read only, restore the header status as OK.
+        //If writing operations were made, update table metadata.
+        writeHeader();
+    }
+    
+    fclose(fp);
+    free(metadata);
 }
 
 void Table::seekTable(size_t entry_number){
@@ -162,4 +177,16 @@ uint32_t Table::getTimesCompacted(){
 void Table::setTimesCompacted(uint32_t num_times_compacted){
     IS_TABLE_OPENED(this, "couldn't set times compacted");
     metadata->times_compacted = num_times_compacted;
+}
+
+Table::Table(){
+    metadata = NULL;
+    fp = NULL;
+    read_only = true;
+}
+
+Table::~Table(){
+    if(fp != NULL){
+        close();
+    }
 }
