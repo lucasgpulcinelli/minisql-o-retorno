@@ -6,13 +6,13 @@
 #define COMMANDS_SIZE 4
 #define COMMANDS_OFFSET 10
 
-void commandPrint(table* t);
+void commandPrint(const Table& t);
 
-void commandCicles(table* t);
+void commandCicles(const Table& t);
 
-void commandSpeed(table* t);
+void commandSpeed(const Table& t);
 
-void commandTravel(table* t);
+void commandTravel(const Table& t);
 
 #endif
 
