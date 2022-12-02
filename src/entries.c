@@ -168,20 +168,6 @@ int32_t writeField(FILE* fp, field* f, ssize_t size){
     return write_len + 1;
 }
 
-void writeEmptyEntry(FILE* fp, int stack){
-    int32_t i = 0;
-
-    putc(REMOVED, fp);
-    i++;
-
-    fwrite(&stack, sizeof(int32_t), 1, fp);
-    i += 4;
-
-    for(; i < MAX_SIZE_ENTRY; i++){
-        putc('$', fp);
-    }
-}
-
 void writeEntry(FILE* fp, entry* e){
     ssize_t bytes = MAX_SIZE_ENTRY;      //Available bytes in entry
     for(uint32_t i = 0; i < FIELD_AMOUNT && bytes > 0; i++){
