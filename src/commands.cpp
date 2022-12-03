@@ -4,7 +4,7 @@
 #include <errno.h>
 
 #include "commands.hpp"
-#include "file_control.hpp"
+#include "table.hpp"
 
 extern "C" {
 #include "entries.h"

@@ -22,6 +22,7 @@
 #define GET_COUNTRYACRO(_entry) (_entry->fields[countryAcro].value.carray)
 #define GET_POPSNAME(_entry) (_entry->fields[poPsName].value.cpointer)
 #define GET_COUNTRYNAME(_entry) (_entry->fields[countryName].value.cpointer)
+#define GET_NEXT_STACK_RRN(_entry) (_entry->fields[linking].value.integer)
 
 /*
  * enum FieldTypes represents all possible fields, ordered by apperance in the

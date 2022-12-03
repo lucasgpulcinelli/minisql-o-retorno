@@ -3,7 +3,7 @@
 #include <cerrno>
 #include <system_error>
 
-#include "file_control.hpp"
+#include "table.hpp"
 
 extern "C" {
 #include "entries.h"
@@ -126,7 +126,7 @@ int32_t Table::appendEntry(entry* es){
 
         fseek(fp, -MAX_SIZE_ENTRY, SEEK_CUR);
         int32_t new_entry_rrn = metadata->stack;
-        metadata->stack = erased->fields[linking].value.integer;
+        metadata->stack = GET_NEXT_STACK_RRN(es);
         metadata->entries_removed--;
         deleteEntry(erased, 1);
 
