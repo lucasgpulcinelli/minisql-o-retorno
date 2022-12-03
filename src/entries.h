@@ -18,6 +18,11 @@
 
 #define ENTRY_REMOVED(e) (e->fields[removed].value.carray[0] == REMOVED)
 
+#define GET_IDCONNECT(_entry) (_entry->fields[idConnect].value.integer)
+#define GET_COUNTRYACRO(_entry) (_entry->fields[countryAcro].value.carray)
+#define GET_POPSNAME(_entry) (_entry->fields[poPsName].value.cpointer)
+#define GET_COUNTRYNAME(_entry) (_entry->fields[countryName].value.cpointer)
+
 /*
  * enum FieldTypes represents all possible fields, ordered by apperance in the
  * binary file for an entry.
