@@ -12,7 +12,7 @@
 #include <cerrno>
 
 #include "commands.hpp"
-#include "file_control.hpp"
+#include "table.hpp"
 
 extern "C" {
 #include "utils.h"
@@ -41,6 +41,7 @@ int main(){
     //calls the function from the array with the correct order
     command_funcs[command-COMMANDS_OFFSET](*t);
 
+    t->close();
     delete t;
     free(table_name);
 }
