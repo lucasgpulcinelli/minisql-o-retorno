@@ -28,5 +28,20 @@ class Node {
 };
 
 std::ostream& operator<<(const Node& node, std::ostream& output);
+bool operator<(const Node& left_arg, const Node& right_arg);
+bool operator==(const Node& left_arg, const Node& right_arg);
+
+class Edge {
+    public:
+
+    int32_t connectionPOPId;
+    double connectionSpeed;
+
+    Edge(entry* es);
+};
+
+std::ostream& operator<<(const Edge& edge, std::ostream& output);
+bool operator<(const Edge& left_arg, const Edge& right_arg);
+bool operator==(const Edge& left_arg, const Edge& right_arg);
 
 #endif
