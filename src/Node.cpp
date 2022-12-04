@@ -1,5 +1,7 @@
 #include <string>
 #include <ostream>
+#include <stdexcept>
+
 #include "Node.hpp"
 
 extern "C" {
