@@ -23,6 +23,9 @@
 #define GET_POPSNAME(_entry) (_entry->fields[poPsName].value.cpointer)
 #define GET_COUNTRYNAME(_entry) (_entry->fields[countryName].value.cpointer)
 #define GET_NEXT_STACK_RRN(_entry) (_entry->fields[linking].value.integer)
+#define GET_CONNPOPSID(_entry) (_entry->fields[connPoPsId].value.integer)
+#define GET_MEASUREMENT_UNIT(_entry) (_entry->fields[measurmentUnit].value.carray)
+#define GET_SPEED(_entry) (_entry->fields[speed].value.integer)
 
 /*
  * enum FieldTypes represents all possible fields, ordered by apperance in the
