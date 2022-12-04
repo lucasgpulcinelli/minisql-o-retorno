@@ -10,14 +10,17 @@ extern "C" {
 }
 
 #define ACRONYM_SIZE 2
+#define CONVERSION_FACTOR 1024
 
 
 class Node {
     friend std::ostream& operator<<(const Node& node, std::ostream& output);
+    friend bool operator<(const Node& left_arg, const Node& right_arg);
+    friend bool operator==(const Node& left_arg, const Node& right_arg);
 
     private:
 
-    int32_t idConnect;
+    int32_t idConnection;
     char countryAcronym[ACRONYM_SIZE];
     std::string POPsName;
     std::string originCountryName;
