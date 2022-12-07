@@ -6,6 +6,9 @@
 #include <stdexcept>
 #include <string>
 
+#include "Graph.hxx"
+#include "TopologyGraph.hpp"
+
 extern "C"{
 #include "entries.h"
 }
@@ -61,6 +64,7 @@ class Table {
      * readheader reads the header from the table binary file.
      */
     void readHeader();
+
     /*
      * writeheader writes the updated header in the table binary file.
      */
@@ -74,38 +78,29 @@ class Table {
     public:
 
     /*
-     * openTable opens the table in the file named table_name on a
-     * mode specified by the user. It supports "rb", read-only mode,
-     * "r+b", read and write mode, and "wb", write-only mode. These
-     * modes work in the same way as file descriptors in the C
-     * standart library.
-     */
-    void openTable(char* table_name, const char* mode);
-    void close();
-
-
-    /*
-     * seekTable seeks to the index of the entry provided, such that the 
+     * seek seeks to the index of the entry provided, such that the 
      * readNextEntry() will return the entry with the RRN provided.
      */
-    void seekTable(size_t entry_number);
+    void seek(size_t entry_number);
+
     /*
-     * rewindTable returns the table to the begginig, being equivalent to 
+     * rewind returns the table to the begginig, being equivalent to 
      * seekTable(rrn = 0).
      */
-    void rewindTable();
+    void rewind();
+    
     /*
      * hasNextEntry returns true if the table can read another entry,
      * meaning if readNextEntry() will not be NULL in the next call.
      */
     bool hasNextEntry();
 
-
     /*
-     * tableReadNextEntry reads the next entry from the table, the
+     * ReadNextEntry reads the next entry from the table, the
      * returned entry must be deleted afterwards.
      */
     entry* readNextEntry();
+
     /*
      * appendEntry writes entry es on the table. If the stack of
      * deleted entries is empty, it appends the entry at the end of the table.
@@ -113,6 +108,7 @@ class Table {
      * It returns the RRN of the newly appended entry.
      */
     int32_t appendEntry(entry* es);
+
     /*
      * removeEntryFromTable deletes the entry of number rrn from the table.
      */
@@ -123,6 +119,7 @@ class Table {
      * compacted.
      */
     uint32_t getTimesCompacted();
+
     /*
      * setTimesCompacted sets the number of times the table has been compacted
      * to uint32_t num_times_compacted. This is not a dangerous operations, 
@@ -130,7 +127,17 @@ class Table {
      */
     void setTimesCompacted(uint32_t num_times_compacted);
 
-    Table();
+    Graph<NodeExtraData, EdgeExtraData>* createGraph(void);
+
+    /*
+     * creates a new table using the file named table_name with a
+     * mode specified by the user. It supports "rb", read-only mode,
+     * "r+b", read and write mode, and "wb", write-only mode. These
+     * modes work in the same way as file descriptors in the C
+     * standart library.
+     */
+    Table(char* table_name, const char* mode);
+
     ~Table();
 };
 

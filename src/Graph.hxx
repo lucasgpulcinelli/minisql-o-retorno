@@ -1,38 +1,67 @@
+#ifndef __GRAPH_HXX__
+#define __GRAPH_HXX__
+
 #include <iostream>
 #include <cinttypes>
+
 #include "Graph.hpp"
 
-template <class Node, class Edge> void Graph<class Node, class Edge>::print(){
-    for(int32_t node = 0; node < num_nodes; node++){
-        for(int32_t edge = 0; edge < adjacencies[node].size(); edge++){
-            std::cout << node_list[node] << " ";
-            std::cout << adjacencies[node][edge].second << std::endl;
-        }
+template<typename T>
+bool operator<(const Node<T>& left_arg, const Node<T>& right_arg){
+    return left_arg.id < right_arg.id;
+}
+
+template<typename T>
+bool operator==(const Node<T>& left_arg, const Node<T>& right_arg){
+    return left_arg.id == right_arg.id;
+}
+
+template<typename T>
+bool operator==(const Edge<T>& left_arg, const Edge<T>& right_arg){
+    return left_arg.id_from == right_arg.id_from && 
+        left_arg.id_to == right_arg.id_to;
+}
+
+template<typename T>
+std::ostream& operator<<(std::ostream& os, Node<T>& node){
+    return os << node.id << " " << node.t << std::endl;
+}
+
+template<typename T1, typename T2>
+std::ostream& operator<<(std::ostream& os, Graph<T1, T2>& g){
+    for(size_t node = 0; node < g.num_nodes; node++){
+        os << g.node_list[node];
     }
+    return os;
 }
 
-template <class Node, class Edge> 
-Graph<class Node, class Edge>::Graph(const Table& topology){
-    while(topology.hasNextEntry()){
-        entry* next_entry = topology->readNextEntry();
-
-        Edge edge = Edge(next_entry);
-        Node node = Node(next_entry);
-        
-        insertNewEdge(node, edge);
-    }
+template<typename T>
+Node<T>::Node(int id, T t){
+    this->id = id;
+    this->t = t;
 }
 
-template <class Node, class Edge> void 
-Graph<class Node, class Edge>::insertNewEdge(Node exit_node, Edge new_edge){
-    size_t exit_node_index = insertNode(exit_node);
-    
+template<typename T>
+Edge<T>::Edge(int id_from, int id_to, T t){
+    this->id_from = id_from;
+    this->id_to = id_to;
+    this->t = t;
 }
 
-template <class Node, class Edge> 
-size_t Graph<class Node, class Edge>::insertNode(Node new_node){
+template<typename T1, typename T2>
+void Graph<T1, T2>::insertEdge(Edge<T2> new_edge){
+}
+
+template<typename T1, typename T2>
+size_t Graph<T1, T2>::insertNode(Node<T1> new_node){
     size_t start = 0;
-    size_t end = num_nodes - 1;
+    size_t end = num_nodes-1;
+
+    if(num_nodes == 0){
+        node_list.push_back(new_node);
+        num_nodes++;
+        return 0;
+    }
 
     while(true){
         size_t middle = (start + end)/2;
@@ -40,28 +69,27 @@ size_t Graph<class Node, class Edge>::insertNode(Node new_node){
         if(node_list[middle] == new_node){
             return middle;
 
-        } else if ((node_list[middle] < new_node) && (end >= start)){
-            beggining = middle + 1;
+        } else if ((node_list[middle] < new_node) && (end > start)){
+            start = middle + 1;
 
-        } else if ((new_node < node_list[middle]) && (end >= start)){
-            end = middle - 1;
+        } else if ((new_node < node_list[middle]) && (end > start)){
+            end = middle;
 
         } else if (node_list[middle] < new_node){
-            node_list.insert(node_list.begin() + middle + 1;, new_node);
-            adjacencies.insert(adjacencies.begin() + middle + 1;, 
-                               std::vector<std::pair<size_t, Edge>>());
+            node_list.insert(node_list.begin() + middle + 1, new_node);
+            num_nodes++;
             return middle + 1;
 
         } else {
-            node_list.insert(node_list.begin() + middle;, new_node);
-            adjacencies.insert(adjacencies.begin() + middle;, 
-                               std::vector<std::pair<size_t, Edge>>());
+            node_list.insert(node_list.begin() + middle, new_node);
+            num_nodes++;
             return middle;
         }
     }
 }
 
-template <class Node, class Edge>
-void Graph<class Node, class Edge>::insertNewNode(Node new_node){
-    insertNode(new_node);
+template<typename T1, typename T2>
+Graph<T1, T2>::~Graph(void){
 }
+
+#endif

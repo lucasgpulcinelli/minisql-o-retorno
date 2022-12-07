@@ -35,7 +35,8 @@ run: $(EXECUTABLE)
 valgrind: debug
 	valgrind $(VDFLAGS) $(EXECUTABLE)
 
-debug: CFLAGS+=-g -O0
+debug: CFLAGS+=-g -O0 
+debug: CPPFLAGS+=-g -O0
 debug: clean
 debug: $(EXECUTABLE)
 

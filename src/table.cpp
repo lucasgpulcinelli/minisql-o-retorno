@@ -4,6 +4,8 @@
 #include <system_error>
 
 #include "table.hpp"
+#include "Graph.hpp"
+#include "TopologyGraph.hpp"
 
 extern "C" {
 #include "entries.h"
@@ -13,38 +15,38 @@ extern "C" {
 void Table::readHeader(){
     IS_TABLE_OPENED(this, "couldn't read table metadata");
 
-    rewind(fp);
-    fread(&(metadata->status), sizeof(char), 1, fp);
-    fread(&(metadata->stack), sizeof(int32_t), 1, fp);
-    fread(&(metadata->nextRRN), sizeof(int32_t), 1, fp);
-    fread(&(metadata->entries_removed), sizeof(int32_t), 1, fp);
-    fread(&(metadata->pages), sizeof(int32_t), 1, fp);
-    fread(&(metadata->times_compacted), sizeof(int32_t), 1, fp);
+    std::rewind(fp);
+    std::fread(&(metadata->status), sizeof(char), 1, fp);
+    std::fread(&(metadata->stack), sizeof(int32_t), 1, fp);
+    std::fread(&(metadata->nextRRN), sizeof(int32_t), 1, fp);
+    std::fread(&(metadata->entries_removed), sizeof(int32_t), 1, fp);
+    std::fread(&(metadata->pages), sizeof(int32_t), 1, fp);
+    std::fread(&(metadata->times_compacted), sizeof(int32_t), 1, fp);
 
-    fseek(fp, PAGE_SIZE, SEEK_SET);
+    std::fseek(fp, PAGE_SIZE, SEEK_SET);
 }
 
 void Table::writeHeader(){
     IS_TABLE_OPENED(this, "couldn't update table metadata");
     if(read_only){
         throw std::system_error(EACCES, std::generic_category(),
-                                "cannot write header in read-only table");
+            "cannot write header in read-only table");
     }
 
-    rewind(fp);
-    fwrite(&(metadata->status), sizeof(char), 1, fp);
-    fwrite(&(metadata->stack), sizeof(int32_t), 1, fp);
-    fwrite(&(metadata->nextRRN), sizeof(uint32_t), 1, fp);
-    fwrite(&(metadata->entries_removed), sizeof(int32_t), 1, fp);
-    fwrite(&(metadata->pages), sizeof(uint32_t), 1, fp);
-    fwrite(&(metadata->times_compacted), sizeof(uint32_t), 1, fp);
+    std::rewind(fp);
+    std::fwrite(&(metadata->status), sizeof(char), 1, fp);
+    std::fwrite(&(metadata->stack), sizeof(int32_t), 1, fp);
+    std::fwrite(&(metadata->nextRRN), sizeof(uint32_t), 1, fp);
+    std::fwrite(&(metadata->entries_removed), sizeof(int32_t), 1, fp);
+    std::fwrite(&(metadata->pages), sizeof(uint32_t), 1, fp);
+    std::fwrite(&(metadata->times_compacted), sizeof(uint32_t), 1, fp);
 
     for(uint32_t i = 0; i < PAGE_SIZE-HEADER_SIZE; i++){
-        putc('$', fp);
+        std::putc('$', fp);
     }
 }
 
-void Table::openTable(char* table_name, const char* mode) {
+Table::Table(char* table_name, const char* mode) {
     XALLOC(header, metadata, 1);
     OPEN_FILE(fp, table_name, mode);
     readHeader();
@@ -55,7 +57,7 @@ void Table::openTable(char* table_name, const char* mode) {
         EXIT_ERROR();
     }
 
-    if(strchr(mode, 'w') != NULL || strchr(mode, '+') != NULL){
+    if(std::strchr(mode, 'w') != NULL || std::strchr(mode, '+') != NULL){
         //if we are opening the file for writing, write that the file is 
         //invalid (the status will be restored at closeTable)
         metadata->status = ERR_HEADER;
@@ -66,38 +68,24 @@ void Table::openTable(char* table_name, const char* mode) {
     }
 }
 
-void Table::close(){
-    metadata->pages = NUM_PAGES_FORMULA(metadata->nextRRN);
-    metadata->status = OK_HEADER;
-
-    if(!read_only){
-        //if the file is not read only, restore the header status as OK.
-        //If writing operations were made, update table metadata.
-        writeHeader();
-    }
-    
-    fclose(fp);
-    free(metadata);
-}
-
-void Table::seekTable(size_t entry_number){
+void Table::seek(size_t entry_number){
     IS_TABLE_OPENED(this, "couldn't seek entry on table");
-    fseek(fp, entry_number * MAX_SIZE_ENTRY + PAGE_SIZE, SEEK_SET);
+    std::fseek(fp, entry_number * MAX_SIZE_ENTRY + PAGE_SIZE, SEEK_SET);
 }
 
-void Table::rewindTable(){
+void Table::rewind(){
     IS_TABLE_OPENED(this, "couldn't rewind table");
-    fseek(fp, PAGE_SIZE, SEEK_SET);
+    std::fseek(fp, PAGE_SIZE, SEEK_SET);
 }
 
 bool Table::hasNextEntry(){
     IS_TABLE_OPENED(this, "couldn't check if there is a next entry");
     int c;
-    if((c = getc(fp)) == EOF){
+    if((c = std::getc(fp)) == EOF){
         return false;
     }
 
-    ungetc(c, fp);
+    std::ungetc(c, fp);
     return true;
 }
 
@@ -116,15 +104,15 @@ int32_t Table::appendEntry(entry* es){
     IS_TABLE_OPENED(this, "couldn't append entry");
     if(read_only){
         throw std::system_error(EACCES, std::generic_category(),
-                                "cannot append entry in read-only table");
+            "cannot append entry in read-only table");
     }
 
     if(metadata->stack != EMPTY_STACK){
-        fseek(fp, PAGE_SIZE + metadata->stack*MAX_SIZE_ENTRY, SEEK_SET);
+        std::fseek(fp, PAGE_SIZE + metadata->stack*MAX_SIZE_ENTRY, SEEK_SET);
         entry* erased = createEntry(1);
         readEntry(fp, erased);
 
-        fseek(fp, -MAX_SIZE_ENTRY, SEEK_CUR);
+        std::fseek(fp, -MAX_SIZE_ENTRY, SEEK_CUR);
         int32_t new_entry_rrn = metadata->stack;
         metadata->stack = GET_NEXT_STACK_RRN(es);
         metadata->entries_removed--;
@@ -133,8 +121,8 @@ int32_t Table::appendEntry(entry* es){
         writeEntry(fp, es);
         return new_entry_rrn;
 
-    }else if(!feof(fp)){
-        fseek(fp, 0, SEEK_END);
+    }else if(!std::feof(fp)){
+        std::fseek(fp, 0, SEEK_END);
     }
 
     writeEntry(fp, es);
@@ -146,10 +134,10 @@ void Table::removeEntry(size_t rrn){
     IS_TABLE_OPENED(this, "couldn't remove entry from table");
     if(read_only){
         throw std::system_error(EACCES, std::generic_category(),
-                                "cannot append entry in read-only table");
+            "cannot append entry in read-only table");
     }
 
-    seekTable(rrn);
+    seek(rrn);
     writeEmptyEntry();
     metadata->entries_removed++;
     metadata->stack = rrn;
@@ -158,14 +146,14 @@ void Table::removeEntry(size_t rrn){
 void Table::writeEmptyEntry(){
     int32_t i = 0;
 
-    putc(REMOVED, fp);
+    std::putc(REMOVED, fp);
     i++;
 
-    fwrite(&(metadata->stack), sizeof(int32_t), 1, fp);
+    std::fwrite(&(metadata->stack), sizeof(int32_t), 1, fp);
     i += 4;
 
     for(; i < MAX_SIZE_ENTRY; i++){
-        putc('$', fp);
+        std::putc('$', fp);
     }
 }
 
@@ -179,14 +167,32 @@ void Table::setTimesCompacted(uint32_t num_times_compacted){
     metadata->times_compacted = num_times_compacted;
 }
 
-Table::Table(){
-    metadata = NULL;
-    fp = NULL;
-    read_only = true;
+Graph<NodeExtraData, EdgeExtraData>* Table::createGraph(void){
+    this->rewind();
+
+    auto g = new Graph<NodeExtraData, EdgeExtraData>();
+
+    for(entry* e; (e = readNextEntry()) != NULL; deleteEntry(e, 1)){
+        int id_from = e->fields[idConnect].value.integer;
+        int id_to = e->fields[connPoPsId].value.integer;
+
+        g->insertNode(Node(id_from, NodeExtraData(e)));
+        g->insertEdge(Edge(id_from, id_to, EdgeExtraData(e)));
+    } 
+
+    return g;
 }
 
 Table::~Table(){
-    if(fp != NULL){
-        close();
+    metadata->pages = NUM_PAGES_FORMULA(metadata->nextRRN);
+    metadata->status = OK_HEADER;
+
+    if(!read_only){
+        //if the file is not read only, restore the header status as OK.
+        //If writing operations were made, update table metadata.
+        writeHeader();
     }
+    
+    std::fclose(fp);
+    std::free(metadata);
 }

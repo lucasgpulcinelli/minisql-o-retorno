@@ -8,40 +8,35 @@
  * Licença de código GPL-V3.
  */
 
-#include <cstdio>
 #include <cerrno>
+#include <iostream>
 
-#include "commands.hpp"
 #include "table.hpp"
+#include "Graph.hxx"
+#include "TopologyGraph.hpp"
 
 extern "C" {
 #include "utils.h"
 }
-
-//command_funcs is a collection of functions to call depending on the input
-static void (*const command_funcs[])(const Table&) = {
-    commandPrint, commandCicles, commandSpeed, commandTravel
-};
-
 
 int main(){
     int32_t command;
     char* table_name;
     READ_INPUT("%d %ms", &command, &table_name);
 
-    if(command < COMMANDS_OFFSET || command >= COMMANDS_SIZE+COMMANDS_OFFSET){
+    Table* t = new Table(table_name, "rb");
+    auto g = t->createGraph();
+
+    switch(command){
+    case 11:
+        std::cout << *g;
+        break;    
+    default:
         errno = EINVAL;
         ABORT_PROGRAM("command number");
     }
 
-
-    Table* t = new Table();
-    t->openTable(table_name, "rb");
-
-    //calls the function from the array with the correct order
-    command_funcs[command-COMMANDS_OFFSET](*t);
-
-    t->close();
+    delete g;
     delete t;
     free(table_name);
 }
