@@ -32,15 +32,15 @@ EdgeExtraData::EdgeExtraData(entry* es){
 
     switch(GET_MEASUREMENT_UNIT(es)[0]){
         case 'K':
-        connectionSpeed = GET_SPEED(es)/(CONVERSION_FACTOR*CONVERSION_FACTOR);
+        connectionSpeed = GET_SPEED(es)/(CONVERSION_FACTOR);
         break;
 
         case 'M':
-        connectionSpeed = GET_SPEED(es)/CONVERSION_FACTOR;
+        connectionSpeed = GET_SPEED(es);
         break;
 
         case 'G':
-        connectionSpeed = GET_SPEED(es);
+        connectionSpeed = GET_SPEED(es)*CONVERSION_FACTOR;
         break;
 
         default:
