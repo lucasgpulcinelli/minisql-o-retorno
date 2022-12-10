@@ -6,6 +6,9 @@
 #include <utility>
 #include <map>
 
+template <typename Type>
+void swap(Type& arg_1, Type& arg_2);
+
 template<typename NodeMetadata>
 class Node {
 public:

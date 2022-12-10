@@ -54,6 +54,14 @@ Edge<EdgeMetadata>::Edge(int id_from, int id_to, EdgeMetadata t){
 }
 
 template<typename NodeMetadata, typename EdgeMetadata>
+void Graph<NodeMetadata, EdgeMetadata>::insertEdge(const Edge<EdgeMetadata>& new_edge){
+    insertEdgeInAdjancencyList(new_edge, new_edge.id_from);
+    swap(new_edge.id_from, new_edge.id_to);
+    insertEdgeInAdjancencyList(new_edge, new_edge.id_to);
+    swap(new_edge.id_from, new_edge.id_to);
+}
+
+template<typename NodeMetadata, typename EdgeMetadata>
 void insertEdgeInAdjancencyList(const Edge<EdgeMetadata>& new_edge, int32_t node){
     auto adjacent_nodes = adjacencies[node];
 
@@ -87,11 +95,13 @@ void insertEdgeInAdjancencyList(const Edge<EdgeMetadata>& new_edge, int32_t node
     }
 }
 
-template<typename NodeMetadata, typename EdgeMetadata>
-void Graph<NodeMetadata, EdgeMetadata>::insertEdge(const Edge<EdgeMetadata>& new_edge){
-    insertEdgeInAdjancencyList(new_edge, new_edge.id_from);
-    insertEdgeInAdjancencyList(new_edge, new_edge.id_to);
+template <typename Type>
+void swap(Type& arg_1, Type& arg_2){
+    Type tmp = arg_1;
+    arg_1 = arg_2;
+    arg_2 = tmp;
 }
+
 
 template<typename NodeMetadata, typename EdgeMetadata>
 void Graph<NodeMetadata, EdgeMetadata>::insertNode(const Node<NodeMetadata>& new_node){
