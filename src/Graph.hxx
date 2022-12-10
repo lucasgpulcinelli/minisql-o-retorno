@@ -88,13 +88,13 @@ void insertEdgeInAdjancencyList(const Edge<EdgeMetadata>& new_edge, int32_t node
 }
 
 template<typename NodeMetadata, typename EdgeMetadata>
-void Graph<NodeMetadata, EdgeMetadata>::insertEdge(Edge<EdgeMetadata> new_edge){
+void Graph<NodeMetadata, EdgeMetadata>::insertEdge(const Edge<EdgeMetadata>& new_edge){
     insertEdgeInAdjancencyList(new_edge, new_edge.id_from);
     insertEdgeInAdjancencyList(new_edge, new_edge.id_to);
 }
 
 template<typename NodeMetadata, typename EdgeMetadata>
-void Graph<NodeMetadata, EdgeMetadata>::insertNode(Node<NodeMetadata> new_node){
+void Graph<NodeMetadata, EdgeMetadata>::insertNode(const Node<NodeMetadata>& new_node){
     auto result = node_list.insert(new_node.id, new_node);
 
     if(result.second == false && (!node_list[new_node.id].isEmpty())){

@@ -57,8 +57,8 @@ private:
     void insertEdgeInAdjancencyList(const Edge<EdgeMetadata>& new_edge, int32_t node);
 
 public:
-    void insertNode(Node<NodeMetadata> new_node);
-    void insertEdge(Edge<EdgeMetadata> new_edge);
+    void insertNode(const Node<NodeMetadata>& new_node);
+    void insertEdge(const Edge<EdgeMetadata>& new_edge);
 };
 
 #endif
