@@ -54,13 +54,48 @@ Edge<EdgeMetadata>::Edge(int id_from, int id_to, EdgeMetadata t){
 }
 
 template<typename NodeMetadata, typename EdgeMetadata>
+void insertEdgeInAdjancencyList(const Edge<EdgeMetadata>& new_edge, int32_t node){
+    auto adjacent_nodes = adjacencies[node];
+
+    size_t start = 0;
+    size_t end = num_nodes-1;
+
+    while(true){
+        size_t middle = (start + end)/2;
+
+        if(adjacent_nodes[middle] == new_edge && !(new_edge.isEmpty())){
+            return;
+        
+        } else if (adjacent_nodes[middle] == new_edge && new_edge.isEmpty()){
+            adjacent_nodes[middle] = new_edge;
+            return;
+
+        } else if ((adjacent_nodes[middle] < new_edge) && (end > start)){
+            start = middle + 1;
+
+        } else if ((new_node < node_list[middle]) && (end > start)){
+            end = middle;
+
+        } else if (node_list[middle] < new_node){
+            node_list.insert(node_list.begin() + middle + 1, new_node);
+            return;
+
+        } else {
+            node_list.insert(node_list.begin() + middle, new_node);
+            return;
+        }
+    }
+}
+
+template<typename NodeMetadata, typename EdgeMetadata>
 void Graph<NodeMetadata, EdgeMetadata>::insertEdge(Edge<EdgeMetadata> new_edge){
+    insertEdgeInAdjancencyList(new_edge, new_edge.id_from);
+    insertEdgeInAdjancencyList(new_edge, new_edge.id_to);
 }
 
 template<typename NodeMetadata, typename EdgeMetadata>
 void Graph<NodeMetadata, EdgeMetadata>::insertNode(Node<NodeMetadata> new_node){
     auto result = node_list.insert(new_node.id, new_node);
-    adjacencies.insert(new_node.id, std::vector<Edge<EdgeMetadata>>());
 
     if(result.second == false && (!node_list[new_node.id].isEmpty())){
         node_list[new_node.id] = new_node;

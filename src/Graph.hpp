@@ -54,6 +54,8 @@ private:
     std::map<int32_t, std::vector<Edge<EdgeMetadata>>> adjacencies;
     std::map<int32_t, Node<NodeMetadata>> node_list;
 
+    void insertEdgeInAdjancencyList(const Edge<EdgeMetadata>& new_edge, int32_t node);
+
 public:
     void insertNode(Node<NodeMetadata> new_node);
     void insertEdge(Edge<EdgeMetadata> new_edge);
