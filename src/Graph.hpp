@@ -55,10 +55,8 @@ private:
     std::map<int32_t, Node<NodeMetadata>> node_list;
 
 public:
-    size_t insertNode(Node<NodeMetadata> new_node);
+    void insertNode(Node<NodeMetadata> new_node);
     void insertEdge(Edge<EdgeMetadata> new_edge);
-
-    ~Graph();
 };
 
 #endif
