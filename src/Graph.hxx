@@ -6,54 +6,59 @@
 
 #include "Graph.hpp"
 
-template<typename T>
-bool operator<(const Node<T>& left_arg, const Node<T>& right_arg){
+template<typename NodeMetadata>
+bool operator<(const Node<NodeMetadata>& left_arg, 
+               const Node<NodeMetadata>& right_arg){
     return left_arg.id < right_arg.id;
 }
 
-template<typename T>
-bool operator==(const Node<T>& left_arg, const Node<T>& right_arg){
+template<typename NodeMetadata>
+bool operator==(const Node<NodeMetadata>& left_arg, 
+                const Node<NodeMetadata>& right_arg){
     return left_arg.id == right_arg.id;
 }
 
-template<typename T>
-bool operator==(const Edge<T>& left_arg, const Edge<T>& right_arg){
+template<typename EdgeMetadata>
+bool operator==(const Edge<EdgeMetadata>& left_arg, 
+                const Edge<EdgeMetadata>& right_arg){
     return left_arg.id_from == right_arg.id_from && 
         left_arg.id_to == right_arg.id_to;
 }
 
-template<typename T>
-std::ostream& operator<<(std::ostream& os, Node<T>& node){
+template<typename NodeMetadata>
+std::ostream& operator<<(std::ostream& os, Node<NodeMetadata>& node){
     return os << node.id << " " << node.t << std::endl;
 }
 
-template<typename T1, typename T2>
-std::ostream& operator<<(std::ostream& os, Graph<T1, T2>& g){
+template<typename NodeMetadata, typename EdgeMetadata>
+std::ostream& operator<<(std::ostream& os, 
+                         Graph<NodeMetadata, EdgeMetadata>& g){
     for(size_t node = 0; node < g.num_nodes; node++){
         os << g.node_list[node];
     }
+
     return os;
 }
 
-template<typename T>
-Node<T>::Node(int id, T t){
+template<typename NodeMetadata>
+Node<NodeMetadata>::Node(int32_t id, NodeMetadata t){
     this->id = id;
     this->t = t;
 }
 
-template<typename T>
-Edge<T>::Edge(int id_from, int id_to, T t){
+template<typename EdgeMetadata>
+Edge<EdgeMetadata>::Edge(int id_from, int id_to, EdgeMetadata t){
     this->id_from = id_from;
     this->id_to = id_to;
     this->t = t;
 }
 
-template<typename T1, typename T2>
-void Graph<T1, T2>::insertEdge(Edge<T2> new_edge){
+template<typename NodeMetadata, typename EdgeMetadata>
+void Graph<NodeMetadata, EdgeMetadata>::insertEdge(Edge<EdgeMetadata> new_edge){
 }
 
-template<typename T1, typename T2>
-size_t Graph<T1, T2>::insertNode(Node<T1> new_node){
+template<typename NodeMetadata, typename EdgeMetadata>
+size_t Graph<NodeMetadata, EdgeMetadata>::insertNode(Node<NodeMetadata> new_node){
     size_t start = 0;
     size_t end = num_nodes-1;
 
@@ -88,8 +93,8 @@ size_t Graph<T1, T2>::insertNode(Node<T1> new_node){
     }
 }
 
-template<typename T1, typename T2>
-Graph<T1, T2>::~Graph(void){
+template<typename NodeMetadata, typename EdgeMetadata>
+Graph<NodeMetadata, EdgeMetadata>::~Graph(void){
 }
 
 #endif

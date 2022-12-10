@@ -4,55 +4,59 @@
 #include <cinttypes>
 #include <vector>
 #include <utility>
+#include <map>
 
-template<typename T>
+template<typename NodeMetadata>
 class Node {
 public:
-    Node(int id, T t);
-    int id;
-    T t;
+    Node(int id, NodeMetadata t);
+    int32_t id;
+    NodeMetadata t;
 };
 
-template<typename T>
-bool operator<(const Node<T>& left_arg, const Node<T>& right_arg);
+template<typename NodeMetadata>
+bool operator<(const Node<NodeMetadata>& left_arg, 
+               const Node<NodeMetadata>& right_arg);
 
-template<typename T>
-bool operator==(const Node<T>& left_arg, const Node<T>& right_arg);
+template<typename NodeMetadata>
+bool operator==(const Node<NodeMetadata>& left_arg, 
+                const Node<NodeMetadata>& right_arg);
 
-template<typename T>
-std::ostream& operator<<(std::ostream& os, Node<T>& node);
+template<typename NodeMetadata>
+std::ostream& operator<<(std::ostream& os, Node<NodeMetadata>& node);
 
 
-template<typename T>
+template<typename EdgeMetadata>
 class Edge {
 public:
-    Edge(int id_from, int id_to, T t);
-    int id_from;
-    int id_to;
-    T t;
+    Edge(int id_from, int id_to, EdgeMetadata t);
+    int32_t id_from;
+    int32_t id_to;
+    EdgeMetadata t;
 };
 
-template<typename T>
-bool operator==(const Edge<T>& left_arg, const Edge<T>& right_arg);
+template<typename EdgeMetadata>
+bool operator==(const Edge<EdgeMetadata>& left_arg, 
+                const Edge<EdgeMetadata>& right_arg);
 
-template<typename T1, typename T2>
+template<typename NodeMetadata, typename EdgeMetadata>
 class Graph;
 
-template<typename T1, typename T2>
-std::ostream& operator<<(std::ostream& os, Graph<T1, T2>& g);
+template<typename NodeMetadata, typename EdgeMetadata>
+std::ostream& operator<<(std::ostream& os, Graph<NodeMetadata, EdgeMetadata>& g);
 
-template<typename T1, typename T2>
+template<typename NodeMetadata, typename EdgeMetadata>
 class Graph {
-    friend std::ostream& operator<<<T1, T2>(std::ostream& os, Graph<T1, T2>& g);
+    friend std::ostream& operator<<<NodeMetadata, EdgeMetadata>
+        (std::ostream& os, Graph<NodeMetadata, EdgeMetadata>& g);
 
 private:
-    std::vector<std::vector<Edge<T2>>> adjacencies;
-    std::vector<Node<T1>> node_list;
-    size_t num_nodes = 0;
+    std::map<int32_t, std::vector<Edge<EdgeMetadata>>> adjacencies;
+    std::map<int32_t, Node<NodeMetadata>> node_list;
 
 public:
-    size_t insertNode(Node<T1> new_node);
-    void insertEdge(Edge<T2> new_edge);
+    size_t insertNode(Node<NodeMetadata> new_node);
+    void insertEdge(Edge<EdgeMetadata> new_edge);
 
     ~Graph();
 };
