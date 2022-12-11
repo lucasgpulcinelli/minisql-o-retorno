@@ -127,8 +127,6 @@ class Table {
      */
     void setTimesCompacted(uint32_t num_times_compacted);
 
-    Graph<NodeExtraData, EdgeExtraData>* createGraph(void);
-
     /*
      * creates a new table using the file named table_name with a
      * mode specified by the user. It supports "rb", read-only mode,

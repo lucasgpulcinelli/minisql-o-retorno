@@ -167,22 +167,6 @@ void Table::setTimesCompacted(uint32_t num_times_compacted){
     metadata->times_compacted = num_times_compacted;
 }
 
-Graph<NodeExtraData, EdgeExtraData>* Table::createGraph(void){
-    this->rewind();
-
-    auto g = new Graph<NodeExtraData, EdgeExtraData>();
-
-    for(entry* e; (e = readNextEntry()) != NULL; deleteEntry(e, 1)){
-        int id_from = e->fields[idConnect].value.integer;
-        int id_to = e->fields[connPoPsId].value.integer;
-
-        g->insertNode(Node(id_from, NodeExtraData(e)));
-        g->insertEdge(Edge(id_from, id_to, EdgeExtraData(e)));
-    } 
-
-    return g;
-}
-
 Table::~Table(){
     metadata->pages = NUM_PAGES_FORMULA(metadata->nextRRN);
     metadata->status = OK_HEADER;
