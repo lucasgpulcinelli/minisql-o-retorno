@@ -15,8 +15,8 @@ extern "C" {
 #define CONVERSION_FACTOR 1024
 
 
-class NodeExtraData {
-    friend std::ostream& operator<<(std::ostream& os, NodeExtraData& node);
+class NetworkNode : Node {
+    friend std::ostream& operator<<(std::ostream& os, const NetworkNode& node);
 
     private:
     char countryAcronym[ACRONYM_SIZE];
@@ -24,20 +24,20 @@ class NodeExtraData {
     std::string originCountryName;
 
     public:
-    NodeExtraData(entry* es);
-    NodeExtraData(){};
+    NetworkNode(entry* es);
+    NetworkNode(){};
 };
 
-std::ostream& operator<<(std::ostream& os, NodeExtraData& node);
+std::ostream& operator<<(std::ostream& os, const NetworkNode& node);
 
 
-class EdgeExtraData {
+class Connection : Edge {
     private:
     double connectionSpeed;
 
     public:
-    EdgeExtraData(entry* es);
-    EdgeExtraData(){};
+    Connection(entry* es);
+    Connection();
 };
 
 
