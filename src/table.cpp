@@ -5,7 +5,7 @@
 
 #include "table.hpp"
 #include "Graph.hpp"
-#include "TopologyGraph.hpp"
+#include "NetworkGraph.hpp"
 
 extern "C" {
 #include "entries.h"

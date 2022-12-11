@@ -13,7 +13,7 @@
 
 #include "table.hpp"
 #include "Graph.hxx"
-#include "TopologyGraph.hpp"
+#include "NetworkGraph.hpp"
 
 extern "C" {
 #include "utils.h"
