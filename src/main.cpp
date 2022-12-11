@@ -12,8 +12,8 @@
 #include <iostream>
 
 #include "table.hpp"
-#include "Graph.hpp"
-#include "TopologyGraph.hpp"
+#include "Graph.hxx"
+#include "NetworkGraph.hpp"
 
 extern "C" {
 #include "utils.h"

@@ -2,7 +2,7 @@
 #include <ostream>
 #include <stdexcept>
 
-#include "TopologyGraph.hpp"
+#include "NetworkGraph.hpp"
 #include "Graph.hxx"
 
 extern "C" {
