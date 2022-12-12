@@ -4,7 +4,6 @@
 #include <cinttypes>
 #include <vector>
 #include <utility>
-#include <ostream>
 #include <map>
 
 #ifndef EMPTY_VALUE
@@ -41,7 +40,7 @@ public:
     int32_t idFrom() const;
     int32_t idTo() const;
 
-    Edge getDual() const;
+    void reverse();
     Edge operator=(const Edge& right_arg);
 
     Edge(int32_t id_from, int32_t id_to);
@@ -59,9 +58,6 @@ class Graph;
 template<class Node, class Edge>
 std::ostream& operator<<(std::ostream& os, const Graph<Node, Edge>& g);
 
-template <typename Type>
-void swap(Type& arg_1, Type& arg_2);
-
 template<class Node, class Edge>
 class Graph {
     friend std::ostream& operator<<<Node, Edge>(std::ostream& os, 
@@ -71,7 +67,7 @@ private:
     std::map<int32_t, std::vector<Edge>> adjacencies;
     std::map<int32_t, Node> node_list;
 
-    void insertAdjacency(const Edge& new_edge, int32_t node);
+    void insertAdjacency(const Edge& new_edge);
 
     /*
      * getNumCicles uses recursion for every edge of node_id in order to find 
@@ -83,7 +79,7 @@ private:
 
 public:
     void insertNode(const Node& new_node);
-    void insertEdge(const Edge& new_edge);
+    void insertEdge(Edge& new_edge);
 
     /*
      * getNumCicles calculates all cicles in a graph. This is done by calling,

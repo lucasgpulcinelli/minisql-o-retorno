@@ -50,14 +50,10 @@ bool operator<(const Edge& left_arg, const Edge& right_arg){
     return left_arg.idTo() < right_arg.idTo();
 }
 
-Edge Edge::getDual() const{
-    Edge dual = *this;
-
-    int32_t tmp = dual.id_from;
-    dual.id_from = dual.id_to;
-    dual.id_to = tmp;
-
-    return dual;
+void Edge::reverse(){
+    int32_t tmp = id_from;
+    id_from = id_to;
+    id_to = tmp;
 }
 
 Edge Edge::operator=(const Edge& right_arg){

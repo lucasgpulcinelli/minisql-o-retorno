@@ -26,7 +26,7 @@ std::ostream& operator<<(std::ostream& os, const Graph<Node, Edge>& graph){
         for(auto edge_it = connections.begin(); edge_it != connections.end();
             edge_it++){
             
-            os << (*node_it).second << " " << edge_it->idTo() << std::endl;
+            os << (*node_it).second << " " << edge_it << std::endl;
         }
     }
 
@@ -34,23 +34,24 @@ std::ostream& operator<<(std::ostream& os, const Graph<Node, Edge>& graph){
 }
 
 template<class Node, class Edge>
-void Graph<Node, Edge>::insertEdge(const Edge& new_edge){
+void Graph<Node, Edge>::insertEdge(Edge& new_edge){
     if(new_edge.idTo() == EMPTY_VALUE){
         return;
     }
 
-    insertAdjacency(new_edge, new_edge.idFrom());
+    insertAdjacency(new_edge);
+    new_edge.reverse();
 
-    Edge new_edge_dual = new_edge.getDual();
     insertAdjacency(new_edge_dual, new_edge.idTo());
+    new_edge.reverse();
 
     node_list.insert(std::pair<int32_t, Node>(new_edge.idFrom(), Node()));
     node_list.insert(std::pair<int32_t, Node>(new_edge.idTo(), Node()));
 }
 
 template<class Node, class Edge>
-void Graph<Node, Edge>::insertAdjacency(const Edge& new_edge, int32_t node){
-    std::vector<Edge>& adjacent_nodes = adjacencies[node];
+void Graph<Node, Edge>::insertAdjacency(const Edge& new_edge){
+    std::vector<Edge>& adjacent_nodes = adjacencies[new_edge.idFrom()];
 
     if(adjacent_nodes.size() == 0){
         adjacent_nodes.push_back(new_edge);
