@@ -72,12 +72,25 @@ private:
     std::map<int32_t, Node> node_list;
 
     void insertAdjacency(const Edge& new_edge, int32_t node);
+
+    /*
+     * getNumCicles uses recursion for every edge of node_id in order to find 
+     * all cicles with increasing indicies numbers (except for the last node to
+     * node_start) that start at node_start. The increasing indices order is
+     * done to have no duplicates in the final count.
+     */
     int32_t getNumCicles(Node& node_start, int32_t node_id);
 
 public:
     void insertNode(const Node& new_node);
     void insertEdge(const Edge& new_edge);
 
+    /*
+     * getNumCicles calculates all cicles in a graph. This is done by calling,
+     * for every node in the graph, the private overload of getNumCicles for
+     * every connection, and subtracting the connections that span only two 
+     * nodes.
+     */
     int32_t getNumCicles(void);
 };
 
