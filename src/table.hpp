@@ -7,7 +7,6 @@
 #include <string>
 
 #include "Graph.hxx"
-#include "NetworkGraph.hpp"
 
 extern "C"{
 #include "entries.h"
