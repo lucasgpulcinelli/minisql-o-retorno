@@ -92,4 +92,41 @@ void Graph<Node, Edge>::insertNode(const Node& new_node){
     }
 }
 
+template<class Node, class Edge>
+int32_t Graph<Node, Edge>::getNumCicles(void){
+    if(node_list.size() == 0){
+        return 0;
+    }
+
+    int32_t cicles = 0;
+    for(auto node : node_list){
+        cicles += getNumCicles(node.second, node.first);
+
+        for(auto edge : adjacencies[node.first]){
+            if(node.first < edge.idTo()){
+                cicles--;
+            }
+        }
+    }
+
+    return cicles;
+}
+
+template<class Node, class Edge>
+int32_t Graph<Node, Edge>::getNumCicles(Node& node_start, int32_t node_id){
+    int32_t cicles = 0;
+    for(auto edge : adjacencies[node_id]){
+        if(edge.idTo() == node_start.idKey()){
+            cicles++;
+        }
+        if(edge.idTo() < node_id){
+            continue;
+        }
+
+        cicles += getNumCicles(node_start, edge.idTo());
+    }
+
+    return cicles;
+}
+
 #endif

@@ -72,10 +72,13 @@ private:
     std::map<int32_t, Node> node_list;
 
     void insertAdjacency(const Edge& new_edge, int32_t node);
+    int32_t getNumCicles(Node& node_start, int32_t node_id);
 
 public:
     void insertNode(const Node& new_node);
     void insertEdge(const Edge& new_edge);
+
+    int32_t getNumCicles(void);
 };
 
 #endif

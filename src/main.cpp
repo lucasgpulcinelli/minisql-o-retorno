@@ -39,6 +39,9 @@ int main(){
     case 11:
         std::cout << *g;
         break;    
+    case 12:
+        std::cout << "Quantidade de ciclos: " << g->getNumCicles() << std::endl;
+        break;
     default:
         errno = EINVAL;
         ABORT_PROGRAM("command number");
