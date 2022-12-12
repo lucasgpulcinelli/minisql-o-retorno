@@ -4,6 +4,7 @@
 #include <cinttypes>
 #include <vector>
 #include <utility>
+#include <ostream>
 #include <map>
 
 #ifndef EMPTY_VALUE

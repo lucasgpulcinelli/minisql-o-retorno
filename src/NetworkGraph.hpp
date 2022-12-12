@@ -15,7 +15,7 @@ extern "C" {
 #define CONVERSION_FACTOR 1024
 
 
-class NetworkNode : Node {
+class NetworkNode : public Node {
     friend std::ostream& operator<<(std::ostream& os, const NetworkNode& node);
 
     private:
@@ -31,7 +31,7 @@ class NetworkNode : Node {
 std::ostream& operator<<(std::ostream& os, const NetworkNode& node);
 
 
-class Connection : Edge {
+class Connection : public Edge {
     private:
     double connectionSpeed;
 
