@@ -24,27 +24,19 @@ int main(){
     char* table_name;
     READ_INPUT("%d %ms", &command, &table_name);
 
-    Table* t = new Table(table_name, "rb");
-    auto g = new Graph<Node, Edge>();
-
-    for(entry* e; (e = t->readNextEntry()) != NULL; deleteEntry(e, 1)){
-        auto node = NetworkNode(e);
-        auto conn = Connection(e);
-        g->insertNode(node);
-        g->insertEdge(conn);
-    }
-
+    Table* topology = new Table(table_name, "rb");
+    NetworkGraph* graph = new NetworkGraph(*topology);
 
     switch(command){
     case 11:
-        std::cout << *g;
+        std::cout << *graph;
         break;    
     default:
         errno = EINVAL;
         ABORT_PROGRAM("command number");
     }
 
-    delete g;
-    delete t;
+    delete graph;
+    delete topology;
     free(table_name);
 }

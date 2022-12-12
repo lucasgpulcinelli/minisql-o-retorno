@@ -63,7 +63,7 @@ class Graph {
     friend std::ostream& operator<<<Node, Edge>(std::ostream& os, 
                                                 const Graph<Node, Edge>& g);
 
-private:
+protected:
     std::map<int32_t, std::vector<Edge>> adjacencies;
     std::map<int32_t, Node> node_list;
 

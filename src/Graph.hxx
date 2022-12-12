@@ -26,7 +26,7 @@ std::ostream& operator<<(std::ostream& os, const Graph<Node, Edge>& graph){
         for(auto edge_it = connections.begin(); edge_it != connections.end();
             edge_it++){
             
-            os << (*node_it).second << " " << edge_it << std::endl;
+            os << (*node_it).second << " " << *edge_it << std::endl;
         }
     }
 
@@ -42,7 +42,7 @@ void Graph<Node, Edge>::insertEdge(Edge& new_edge){
     insertAdjacency(new_edge);
     new_edge.reverse();
 
-    insertAdjacency(new_edge_dual, new_edge.idTo());
+    insertAdjacency(new_edge);
     new_edge.reverse();
 
     node_list.insert(std::pair<int32_t, Node>(new_edge.idFrom(), Node()));
