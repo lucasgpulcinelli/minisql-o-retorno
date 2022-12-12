@@ -6,9 +6,6 @@
 #include <stdexcept>
 #include <string>
 
-#include "Graph.hxx"
-#include "TopologyGraph.hpp"
-
 extern "C"{
 #include "entries.h"
 }

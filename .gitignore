@@ -9,3 +9,7 @@ build/
 arquivos/*
 casos_de_teste/*
 *.zip
+
+*.in
+*.out
+

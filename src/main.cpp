@@ -12,7 +12,7 @@
 #include <iostream>
 
 #include "table.hpp"
-#include "Graph.hxx"
+#include "Graph.hpp"
 #include "TopologyGraph.hpp"
 
 extern "C" {
@@ -25,7 +25,15 @@ int main(){
     READ_INPUT("%d %ms", &command, &table_name);
 
     Table* t = new Table(table_name, "rb");
-    auto g = t->createGraph();
+    auto g = new Graph<Node, Edge>();
+
+    for(entry* e; (e = t->readNextEntry()) != NULL; deleteEntry(e, 1)){
+        auto node = NetworkNode(e);
+        auto conn = Connection(e);
+        g->insertNode(node);
+        g->insertEdge(conn);
+    }
+
 
     switch(command){
     case 11:

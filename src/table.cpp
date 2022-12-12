@@ -4,8 +4,6 @@
 #include <system_error>
 
 #include "table.hpp"
-#include "Graph.hpp"
-#include "TopologyGraph.hpp"
 
 extern "C" {
 #include "entries.h"

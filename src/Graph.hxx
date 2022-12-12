@@ -10,8 +10,23 @@ template<class Node, class Edge>
 std::ostream& operator<<(std::ostream& os, const Graph<Node, Edge>& graph){
     for(auto node_it = graph.node_list.begin(); node_it != graph.node_list.end(); 
         node_it++){
-        if(!((*node_it).second.isEmpty())){
-            os << (*node_it).second << std::endl;
+        
+        if(node_it->second.isEmpty()){
+            continue;
+        }
+
+        std::vector<Edge> connections;
+
+        try{
+            connections = graph.adjacencies.at(node_it->second.idKey());
+        } catch(std::out_of_range& e){
+            continue;
+        }
+
+        for(auto edge_it = connections.begin(); edge_it != connections.end();
+            edge_it++){
+            
+            os << (*node_it).second << " " << edge_it->idTo() << std::endl;
         }
     }
 
@@ -20,6 +35,10 @@ std::ostream& operator<<(std::ostream& os, const Graph<Node, Edge>& graph){
 
 template<class Node, class Edge>
 void Graph<Node, Edge>::insertEdge(const Edge& new_edge){
+    if(new_edge.idTo() == EMPTY_VALUE){
+        return;
+    }
+
     insertAdjacency(new_edge, new_edge.idFrom());
 
     Edge new_edge_dual = new_edge.getDual();
@@ -31,7 +50,7 @@ void Graph<Node, Edge>::insertEdge(const Edge& new_edge){
 
 template<class Node, class Edge>
 void Graph<Node, Edge>::insertAdjacency(const Edge& new_edge, int32_t node){
-    std::vector<Edge> adjacent_nodes = adjacencies[node];
+    std::vector<Edge>& adjacent_nodes = adjacencies[node];
 
     if(adjacent_nodes.size() == 0){
         adjacent_nodes.push_back(new_edge);

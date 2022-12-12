@@ -10,12 +10,12 @@ extern "C" {
 }
 
 std::ostream& operator<<(std::ostream& os, const NetworkNode& node){
-    return os << node.POPsName << " " << node.originCountryName << 
-    " " << node.countryAcronym[0] << node.countryAcronym[1];
+    return os << node.idKey() << " " << node.POPsName << " " << 
+           node.originCountryName << " " << 
+           node.countryAcronym[0] << node.countryAcronym[1];
 }
 
-NetworkNode::NetworkNode(entry* es){
-    Node(GET_IDCONNECT(es));
+NetworkNode::NetworkNode(entry* es) : Node(GET_IDCONNECT(es)) {
     POPsName = std::string(GET_POPSNAME(es));
     originCountryName = std::string(GET_COUNTRYNAME(es));
 
@@ -24,8 +24,11 @@ NetworkNode::NetworkNode(entry* es){
     }
 }
 
-Connection::Connection(entry* es){
-    Edge(GET_IDCONNECT(es), GET_CONNPOPSID(es));
+Connection::Connection(entry* es) : Edge(GET_IDCONNECT(es), GET_CONNPOPSID(es)) {
+    if(idTo() == EMPTY_VALUE){
+        connectionSpeed = EMPTY_VALUE;
+        return;
+    }
 
     switch(GET_MEASUREMENT_UNIT(es)[0]){
         case 'K':
