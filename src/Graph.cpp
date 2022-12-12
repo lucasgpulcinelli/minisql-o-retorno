@@ -47,7 +47,10 @@ bool operator==(const Edge& left_arg, const Edge& right_arg){
 }
 
 bool operator<(const Edge& left_arg, const Edge& right_arg){
-    return left_arg.idTo() < right_arg.idTo();
+    if(left_arg.idTo() != right_arg.idTo()){
+        return left_arg.idTo() < right_arg.idTo();
+    }
+    return left_arg.idFrom() < right_arg.idFrom();
 }
 
 std::ostream& operator<<(std::ostream& os, const Edge& edge){
@@ -58,6 +61,16 @@ void Edge::reverse(){
     int32_t tmp = id_from;
     id_from = id_to;
     id_to = tmp;
+}
+
+Edge Edge::getDual(){
+    Edge dual = *this;
+
+    int32_t tmp = dual.id_from;
+    dual.id_from = dual.id_to;
+    dual.id_to = tmp;
+
+    return dual;
 }
 
 Edge Edge::operator=(const Edge& right_arg){
@@ -77,4 +90,7 @@ Edge::Edge(int32_t id_from, int32_t id_to){
     this->id_to = id_to;
 }
 
-Edge::Edge(){}
+Edge::Edge(){
+    this->id_from = -1;
+    this->id_to = -1;
+}

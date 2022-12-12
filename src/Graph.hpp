@@ -66,6 +66,7 @@ public:
     int32_t idFrom() const; //idFrom returns from which node edge is coming.
     int32_t idTo() const;   //idTo returns to which node edge is going.
 
+    Edge getDual();
     void reverse();         //reverse swaps id_from and id_to values.
 
     Edge operator=(const Edge& right_arg); //Copy assignment
@@ -156,6 +157,19 @@ protected:
      */
     int32_t getNumCicles(Node& node_start, int32_t node_id);
 
+    /*
+     * getLen uses a map of marked nodes in the current path, maximim plausable
+     * len (a result we already have) and a minimum possible len (the current 
+     * lenght in the current path up to now) to calculate the minimum distance
+     * between a starting node and an ending node. This algorithm is made by
+     * the creators of the program, and is based on a similar method used in
+     * the discrete version of the simplex method: the branch-and-bound
+     * algorithm.
+     */
+    int32_t getLen(std::map<int32_t, bool>& marks, int32_t node_start_id,
+                   int32_t node_end_id, int32_t max_plausable_len, 
+                   int32_t min_possible_len);
+
 public:
     /*
      * insertNode inserts a new_node in the graph. If an equivalent node
@@ -186,6 +200,15 @@ public:
      * nodes.
      */
     int32_t getNumCicles(void);
+
+    int32_t getMaxSpeed(int32_t node_a_id, int32_t node_b_id);
+
+    /*
+     * getLen calculates the minimum distance between nodes a and b.
+     * The method initializes a map to keep track of recursions and calls the
+     * private version of getLen().
+     */
+    int32_t getLen(int32_t node_a_id, int32_t node_b_id);
 };
 
 #endif
