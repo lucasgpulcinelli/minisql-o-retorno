@@ -1,5 +1,5 @@
-#ifndef __FILE_CONTROL_H__
-#define __FILE_CONTROL_H__
+#ifndef __TABLE_H__
+#define __TABLE_H__
 
 #include <cinttypes>
 #include <cstdio>
@@ -42,7 +42,6 @@ extern "C"{
     }                                                                          \
 
 
-
 //struct header contains the header for a table binary file
 struct header {
     char status;
@@ -63,17 +62,17 @@ class Table {
     /*
      * readheader reads the header from the table binary file.
      */
-    void readHeader();
+    void readHeader() const;
 
     /*
      * writeheader writes the updated header in the table binary file.
      */
-    void writeHeader();
+    void writeHeader() const;
 
     /*
      * writeEmptyEntry writes a single entry as removed with a stack index.
      */
-    void writeEmptyEntry();
+    void writeEmptyEntry() const;
 
     public:
 
@@ -81,25 +80,25 @@ class Table {
      * seek seeks to the index of the entry provided, such that the 
      * readNextEntry() will return the entry with the RRN provided.
      */
-    void seek(size_t entry_number);
+    void seek(size_t entry_number) const;
 
     /*
      * rewind returns the table to the begginig, being equivalent to 
      * seekTable(rrn = 0).
      */
-    void rewind();
+    void rewind() const;
     
     /*
      * hasNextEntry returns true if the table can read another entry,
      * meaning if readNextEntry() will not be NULL in the next call.
      */
-    bool hasNextEntry();
+    bool hasNextEntry() const;
 
     /*
      * ReadNextEntry reads the next entry from the table, the
      * returned entry must be deleted afterwards.
      */
-    entry* readNextEntry();
+    entry* readNextEntry() const;
 
     /*
      * appendEntry writes entry es on the table. If the stack of
@@ -118,7 +117,7 @@ class Table {
      * getTimesCompacted returns the number of times the table has been 
      * compacted.
      */
-    uint32_t getTimesCompacted();
+    uint32_t getTimesCompacted() const;
 
     /*
      * setTimesCompacted sets the number of times the table has been compacted

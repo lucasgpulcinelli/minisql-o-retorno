@@ -13,7 +13,7 @@ extern "C" {
 #include "utils.h"
 }
 
-void Table::readHeader(){
+void Table::readHeader() const{
     IS_TABLE_OPENED(this, "couldn't read table metadata");
 
     std::rewind(fp);
@@ -27,7 +27,7 @@ void Table::readHeader(){
     std::fseek(fp, PAGE_SIZE, SEEK_SET);
 }
 
-void Table::writeHeader(){
+void Table::writeHeader() const{
     IS_TABLE_OPENED(this, "couldn't update table metadata");
     if(read_only){
         throw std::system_error(EACCES, std::generic_category(),
@@ -47,7 +47,7 @@ void Table::writeHeader(){
     }
 }
 
-Table::Table(char* table_name, const char* mode) {
+Table::Table(char* table_name, const char* mode){
     XALLOC(header, metadata, 1);
     OPEN_FILE(fp, table_name, mode);
     readHeader();
@@ -69,17 +69,17 @@ Table::Table(char* table_name, const char* mode) {
     }
 }
 
-void Table::seek(size_t entry_number){
+void Table::seek(size_t entry_number) const{
     IS_TABLE_OPENED(this, "couldn't seek entry on table");
     std::fseek(fp, entry_number * MAX_SIZE_ENTRY + PAGE_SIZE, SEEK_SET);
 }
 
-void Table::rewind(){
+void Table::rewind() const{
     IS_TABLE_OPENED(this, "couldn't rewind table");
     std::fseek(fp, PAGE_SIZE, SEEK_SET);
 }
 
-bool Table::hasNextEntry(){
+bool Table::hasNextEntry() const{
     IS_TABLE_OPENED(this, "couldn't check if there is a next entry");
     int c;
     if((c = std::getc(fp)) == EOF){
@@ -90,7 +90,7 @@ bool Table::hasNextEntry(){
     return true;
 }
 
-entry* Table::readNextEntry(){
+entry* Table::readNextEntry() const{
     IS_TABLE_OPENED(this, "couldn't read next entry");
     if(!hasNextEntry()){
         return NULL;
@@ -144,7 +144,7 @@ void Table::removeEntry(size_t rrn){
     metadata->stack = rrn;
 }
 
-void Table::writeEmptyEntry(){
+void Table::writeEmptyEntry() const{
     int32_t i = 0;
 
     std::putc(REMOVED, fp);
@@ -158,7 +158,7 @@ void Table::writeEmptyEntry(){
     }
 }
 
-uint32_t Table::getTimesCompacted(){
+uint32_t Table::getTimesCompacted() const{
     IS_TABLE_OPENED(this, "couldn't retrieve times compacted");
     return metadata->times_compacted;
 }
