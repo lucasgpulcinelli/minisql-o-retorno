@@ -56,6 +56,7 @@ Edge Edge::getDual() const{
     int32_t tmp = dual.id_from;
     dual.id_from = dual.id_to;
     dual.id_to = tmp;
+    dual.c_speed = c_speed;
 
     return dual;
 }
@@ -63,6 +64,7 @@ Edge Edge::getDual() const{
 Edge Edge::operator=(const Edge& right_arg){
     this->id_from = right_arg.id_from;
     this->id_to = right_arg.id_to;
+    this->c_speed = right_arg.c_speed;
 
     return *this;
 }
@@ -70,11 +72,11 @@ Edge Edge::operator=(const Edge& right_arg){
 Edge::Edge(const Edge& edge){
     this->id_from = edge.id_from;
     this->id_to = edge.id_to;
+    this->c_speed = edge.c_speed;
 }
 
-Edge::Edge(int32_t id_from, int32_t id_to){
+Edge::Edge(int32_t id_from, int32_t id_to, int32_t speed){
     this->id_from = id_from;
     this->id_to = id_to;
+    this->c_speed = speed;
 }
-
-Edge::Edge(){}

@@ -42,6 +42,44 @@ int main(){
     case 12:
         std::cout << "Quantidade de ciclos: " << g->getNumCicles() << std::endl;
         break;
+    case 13:
+        int n;
+        std::cin >> n;
+        
+        for(int i = 0; i < n; i++){
+            int a, b;
+            std::cin >> a >> b;
+            std::cout << "Fluxo máximo entre " << a << " e " << b
+                << ": ";
+
+            int32_t max_speed = g->getMaxSpeed(a, b);
+
+            if(max_speed == -1){
+                std::cout << max_speed << std::endl;
+                continue;
+            }
+            std::cout << max_speed << " Mbps" << std::endl;
+        }
+        break;
+    case 14:
+        std::cin >> n;
+        
+        for(int i = 0; i < n; i++){
+            int a, b, c;
+            std::cin >> a >> b >> c;
+            std::cout << "Comprimento do caminho entre " << a << " e " << b 
+                << " parando em " << c << ": ";
+
+            int32_t min_len_ac = g->getLen(a, c);
+            int32_t min_len_cb = g->getLen(c, b);
+            if(min_len_ac < 0 || min_len_cb < 0){
+                std::cout << -1 << std::endl;
+                continue;
+            }
+
+            std::cout << min_len_ac + min_len_cb << "Mbps" << std::endl;
+        }
+        break;
     default:
         errno = EINVAL;
         ABORT_PROGRAM("command number");

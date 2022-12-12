@@ -26,7 +26,7 @@ std::ostream& operator<<(std::ostream& os, const Graph<Node, Edge>& graph){
         for(auto edge_it = connections.begin(); edge_it != connections.end();
             edge_it++){
             
-            os << (*node_it).second << " " << edge_it->idTo() << std::endl;
+            os << (*node_it).second << " " << edge_it->idTo() << " " << edge_it->c_speed << std::endl;
         }
     }
 
@@ -142,6 +142,107 @@ int32_t Graph<Node, Edge>::getNumCicles(Node& node_start, int32_t node_id){
     }
 
     return cicles;
+}
+
+static std::map<int32_t, bool> marks{};
+
+template<class Node, class Edge>
+int32_t Graph<Node, Edge>::getMaxSpeed(int32_t node_start_id, 
+                                       int32_t node_end_id, 
+                                       int32_t min_plausable_speed, 
+                                       int32_t max_possible_speed){
+    
+    if(min_plausable_speed >= max_possible_speed){
+        return min_plausable_speed;
+    }
+
+    for(auto connection : adjacencies[node_start_id]){
+        if(marks[connection.idTo()]){
+            continue;
+        }
+        if(connection.idTo() == node_end_id){
+            min_plausable_speed = std::max(min_plausable_speed, std::min(connection.c_speed, max_possible_speed));
+            continue;
+        }
+
+        marks[connection.idTo()] = true;
+        min_plausable_speed = getMaxSpeed(connection.idTo(), node_end_id,
+            min_plausable_speed, std::min(max_possible_speed, connection.c_speed));
+        marks[connection.idTo()] = false;
+    }
+
+    return min_plausable_speed;
+}
+
+template<class Node, class Edge>
+int32_t Graph<Node, Edge>::getMaxSpeed(int32_t node_a_id, int32_t node_b_id){
+    try{
+        adjacencies.at(node_a_id);
+        adjacencies.at(node_b_id);
+    }catch(std::out_of_range& e){
+        return -1;
+    }
+
+    for(auto node : node_list){
+        marks[node.first] = false;
+    }
+
+    marks[node_a_id] = true;
+    int32_t ret = getMaxSpeed(node_a_id, node_b_id, -1, INT32_MAX);
+    marks[node_a_id] = false;
+
+    return ret;
+}
+
+template<class Node, class Edge>
+int32_t Graph<Node, Edge>::getLen(int32_t node_start_id, int32_t node_end_id, 
+                                  int32_t max_plausable_len, 
+                                  int32_t min_possible_len){
+
+    if(min_possible_len >= max_plausable_len){
+        return max_plausable_len;
+    }
+
+    for(auto connection : adjacencies[node_start_id]){
+        if(marks[connection.idTo()]){
+            continue;
+        }
+        if(connection.idTo() == node_end_id){
+            max_plausable_len = std::min(max_plausable_len, connection.c_speed + min_possible_len);
+            continue;
+        }
+
+        marks[connection.idTo()] = true;
+        max_plausable_len = getLen(connection.idTo(), node_end_id,
+            max_plausable_len, min_possible_len + connection.c_speed);
+        marks[connection.idTo()] = false;
+    }
+
+    return max_plausable_len;
+}
+
+template<class Node, class Edge>
+int32_t Graph<Node, Edge>::getLen(int32_t node_a_id, int32_t node_b_id){
+    try{
+        adjacencies.at(node_a_id);
+        adjacencies.at(node_b_id);
+    }catch(std::out_of_range& e){
+        return -1;
+    }
+
+    for(auto node : node_list){
+        marks[node.first] = false;
+    }
+
+    marks[node_a_id] = true;
+    int32_t ret = getLen(node_a_id, node_b_id, INT32_MAX, 0);
+    marks[node_a_id] = false;
+
+    if(ret == INT32_MAX){
+        return -1;
+    }
+
+    return ret;
 }
 
 #endif

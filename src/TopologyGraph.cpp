@@ -24,9 +24,10 @@ NetworkNode::NetworkNode(entry* es) : Node(GET_IDCONNECT(es)) {
     }
 }
 
-Connection::Connection(entry* es) : Edge(GET_IDCONNECT(es), GET_CONNPOPSID(es)) {
+Connection::Connection(entry* es) : Edge(GET_IDCONNECT(es), GET_CONNPOPSID(es), 0) {
     if(idTo() == EMPTY_VALUE){
         connectionSpeed = EMPTY_VALUE;
+        this->c_speed = EMPTY_VALUE;
         return;
     }
 
@@ -49,4 +50,6 @@ Connection::Connection(entry* es) : Edge(GET_IDCONNECT(es), GET_CONNPOPSID(es)) 
         default:
         throw std::runtime_error("Invalid measurement unit");
     }
+
+    this->c_speed = connectionSpeed;
 }

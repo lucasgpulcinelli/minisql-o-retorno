@@ -38,15 +38,16 @@ private:
     int32_t id_to;
 
 public:
+    int32_t c_speed;
+
     int32_t idFrom() const;
     int32_t idTo() const;
 
     Edge getDual() const;
     Edge operator=(const Edge& right_arg);
 
-    Edge(int32_t id_from, int32_t id_to);
+    Edge(int32_t id_from, int32_t id_to, int32_t speed);
     Edge(const Edge& edge);
-    Edge();
 };
 
 bool operator==(const Edge& left_arg, const Edge& right_arg);
@@ -81,6 +82,13 @@ private:
      */
     int32_t getNumCicles(Node& node_start, int32_t node_id);
 
+    int32_t getMaxSpeed(int32_t node_start_id, int32_t node_end_id, 
+                        int32_t min_plausable_speed, 
+                        int32_t max_possible_speed);
+
+    int32_t getLen(int32_t node_start_id, int32_t node_end_id, 
+                   int32_t max_plausable_len, int32_t min_possible_len);
+
 public:
     void insertNode(const Node& new_node);
     void insertEdge(const Edge& new_edge);
@@ -92,6 +100,9 @@ public:
      * nodes.
      */
     int32_t getNumCicles(void);
+
+    int32_t getMaxSpeed(int32_t node_a_id, int32_t node_b_id);
+    int32_t getLen(int32_t node_a_id, int32_t node_b_id);
 };
 
 #endif
