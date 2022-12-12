@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <cinttypes>
+#include <stdexcept>
 
 #include "Graph.hpp"
 
@@ -25,7 +26,6 @@ std::ostream& operator<<(std::ostream& os, const Graph<Node, Edge>& graph){
 
         for(auto edge_it = connections.begin(); edge_it != connections.end();
             edge_it++){
-            
             os << (*node_it).second << " " << *edge_it << std::endl;
         }
     }
@@ -35,8 +35,12 @@ std::ostream& operator<<(std::ostream& os, const Graph<Node, Edge>& graph){
 
 template<class Node, class Edge>
 void Graph<Node, Edge>::insertEdge(Edge& new_edge){
-    if(new_edge.idTo() == EMPTY_VALUE){
-        return;
+    if(new_edge.idFrom() == EMPTY_VALUE){
+        throw std::runtime_error("Cannot insert Edge with invalid idConnect.");
+
+    } else if(new_edge.idTo() == EMPTY_VALUE){
+        throw std::runtime_error("Cannot insert Edge with invalid Connected "
+                                 "POP's ID. It must be a valid address.");
     }
 
     insertAdjacency(new_edge);
@@ -85,9 +89,12 @@ void Graph<Node, Edge>::insertAdjacency(const Edge& new_edge){
 
 template<class Node, class Edge>
 void Graph<Node, Edge>::insertNode(const Node& new_node){
+    if(new_node.idKey() == EMPTY_VALUE){
+        throw std::runtime_error("Cannot insert Node with empty idConnect");
+    }
+
     auto result = node_list.insert(std::pair<int32_t, Node>(new_node.idKey(), 
                                                             new_node));
-
     if(result.second == false && node_list[new_node.idKey()].isEmpty()){
         node_list[new_node.idKey()] = new_node;
     }

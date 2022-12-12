@@ -17,6 +17,10 @@ std::ostream& operator<<(std::ostream& os, const NetworkNode& node){
 }
 
 NetworkNode::NetworkNode(entry* es) : Node(GET_IDCONNECT(es)) {
+    if(GET_IDCONNECT(es) == EMPTY_VALUE){
+        throw std::runtime_error("Cannot construct");
+    }
+    
     POPsName = std::string(GET_POPSNAME(es));
     originCountryName = std::string(GET_COUNTRYNAME(es));
 
@@ -29,10 +33,13 @@ std::ostream& operator<<(std::ostream& os, const Connection& conn){
     return os << conn.idTo() << " " << conn.connectionSpeed << "Mpbs";
 }
 
-Connection::Connection(entry* es) : Edge(GET_IDCONNECT(es), GET_CONNPOPSID(es)) {
-    if(idTo() == EMPTY_VALUE){
-        connectionSpeed = EMPTY_VALUE;
-        return;
+Connection::Connection(entry* es) : Edge(GET_IDCONNECT(es), GET_CONNPOPSID(es)){
+    if(idFrom() == EMPTY_VALUE){
+        throw std::runtime_error("Cannot construct connection with empty "
+                                 "idConnect. It must be a valid address.");
+    } else if(idTo() == EMPTY_VALUE){
+        throw std::runtime_error("Cannot construct connnection with empty "
+                                 "Connected POP's ID. It must be a valid address.");
     }
 
     switch(GET_MEASUREMENT_UNIT(es)[0]){
@@ -60,12 +67,17 @@ NetworkGraph::NetworkGraph(const Table& table){
     while(table.hasNextEntry()){
         entry* es = table.readNextEntry();
 
-        NetworkNode new_pop = NetworkNode(es);
-        Connection new_connection = Connection(es);
+        try{
+            NetworkNode new_pop = NetworkNode(es);
+            Graph::insertNode(new_pop);
+        } catch(std::runtime_error& except){
+            continue;
+        }
 
-        Graph::insertNode(new_pop);
-        Graph::insertEdge(new_connection);
-
+        try{
+            Connection new_connection = Connection(es);
+            Graph::insertEdge(new_connection);
+        } catch(std::runtime_error& except){}
         free(es);
     }
 }
