@@ -82,12 +82,22 @@ private:
      */
     int32_t getNumCicles(Node& node_start, int32_t node_id);
 
-    int32_t getMaxSpeed(int32_t node_start_id, int32_t node_end_id, 
-                        int32_t min_plausable_speed, 
+    int32_t getMaxSpeed(std::map<int32_t, bool>& marks, int32_t node_start_id, 
+                        int32_t node_end_id, int32_t min_plausable_speed, 
                         int32_t max_possible_speed);
 
-    int32_t getLen(int32_t node_start_id, int32_t node_end_id, 
-                   int32_t max_plausable_len, int32_t min_possible_len);
+    /*
+     * getLen uses a map of marked nodes in the current path, maximim plausable
+     * len (a result we already have) and a minimum possible len (the current 
+     * lenght in the current path up to now) to calculate the minimum distance
+     * between a starting node and an ending node. This algorithm is made by
+     * the creators of the program, and is based on a similar method used in
+     * the discrete version of the simplex method: the branch-and-bound
+     * algorithm.
+     */
+    int32_t getLen(std::map<int32_t, bool>& marks, int32_t node_start_id,
+                   int32_t node_end_id, int32_t max_plausable_len, 
+                   int32_t min_possible_len);
 
 public:
     void insertNode(const Node& new_node);
@@ -102,6 +112,12 @@ public:
     int32_t getNumCicles(void);
 
     int32_t getMaxSpeed(int32_t node_a_id, int32_t node_b_id);
+
+    /*
+     * getLen calculates the minimum distance between nodes a and b.
+     * The method initializes a map to keep track of recursions and calls the
+     * private version of getLen().
+     */
     int32_t getLen(int32_t node_a_id, int32_t node_b_id);
 };
 

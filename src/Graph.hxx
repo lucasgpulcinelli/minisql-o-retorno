@@ -144,10 +144,9 @@ int32_t Graph<Node, Edge>::getNumCicles(Node& node_start, int32_t node_id){
     return cicles;
 }
 
-static std::map<int32_t, bool> marks{};
-
 template<class Node, class Edge>
-int32_t Graph<Node, Edge>::getMaxSpeed(int32_t node_start_id, 
+int32_t Graph<Node, Edge>::getMaxSpeed(std::map<int32_t, bool>& marks,
+                                       int32_t node_start_id, 
                                        int32_t node_end_id, 
                                        int32_t min_plausable_speed, 
                                        int32_t max_possible_speed){
@@ -161,12 +160,13 @@ int32_t Graph<Node, Edge>::getMaxSpeed(int32_t node_start_id,
             continue;
         }
         if(connection.idTo() == node_end_id){
-            min_plausable_speed = std::max(min_plausable_speed, std::min(connection.c_speed, max_possible_speed));
+            min_plausable_speed = std::max(min_plausable_speed, 
+                std::min(connection.c_speed, max_possible_speed));
             continue;
         }
 
         marks[connection.idTo()] = true;
-        min_plausable_speed = getMaxSpeed(connection.idTo(), node_end_id,
+        min_plausable_speed = getMaxSpeed(marks, connection.idTo(), node_end_id,
             min_plausable_speed, std::min(max_possible_speed, connection.c_speed));
         marks[connection.idTo()] = false;
     }
@@ -183,59 +183,87 @@ int32_t Graph<Node, Edge>::getMaxSpeed(int32_t node_a_id, int32_t node_b_id){
         return -1;
     }
 
+    std::map<int32_t, bool> marks{};
+
     for(auto node : node_list){
         marks[node.first] = false;
     }
 
     marks[node_a_id] = true;
-    int32_t ret = getMaxSpeed(node_a_id, node_b_id, -1, INT32_MAX);
+    int32_t ret = getMaxSpeed(marks, node_a_id, node_b_id, -1, INT32_MAX);
     marks[node_a_id] = false;
 
     return ret;
 }
 
 template<class Node, class Edge>
-int32_t Graph<Node, Edge>::getLen(int32_t node_start_id, int32_t node_end_id, 
+int32_t Graph<Node, Edge>::getLen(std::map<int32_t, bool>& marks,
+                                  int32_t node_start_id, int32_t node_end_id, 
                                   int32_t max_plausable_len, 
                                   int32_t min_possible_len){
 
     if(min_possible_len >= max_plausable_len){
+        /*
+         * if we already have a solution (max_plausable_len) that has a smaller
+         * distance than what we can ever hope to achieve in this recursion 
+         * (min_possible_len), we can just ignore this recursion: even if we get
+         * a solution it will be worst than what we already have
+         */
         return max_plausable_len;
     }
 
+    //for all connections in our starting node
     for(auto connection : adjacencies[node_start_id]){
+        //if the connected node is marked, return: we have already gone there
         if(marks[connection.idTo()]){
             continue;
         }
+        //if the connected node is our destiny
         if(connection.idTo() == node_end_id){
-            max_plausable_len = std::min(max_plausable_len, connection.c_speed + min_possible_len);
+            //get the better solution: what we already have or the new solution
+            max_plausable_len = std::min(max_plausable_len, 
+                connection.c_speed + min_possible_len);
             continue;
         }
 
+        //if the connected node is not marked and not the ending node
+        //mark it, we will go there now
         marks[connection.idTo()] = true;
-        max_plausable_len = getLen(connection.idTo(), node_end_id,
+
+        //recusion: start at the connected node with a new min_possible_len
+        //to include the distance from the current node to the connected one
+        max_plausable_len = getLen(marks, connection.idTo(), node_end_id,
             max_plausable_len, min_possible_len + connection.c_speed);
+
+        //unmark the node: other paths might use it
         marks[connection.idTo()] = false;
     }
-
+    
+    //return our best solution yet
     return max_plausable_len;
 }
 
 template<class Node, class Edge>
 int32_t Graph<Node, Edge>::getLen(int32_t node_a_id, int32_t node_b_id){
     try{
+        //if the origin or destination nodes do not exist, no path exists
         adjacencies.at(node_a_id);
         adjacencies.at(node_b_id);
     }catch(std::out_of_range& e){
         return -1;
     }
 
+    //all marked nodes, keeps track of recursion to prohibit infinite loops
+    std::map<int32_t, bool> marks{};
+
     for(auto node : node_list){
+        //initialize all nodes as unmarked
         marks[node.first] = false;
     }
 
+    //initialize the recursive version, starting with the first node
     marks[node_a_id] = true;
-    int32_t ret = getLen(node_a_id, node_b_id, INT32_MAX, 0);
+    int32_t ret = getLen(marks, node_a_id, node_b_id, INT32_MAX, 0);
     marks[node_a_id] = false;
 
     if(ret == INT32_MAX){
