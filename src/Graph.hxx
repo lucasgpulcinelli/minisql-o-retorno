@@ -100,4 +100,56 @@ void Graph<Node, Edge>::insertNode(const Node& new_node){
     }
 }
 
+template<class Node, class Edge>
+int32_t Graph<Node, Edge>::getNumCicles(void){
+    if(node_list.size() == 0){
+        //if the graph is empty, there are no cicles.
+        return 0;
+    }
+
+    int32_t cicles = 0;
+    for(auto node : node_list){
+        //for every node, calculate the number of cicles starting from it.
+        //because of the increasing indices property, no duplicates are counted.
+        cicles += getNumCicles(node.second, node.first);
+
+        for(auto edge : adjacencies[node.first]){
+            /*
+             * some extra connections (those that go from the first node back to
+             * it) should not count as cicles, so remove them
+             */
+            if(node.first < edge.idTo()){
+                cicles--;
+            }
+        }
+    }
+
+    return cicles;
+}
+
+template<class Node, class Edge>
+int32_t Graph<Node, Edge>::getNumCicles(Node& node_start, int32_t node_id){
+    int32_t cicles = 0;
+    for(auto edge : adjacencies[node_id]){
+        //for every connection
+
+        if(edge.idTo() == node_start.idKey()){
+            //if the connection is the starting node, this is a cicle!
+            //no need to consider the increase in index, this is the only case
+            //that this can be ignored.
+            cicles++;
+            continue;
+        }
+        if(edge.idTo() < node_id){
+            //to remove duplates, only recurse in increasing indices.
+            continue;
+        }
+
+        //recurse inside the edge with the same starting node
+        cicles += getNumCicles(node_start, edge.idTo());
+    }
+
+    return cicles;
+}
+
 #endif

@@ -31,6 +31,9 @@ int main(){
     case 11:
         std::cout << *graph;
         break;    
+    case 12:
+        std::cout << "Quantidade de ciclos: " << graph->getNumCicles() << std::endl;
+        break;
     default:
         errno = EINVAL;
         ABORT_PROGRAM("command number");
