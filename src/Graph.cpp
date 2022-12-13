@@ -50,6 +50,10 @@ bool operator<(const Edge& left_arg, const Edge& right_arg){
     return left_arg.idTo() < right_arg.idTo();
 }
 
+std::ostream& operator<<(std::ostream& os, const Edge& edge){
+    return os << edge.idTo();
+}
+
 void Edge::reverse(){
     int32_t tmp = id_from;
     id_from = id_to;

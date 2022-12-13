@@ -90,6 +90,13 @@ bool operator==(const Edge& left_arg, const Edge& right_arg);
  */
 bool operator<(const Edge& left_arg, const Edge& right_arg);
 
+/*
+ *operator<< overloads the operator '<' to print Edge edge in 
+ * ostream os. It only prints idTo, because it is suited for the
+ * implementation of operator<<(ostream, Graph).
+ */
+std::ostream& operator<<(std::ostream& os, const Edge& edge);
+
 template<class Node, class Edge>
 class Graph;
 
