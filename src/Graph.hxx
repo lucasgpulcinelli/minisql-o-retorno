@@ -13,7 +13,7 @@ std::ostream& operator<<(std::ostream& os, const Graph<Node, Edge>& graph){
         node_it++){
         
         if(node_it->second.isEmpty()){
-            continue;
+            continue; //Do not print empty nodes.
         }
 
         std::vector<Edge> connections;
@@ -44,11 +44,22 @@ void Graph<Node, Edge>::insertEdge(Edge& new_edge){
     }
 
     insertAdjacency(new_edge);
+    /*
+     * Reverse edge and insert reversed edge in graph. This ensures that
+     * the graph remais non-directional: because instances of class Edge
+     * encapsulate direction, it is necessary to insert Edges in both
+     * directions in order to get rid of that property.
+     */
     new_edge.reverse();
-
     insertAdjacency(new_edge);
-    new_edge.reverse();
+    new_edge.reverse();        //Reverse new_edge back to leave it unchanged.    
 
+    /*
+     * If either node in the ends of edge has not been inserted yet, then
+     * insert an empty node mapped to the key that it is supposed to have.
+     * That way, if the user inserts a non-empty node  with that key, the 
+     * empty node is overwritten. See the documentation for insertNode.
+     */
     node_list.insert(std::pair<int32_t, Node>(new_edge.idFrom(), Node()));
     node_list.insert(std::pair<int32_t, Node>(new_edge.idTo(), Node()));
 }
@@ -57,10 +68,11 @@ template<class Node, class Edge>
 void Graph<Node, Edge>::insertAdjacency(const Edge& new_edge){
     std::vector<Edge>& adjacent_nodes = adjacencies[new_edge.idFrom()];
 
-    if(adjacent_nodes.size() == 0){
-        adjacent_nodes.push_back(new_edge);
-    }
+    if(adjacent_nodes.size() == 0){         //If adjacency list is empty, insert
+        adjacent_nodes.push_back(new_edge); //new_node directly. Binary search
+    }                                       //does not work in empty vectors.
 
+    //Initialize binary search parameters.
     ssize_t start = 0;
     ssize_t end = adjacent_nodes.size() -1;
 
@@ -68,19 +80,21 @@ void Graph<Node, Edge>::insertAdjacency(const Edge& new_edge){
         ssize_t middle = (start + end)/2;
 
         if(adjacent_nodes[middle] == new_edge ){
-            return;
+            return; //Equivalent edge already exists, so do nothing.
 
         } else if ((adjacent_nodes[middle] < new_edge) && (end > start)){
-            start = middle + 1;
+            start = middle + 1; //edge is in the upper half of current interval.
 
         } else if ((new_edge < adjacent_nodes[middle]) && (end > start)){
-            end = middle;
+            end = middle;       //edge is in the lower half of current interval.
 
         } else if (adjacent_nodes[middle] < new_edge){
+            //No equivalent edge was found, so make an ordered insertion.
             adjacent_nodes.insert(adjacent_nodes.begin() + middle + 1, new_edge);
             return;
 
         } else {
+            //No equivalent edge was found, so make an ordered insertion.
             adjacent_nodes.insert(adjacent_nodes.begin() + middle, new_edge);
             return;
         }
@@ -93,8 +107,11 @@ void Graph<Node, Edge>::insertNode(const Node& new_node){
         throw std::runtime_error("Cannot insert Node with empty idConnect");
     }
 
+    //Insert only if the node does not exist.
     auto result = node_list.insert(std::pair<int32_t, Node>(new_node.idKey(), 
                                                             new_node));
+
+    //If the node does exist but is empty, then insert new_node anyway.
     if(result.second == false && node_list[new_node.idKey()].isEmpty()){
         node_list[new_node.idKey()] = new_node;
     }
