@@ -46,7 +46,7 @@ class Connection : public Edge {
 
 std::ostream& operator<<(std::ostream& os, const Connection& conn);
 
-class NetworkGraph : Graph<NetworkNode, Connection> {
+class NetworkGraph : public Graph<NetworkNode, Connection> {
     friend std::ostream& operator<<(std::ostream& os, 
                                     const NetworkGraph& graph);
 

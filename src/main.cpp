@@ -32,7 +32,7 @@ int main(){
         std::cout << *graph;
         break;    
     case 12:
-        std::cout << "Quantidade de ciclos: " << g->getNumCicles() << std::endl;
+        std::cout << "Quantidade de ciclos: " << graph->getNumCicles() << std::endl;
         break;
     default:
         errno = EINVAL;
