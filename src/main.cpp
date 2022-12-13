@@ -12,12 +12,20 @@
 #include <iostream>
 
 #include "table.hpp"
-#include "Graph.hxx"
+#include "commands.hpp"
 #include "NetworkGraph.hpp"
 
 extern "C" {
 #include "utils.h"
 }
+
+#define FIRST_COMMAND_NUM 11
+enum commands {
+    command_print = FIRST_COMMAND_NUM,
+    command_num_cicles,
+    command_max_speed,
+    command_length
+};
 
 int main(){
     int32_t command;
@@ -25,66 +33,28 @@ int main(){
     READ_INPUT("%d %ms", &command, &table_name);
 
     Table* topology = new Table(table_name, "rb");
-    NetworkGraph* graph = new NetworkGraph(*topology);
+    NetworkGraph* net_topology = new NetworkGraph(*topology);
 
     switch(command){
-    case 11:
-        std::cout << *graph;
+    case command_print:
+        std::cout << *net_topology;
         break;    
-    case 12:
-        std::cout << "Quantidade de ciclos: " << graph->getNumCicles() << std::endl;
+    case command_num_cicles:
+        std::cout << "Quantidade de ciclos: " << net_topology->getNumCicles();
+        std::cout << std::endl;
         break;
-    case 13:
-        int n;
-        std::cin >> n;
-        
-        for(int i = 0; i < n; i++){
-            int a, b;
-            std::cin >> a >> b;
-            std::cout << "Fluxo máximo entre " << a << " e " << b
-                << ": ";
-
-            int32_t max_speed = graph->getMaxSpeed(a, b);
-
-            if(max_speed == -1){
-                std::cout << max_speed << std::endl;
-                continue;
-            }
-            std::cout << max_speed << " Mbps" << std::endl;
-        }
+    case command_max_speed:
+        commandMaxSpeed(*net_topology);
         break;
-    case 14:
-        std::cin >> n;
-        
-        for(int i = 0; i < n; i++){
-            int a, b, c;
-            std::cin >> a >> b >> c;
-            std::cout << "Comprimento do caminho entre " << a << " e " << b 
-                << " parando em " << c << ": ";
-
-            int min_len_cb = graph->getLen(c, b);
-            
-            if(min_len_cb < 0){
-                std::cout << -1 << std::endl;
-                continue;
-            }
-
-            int min_len_ac = graph->getLen(a, c);
-
-            if(min_len_ac < 0){
-                std::cout << -1 << std::endl;
-                continue;
-            }
-
-            std::cout << min_len_ac + min_len_cb << "Mbps" << std::endl;
-        }
+    case command_length:
+        commandLength(*net_topology);
         break;
     default:
         errno = EINVAL;
         ABORT_PROGRAM("command number");
     }
 
-    delete graph;
+    delete net_topology;
     delete topology;
     free(table_name);
 }
