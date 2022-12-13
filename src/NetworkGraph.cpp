@@ -30,7 +30,7 @@ NetworkNode::NetworkNode(entry* es) : Node(GET_IDCONNECT(es)) {
 }
 
 std::ostream& operator<<(std::ostream& os, const Connection& conn){
-    return os << conn.idTo() << " " << conn.connectionSpeed << "Mpbs";
+    return os << conn.idTo() << " " << conn.connectionSpeed << "Mbps";
 }
 
 Connection::Connection(entry* es) : Edge(GET_IDCONNECT(es), GET_CONNPOPSID(es)){
@@ -72,7 +72,7 @@ NetworkGraph::NetworkGraph(const Table& table){
             NetworkNode new_pop = NetworkNode(es);
             Graph::insertNode(new_pop);
         } catch(std::runtime_error& except){
-            continue;
+            continue; //Do not insert empty nodes and edges.
         }
 
         try{
@@ -101,7 +101,7 @@ std::ostream& operator<<(std::ostream& os, const NetworkGraph& graph){
 
         for(auto edge_it = connections.begin(); edge_it != connections.end();
             edge_it++){
-            os << (*node_it).second << " " << *edge_it << std::endl;
+            os << (*node_it).second << " " << *edge_it << "\n";
         }
     }
 
