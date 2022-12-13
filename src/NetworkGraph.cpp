@@ -18,7 +18,7 @@ std::ostream& operator<<(std::ostream& os, const NetworkNode& node){
 
 NetworkNode::NetworkNode(entry* es) : Node(GET_IDCONNECT(es)) {
     if(GET_IDCONNECT(es) == EMPTY_VALUE){
-        throw std::runtime_error("Cannot construct");
+        throw std::runtime_error("Cannot construct NetworkNode from empty entry");
     }
     
     POPsName = std::string(GET_POPSNAME(es));
@@ -42,6 +42,7 @@ Connection::Connection(entry* es) : Edge(GET_IDCONNECT(es), GET_CONNPOPSID(es)){
                                  "Connected POP's ID. It must be a valid address.");
     }
 
+    //Convert speed units to megabytes per second (Mbps).
     switch(GET_MEASUREMENT_UNIT(es)[0]){
         case 'K':
         case 'k':
@@ -87,7 +88,7 @@ std::ostream& operator<<(std::ostream& os, const NetworkGraph& graph){
         node_it++){
         
         if(node_it->second.isEmpty()){
-            continue;
+            continue; //do not print empty NetworkNodes.
         }
 
         std::vector<Connection> connections;
