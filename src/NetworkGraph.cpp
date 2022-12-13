@@ -74,9 +74,7 @@ Connection::Connection() : Edge(){
 }
 
 NetworkGraph::NetworkGraph(const Table& table){
-    while(table.hasNextEntry()){
-        entry* es = table.readNextEntry();
-
+    for(entry* es; (es = table.readNextEntry()) != NULL; deleteEntry(es, 1)){
         try{
             NetworkNode new_pop = NetworkNode(es);
             Graph::insertNode(new_pop);
@@ -88,7 +86,6 @@ NetworkGraph::NetworkGraph(const Table& table){
             Connection new_connection = Connection(es);
             Graph::insertEdge(new_connection);
         } catch(std::runtime_error& except){}
-        free(es);
     }
 }
 
