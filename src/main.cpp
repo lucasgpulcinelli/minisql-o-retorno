@@ -34,6 +34,51 @@ int main(){
     case 12:
         std::cout << "Quantidade de ciclos: " << graph->getNumCicles() << std::endl;
         break;
+    case 13:
+        int n;
+        std::cin >> n;
+        
+        for(int i = 0; i < n; i++){
+            int a, b;
+            std::cin >> a >> b;
+            std::cout << "Fluxo máximo entre " << a << " e " << b
+                << ": ";
+
+            int max_speed = graph->getMaxSpeed(a, b);
+
+            if(max_speed == -1){
+                std::cout << max_speed << std::endl;
+                continue;
+            }
+            std::cout << max_speed << " Mbps" << std::endl;
+        }
+        break;
+    case 14:
+        std::cin >> n;
+        
+        for(int i = 0; i < n; i++){
+            int a, b, c;
+            std::cin >> a >> b >> c;
+            std::cout << "Comprimento do caminho entre " << a << " e " << b 
+                << " parando em " << c << ": ";
+
+            int min_len_cb = graph->getLen(c, b);
+            
+            if(min_len_cb < 0){
+                std::cout << -1 << std::endl;
+                continue;
+            }
+
+            int min_len_ac = graph->getLen(a, c);
+
+            if(min_len_ac < 0){
+                std::cout << -1 << std::endl;
+                continue;
+            }
+
+            std::cout << min_len_ac + min_len_cb << "Mbps" << std::endl;
+        }
+        break;
     default:
         errno = EINVAL;
         ABORT_PROGRAM("command number");

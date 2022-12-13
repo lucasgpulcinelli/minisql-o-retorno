@@ -47,7 +47,10 @@ bool operator==(const Edge& left_arg, const Edge& right_arg){
 }
 
 bool operator<(const Edge& left_arg, const Edge& right_arg){
-    return left_arg.idTo() < right_arg.idTo();
+    if(left_arg.idTo() != right_arg.idTo()){
+        return left_arg.idTo() < right_arg.idTo();
+    }
+    return left_arg.idFrom() < right_arg.idFrom();
 }
 
 void Edge::reverse(){
@@ -73,4 +76,7 @@ Edge::Edge(int32_t id_from, int32_t id_to){
     this->id_to = id_to;
 }
 
-Edge::Edge(){}
+Edge::Edge(){
+    this->id_from = -1;
+    this->id_to = -1;
+}

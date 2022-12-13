@@ -56,6 +56,7 @@ class Connection : public Edge {
     double connectionSpeed; //connection speed between two network nodes.
 
     public:
+    double getSpeed();
     Connection(entry* es);  //Contructs a Connection instance from entry es.
     Connection();           //Contructs empty Connection instance.
 };
@@ -76,12 +77,35 @@ class NetworkGraph : public Graph<NetworkNode, Connection> {
     friend std::ostream& operator<<(std::ostream& os, 
                                     const NetworkGraph& graph);
 
+    private:
+    /*
+     * getLen uses a map of marked nodes in the current path, maximim plausable
+     * len (a result we already have) and a minimum possible len (the current 
+     * lenght in the current path up to now) to calculate the minimum distance
+     * between a starting node and an ending node. This algorithm is made by
+     * the creators of the program, and is based on a similar method used in
+     * the discrete version of the simplex method: the branch-and-bound
+     * algorithm.
+     */
+    double getLen(std::map<int32_t, bool>& marks, int32_t node_start_id,
+                   int32_t node_end_id, double max_plausable_len, 
+                   double min_possible_len);
+
     public:
     /*
      * Constructs a NetworkGraph instance from table, which stores
      * a network topology that can be modeled as a non-directed graph.
      */
     NetworkGraph(const Table& table);
+
+    double getMaxSpeed(int32_t node_a_id, int32_t node_b_id);
+
+    /*
+     * getLen calculates the minimum distance between nodes a and b.
+     * The method initializes a map to keep track of recursions and calls the
+     * private version of getLen().
+     */
+    double getLen(int32_t node_a_id, int32_t node_b_id);
 };
 
 /*
