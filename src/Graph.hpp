@@ -48,6 +48,7 @@ public:
 
     Edge(int32_t id_from, int32_t id_to, int32_t speed);
     Edge(const Edge& edge);
+    Edge();
 };
 
 bool operator==(const Edge& left_arg, const Edge& right_arg);
@@ -81,10 +82,6 @@ private:
      * done to have no duplicates in the final count.
      */
     int32_t getNumCicles(Node& node_start, int32_t node_id);
-
-    int32_t getMaxSpeed(std::map<int32_t, bool>& marks, int32_t node_start_id, 
-                        int32_t node_end_id, int32_t min_plausable_speed, 
-                        int32_t max_possible_speed);
 
     /*
      * getLen uses a map of marked nodes in the current path, maximim plausable
