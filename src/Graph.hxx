@@ -3,8 +3,8 @@
 
 #include <iostream>
 #include <cinttypes>
-#include <stdexcept>
 #include <queue>
+#include <stdexcept>
 
 #include "Graph.hpp"
 

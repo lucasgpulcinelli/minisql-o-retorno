@@ -62,9 +62,16 @@ int main(){
             std::cout << "Comprimento do caminho entre " << a << " e " << b 
                 << " parando em " << c << ": ";
 
-            int32_t min_len_ac = graph->getLen(a, c);
-            int32_t min_len_cb = graph->getLen(c, b);
-            if(min_len_ac < 0 || min_len_cb < 0){
+            int min_len_cb = graph->getLen(c, b);
+            
+            if(min_len_cb < 0){
+                std::cout << -1 << std::endl;
+                continue;
+            }
+
+            int min_len_ac = graph->getLen(a, c);
+
+            if(min_len_ac < 0){
                 std::cout << -1 << std::endl;
                 continue;
             }

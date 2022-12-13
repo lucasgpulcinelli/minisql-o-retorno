@@ -201,8 +201,6 @@ public:
      */
     int32_t getNumCicles(void);
 
-    int32_t getMaxSpeed(int32_t node_a_id, int32_t node_b_id);
-
     /*
      * getLen calculates the minimum distance between nodes a and b.
      * The method initializes a map to keep track of recursions and calls the
