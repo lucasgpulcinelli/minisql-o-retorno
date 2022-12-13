@@ -77,6 +77,7 @@ class NetworkGraph : public Graph<NetworkNode, Connection> {
                                     const NetworkGraph& graph);
 
     public:
+    int32_t getMaxSpeed(int32_t node_a_id, int32_t node_b_id);
     /*
      * Constructs a NetworkGraph instance from table, which stores
      * a network topology that can be modeled as a non-directed graph.

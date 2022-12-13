@@ -171,58 +171,6 @@ int32_t Graph<Node, Edge>::getNumCicles(Node& node_start, int32_t node_id){
 }
 
 template<class Node, class Edge>
-int32_t Graph<Node, Edge>::getMaxSpeed(int32_t node_a_id, int32_t node_b_id){
-    try{
-        adjacencies.at(node_a_id);
-        adjacencies.at(node_b_id);
-    }catch(std::out_of_range& e){
-        return -1;
-    }
-
-    std::map<Edge, int32_t> flow_used{};
-    for(auto node : node_list){
-        for(auto edge : adjacencies[node.first]){
-            flow_used[edge] = 0;
-        }
-    }
-
-    int32_t speed = 0;
-
-    while(true){
-        std::queue<int32_t> q{};
-        q.push(node_a_id);
-        std::map<int32_t, Edge> path{};
-        while(!q.empty()){
-            int32_t node_curr = q.front();
-            q.pop();
-            for(auto edge : adjacencies[node_curr]){
-                if(path[edge.idTo()].idFrom() == -1 && edge.idTo() != node_a_id && edge.c_speed > flow_used[edge]){
-                    path[edge.idTo()] = edge;
-                    q.push(edge.idTo());
-                }
-            }
-        }
-
-        if(path[node_b_id].idFrom() == -1){
-            break;
-        }
-
-        int32_t speed_add = INT32_MAX;
-        for(auto edge = path[node_b_id]; edge.idFrom() != -1; edge = path[edge.idFrom()]){
-            speed_add = std::min(speed_add, edge.c_speed - flow_used[edge]);
-        }
-        for(auto edge = path[node_b_id]; edge.idFrom() != -1; edge = path[edge.idFrom()]){
-            flow_used[edge] += speed_add;
-            flow_used[edge.getDual()] += speed_add;
-        }
-
-        speed += speed_add;
-    }
-
-    return speed;
-}
-
-template<class Node, class Edge>
 int32_t Graph<Node, Edge>::getLen(std::map<int32_t, bool>& marks,
                                   int32_t node_start_id, int32_t node_end_id, 
                                   int32_t max_plausable_len, 
