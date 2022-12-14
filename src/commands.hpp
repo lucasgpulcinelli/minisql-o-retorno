@@ -5,7 +5,7 @@
 
 /*
  * commandMaxSpeed reads an integer n passed by the user, and
- * reads n times a pair of integers origin_pop and destiny_pop. As
+ * reads n times a pair of integers origin_pop and destiny_pop. As the
  * name suggests, this is the pair of addresses of an origin POP and
  * the address of a destination POP. For each pair, it prints the
  * maximum possible speed of connection between origin POP and 
