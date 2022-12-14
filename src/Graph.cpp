@@ -63,16 +63,6 @@ void Edge::reverse(){
     id_to = tmp;
 }
 
-Edge Edge::getDual(){
-    Edge dual = *this;
-
-    int32_t tmp = dual.id_from;
-    dual.id_from = dual.id_to;
-    dual.id_to = tmp;
-
-    return dual;
-}
-
 Edge Edge::operator=(const Edge& right_arg){
     this->id_from = right_arg.id_from;
     this->id_to = right_arg.id_to;

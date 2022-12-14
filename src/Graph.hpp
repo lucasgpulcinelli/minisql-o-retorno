@@ -66,7 +66,6 @@ public:
     int32_t idFrom() const; //idFrom returns from which node edge is coming.
     int32_t idTo() const;   //idTo returns to which node edge is going.
 
-    Edge getDual();
     void reverse();         //reverse swaps id_from and id_to values.
 
     Edge operator=(const Edge& right_arg); //Copy assignment

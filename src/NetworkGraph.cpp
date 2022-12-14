@@ -74,8 +74,10 @@ Connection::Connection() : Edge(){
 }
 
 NetworkGraph::NetworkGraph(const Table& table){
+    //for each entry
     for(entry* es; (es = table.readNextEntry()) != NULL; deleteEntry(es, 1)){
         try{
+            //if the entry is not empty, insert the corresponding node if needed
             NetworkNode new_pop = NetworkNode(es);
             Graph::insertNode(new_pop);
         } catch(std::runtime_error& except){
@@ -83,6 +85,7 @@ NetworkGraph::NetworkGraph(const Table& table){
         }
 
         try{
+            //if the connection is not empty, insert it in the graph
             Connection new_connection = Connection(es);
             Graph::insertEdge(new_connection);
         } catch(std::runtime_error& except){}
@@ -90,6 +93,8 @@ NetworkGraph::NetworkGraph(const Table& table){
 }
 
 std::ostream& operator<<(std::ostream& os, const NetworkGraph& graph){
+    //printing a full graph is the same as printing each node with each edge in
+    //separated lines
     for(auto node_it = graph.node_list.begin(); node_it != graph.node_list.end(); 
         node_it++){
         
@@ -100,6 +105,7 @@ std::ostream& operator<<(std::ostream& os, const NetworkGraph& graph){
         std::vector<Connection> connections;
 
         try{
+            //get all connections for a node
             connections = graph.adjacencies.at(node_it->second.idKey());
         } catch(std::out_of_range& e){
             continue;
@@ -107,7 +113,8 @@ std::ostream& operator<<(std::ostream& os, const NetworkGraph& graph){
 
         for(auto edge_it = connections.begin(); edge_it != connections.end();
             edge_it++){
-            os << (*node_it).second << " " << *edge_it << "\n";
+            //print both the node and connection together
+            os << (*node_it).second << " " << *edge_it << std::endl;
         }
     }
 
@@ -127,43 +134,75 @@ double NetworkGraph::getMaxSpeed(int32_t node_a_id, int32_t node_b_id){
         return -1;
     }
 
+    //the amount of bandwidth used for each edge in the network
     std::map<Edge, int32_t> flow_used{};
     for(auto node : node_list){
         for(auto edge : adjacencies[node.first]){
+            //initialize all to zero, no bandwidth is being used
             flow_used[edge] = 0;
         }
     }
 
     double speed = 0;
 
+    //while we cannot find a possible path to give more speed to the connection
     while(true){
+        /*
+         * do a shallow first based search: we search the nodes at a current 
+         * distance (in number of connections passed) first, then we pass to
+         * the next distance number: this is done using a queue to store the
+         * nodes that we still need to travel. This is preffered over a 
+         * recursive approach to keep track of the path we end up traversing
+         */
         std::queue<int32_t> q{};
+        //start in the origin node
         q.push(node_a_id);
+        
+        //the path treversed for a full connection from node_b to node_a;
+        //this will be userful to figure out the maximum speed and update the
+        //network flow used
         std::map<int32_t, Connection> path{};
+        //while we still have nodes to search
         while(!q.empty()){
+            //get the node to consider
             int32_t node_curr = q.front();
             q.pop();
+            //for all edges of this node
             for(auto edge : adjacencies[node_curr]){
+                //if we still have bandwith to use, do not go to the 
+                //starting node (this needs to be undefined to break out of 
+                //loops) and the node does not have a path already
                 if(path[edge.idTo()].idFrom() == -1 && 
                     edge.idTo() != node_a_id && 
                     edge.getSpeed() > flow_used[edge]){
                     
+                    //define the path and set the node to be searched afterwards
                     path[edge.idTo()] = edge;
                     q.push(edge.idTo());
                 }
             }
+            //because all nodes (except for node_a) will either end up with a 
+            //path defined or are not connected to node_a in any way, this loop
+            //will always end up with an empty queue at some point
         }
 
         if(path[node_b_id].idFrom() == -1){
+            //if no paths ended up in node_b, there is nothing left to do: all
+            //possible flow was already used to the maximum
             break;
         }
 
+        //the actual speed we will add is the minimum of the full path's
+        //connection speeds (note we are going back from node b to node a)
         double speed_add = std::numeric_limits<double>::infinity();
         for(auto edge = path[node_b_id]; edge.idFrom() != -1; 
             edge = path[edge.idFrom()]){
 
             speed_add = std::min(speed_add, edge.getSpeed() - flow_used[edge]);
         }
+
+        //now, with the speed calculated, add the value to all connections
+        //used bandwidth
         for(auto edge = path[node_b_id]; edge.idFrom() != -1;
             edge = path[edge.idFrom()]){
 

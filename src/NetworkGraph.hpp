@@ -99,6 +99,12 @@ class NetworkGraph : public Graph<NetworkNode, Connection> {
      */
     NetworkGraph(const Table& table);
 
+    /*
+     * getMaxSpeed calculates the maximum network flow that can happen between
+     * node a and node b. This implementation used the Edmonds-Karp algorithm 
+     * together with a non-recursive fewest-hops graph search to find possible
+     * paths from a to b.
+     */
     double getMaxSpeed(int32_t node_a_id, int32_t node_b_id);
 
     /*
