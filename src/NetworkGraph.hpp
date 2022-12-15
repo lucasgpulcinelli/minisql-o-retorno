@@ -92,6 +92,23 @@ class NetworkGraph : public Graph<NetworkNode, Connection> {
                    int32_t node_end_id, double max_plausable_len, 
                    double min_possible_len);
 
+    /*
+     * findPathWithFlow uses recursion to find a path from node_a to node_b 
+     * that still has some flow to use, having an auxiliary map to keep track
+     * of recursions.
+     */
+    bool findPathWithFlow(std::vector<Connection>& path, 
+        std::map<Edge, int32_t>& flow_used, std::map<int32_t, bool>& marks,
+        int32_t node_a_id, int32_t node_b_id);
+
+    /*
+     * findPathWithFlow initialized the recursive version of findPathWithFlow
+     * to return a full path from node_a to node_b, or an empty path if none
+     * were found.
+     */
+    std::vector<Connection> findPathWithFlow(std::map<Edge, int32_t>& flow_used, 
+        int32_t node_a_id, int32_t node_b_id);
+
     public:
     /*
      * Constructs a NetworkGraph instance from table, which stores
@@ -102,8 +119,8 @@ class NetworkGraph : public Graph<NetworkNode, Connection> {
     /*
      * getMaxSpeed calculates the maximum network flow that can happen between
      * node a and node b. This implementation used the Edmonds-Karp algorithm 
-     * together with a non-recursive fewest-hops graph search to find possible
-     * paths from a to b.
+     * together with a recursive graph search to find possible paths 
+     * from a to b.
      */
     double getMaxSpeed(int32_t node_a_id, int32_t node_b_id);
 

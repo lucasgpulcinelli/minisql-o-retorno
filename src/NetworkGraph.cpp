@@ -121,6 +121,68 @@ std::ostream& operator<<(std::ostream& os, const NetworkGraph& graph){
     return os;
 }
 
+bool NetworkGraph::findPathWithFlow(std::vector<Connection>& path, 
+    std::map<Edge, int32_t>& flow_used, std::map<int32_t, bool>& marks,
+    int32_t node_a_id, int32_t node_b_id){
+
+    //for every connection in the current node
+    for(auto conn : adjacencies[node_a_id]){
+        //if the connection is marked, we already gone there
+        if(marks[conn.idTo()]){
+            continue;
+        }
+        //if there is no bandwidth avaliable, we cannot use the connection
+        if(conn.getSpeed() <= flow_used[conn]){
+            continue;
+        }
+
+        //mark the node we will travel to and add to the path list
+        marks[conn.idTo()] = true;
+        path.push_back(conn);
+
+        //if the connected node is the destination, we found a path!
+        if(conn.idTo() == node_b_id){
+            return true;
+        }
+
+        //travel to the next node trying to find a full path
+        bool found_path = findPathWithFlow(path, flow_used, marks, conn.idTo(), 
+            node_b_id);
+        
+        //if we found a path, just return, no point in traveling to other nodes
+        if(found_path){
+            return true;
+        }
+        
+        //pop the connection and unmark the node, we did not find a path
+        path.pop_back();
+        marks[conn.idTo()] = false;
+    }
+
+    //if no connections found any path, we did not find either
+    return false;
+}
+
+std::vector<Connection> NetworkGraph::findPathWithFlow(
+    std::map<Edge, int32_t>& flow_used, int32_t node_a_id, int32_t node_b_id){
+
+    std::vector<Connection> path{};
+
+    //to keep track of recursion, we mark nodes as we travel along them
+    std::map<int32_t, bool> marks{};
+    for(auto node : node_list){
+        //initialize all nodes as unmarked
+        marks[node.first] = false;
+    }
+
+    //mark the first node
+    marks[node_a_id] = true;
+    //and try to find a path!
+    findPathWithFlow(path, flow_used, marks, node_a_id, node_b_id);
+
+    return path;
+}
+
 double NetworkGraph::getMaxSpeed(int32_t node_a_id, int32_t node_b_id){
     try{
         //if the origin or destination nodes do not exist, or do not have any
@@ -148,68 +210,32 @@ double NetworkGraph::getMaxSpeed(int32_t node_a_id, int32_t node_b_id){
     //while we cannot find a possible path to give more speed to the connection
     while(true){
         /*
-         * do a shallow first based search: we search the nodes at a current 
-         * distance (in number of connections passed) first, then we pass to
-         * the next distance number: this is done using a queue to store the
-         * nodes that we still need to travel. This is preffered over a 
-         * recursive approach to keep track of the path we end up traversing
+         * do a depth first search to find a path from node_a to node_b that 
+         * still has some flow available
          */
-        std::queue<int32_t> q{};
-        //start in the origin node
-        q.push(node_a_id);
-        
-        //the path treversed for a full connection from node_b to node_a;
-        //this will be userful to figure out the maximum speed and update the
-        //network flow used
-        std::map<int32_t, Connection> path{};
-        //while we still have nodes to search
-        while(!q.empty()){
-            //get the node to consider
-            int32_t node_curr = q.front();
-            q.pop();
-            //for all edges of this node
-            for(auto edge : adjacencies[node_curr]){
-                //if we still have bandwith to use, do not go to the 
-                //starting node (this needs to be undefined to break out of 
-                //loops) and the node does not have a path already
-                if(path[edge.idTo()].idFrom() == -1 && 
-                    edge.idTo() != node_a_id && 
-                    edge.getSpeed() > flow_used[edge]){
-                    
-                    //define the path and set the node to be searched afterwards
-                    path[edge.idTo()] = edge;
-                    q.push(edge.idTo());
-                }
-            }
-            //because all nodes (except for node_a) will either end up with a 
-            //path defined or are not connected to node_a in any way, this loop
-            //will always end up with an empty queue at some point
-        }
+        std::vector<Connection> path = findPathWithFlow(flow_used, node_a_id,
+            node_b_id);
 
-        if(path[node_b_id].idFrom() == -1){
-            //if no paths ended up in node_b, there is nothing left to do: all
+        if(path.size() == 0){
+            //if there are no more paths, there is nothing left to do: all
             //possible flow was already used to the maximum
             break;
         }
 
         //the actual speed we will add is the minimum of the full path's
-        //connection speeds (note we are going back from node b to node a)
+        //connection speeds
         double speed_add = std::numeric_limits<double>::infinity();
-        for(auto edge = path[node_b_id]; edge.idFrom() != -1; 
-            edge = path[edge.idFrom()]){
-
-            speed_add = std::min(speed_add, edge.getSpeed() - flow_used[edge]);
+        for(auto conn : path){
+            speed_add = std::min(speed_add, conn.getSpeed() - flow_used[conn]);
         }
 
         //now, with the speed calculated, add the value to all connections
-        //used bandwidth
-        for(auto edge = path[node_b_id]; edge.idFrom() != -1;
-            edge = path[edge.idFrom()]){
-
-            flow_used[edge] += speed_add;
-            edge.reverse();
-            flow_used[edge] += speed_add;
-            edge.reverse();
+        //used bandwidth, both for the original connection and it's reverse
+        for(auto conn : path){
+            flow_used[conn] += speed_add;
+            conn.reverse();
+            flow_used[conn] += speed_add;
+            conn.reverse();
         }
 
         speed += speed_add;
