@@ -11,9 +11,9 @@
 #include <cerrno>
 #include <iostream>
 
-#include "table.hpp"
-#include "commands.hpp"
 #include "NetworkGraph.hpp"
+#include "commands.hpp"
+#include "table.hpp"
 
 extern "C" {
 #include "utils.h"
@@ -27,7 +27,7 @@ enum commands {
     command_length
 };
 
-int main(){
+int main() {
     int32_t command;
     char* table_name;
     READ_INPUT("%d %ms", &command, &table_name);
@@ -35,10 +35,10 @@ int main(){
     Table* topology = new Table(table_name, "rb");
     NetworkGraph* net_topology = new NetworkGraph(*topology);
 
-    switch(command){
+    switch (command) {
     case command_print:
         std::cout << *net_topology;
-        break;    
+        break;
     case command_num_cicles:
         std::cout << "Quantidade de ciclos: " << net_topology->getNumCicles();
         std::cout << std::endl;

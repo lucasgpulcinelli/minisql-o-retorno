@@ -8,16 +8,15 @@
 
 #include "Graph.hxx"
 
-extern "C"{
+extern "C" {
 #include "entries.h"
 }
 
-
 #define PAGE_SIZE 960
-#define ENTRIES_PER_PAGE (PAGE_SIZE/MAX_SIZE_ENTRY)
+#define ENTRIES_PER_PAGE (PAGE_SIZE / MAX_SIZE_ENTRY)
 #define HEADER_SIZE 21
 
-//Macros that define header encoding. 
+// Macros that define header encoding.
 #define OK_HEADER '1'
 #define ERR_HEADER '0'
 #define EMPTY_STACK -1
@@ -26,22 +25,21 @@ extern "C"{
  * of table_size/PAGE_SIZE. Its gruesome formula (that maximizes
  * efficiency) is given by the expression below:
  */
-#define NUM_PAGES_FORMULA(nextRRN)                                   \
-    nextRRN/ENTRIES_PER_PAGE +                                       \
-    ((nextRRN/ENTRIES_PER_PAGE)*ENTRIES_PER_PAGE != nextRRN) + 1     \
+#define NUM_PAGES_FORMULA(nextRRN)                                             \
+    nextRRN / ENTRIES_PER_PAGE                                                 \
+        + ((nextRRN / ENTRIES_PER_PAGE) * ENTRIES_PER_PAGE != nextRRN) + 1
 
 #define IS_TABLE_OPENED(this, error_msg)                                       \
-    if(this->fp == NULL){                                                      \
-        throw std::runtime_error(error_msg +                                   \
-                                 std::string(": no table has been opened"));   \
+    if (this->fp == NULL) {                                                    \
+        throw std::runtime_error(                                              \
+            error_msg + std::string(": no table has been opened"));            \
                                                                                \
-    } else if (this->metadata == NULL){                                        \
-        throw std::runtime_error(error_msg +                                   \
-                                 std::string(": couldn't read file metadata"));\
-    }                                                                          \
+    } else if (this->metadata == NULL) {                                       \
+        throw std::runtime_error(                                              \
+            error_msg + std::string(": couldn't read file metadata"));         \
+    }
 
-
-//struct header contains the header for a table binary file
+// struct header contains the header for a table binary file
 struct header {
     char status;
     int32_t stack;
@@ -52,8 +50,7 @@ struct header {
 };
 
 class Table {
-    private:
-
+private:
     header* metadata;
     FILE* fp;
     bool read_only;
@@ -73,20 +70,19 @@ class Table {
      */
     void writeEmptyEntry() const;
 
-    public:
-
+public:
     /*
-     * seek seeks to the index of the entry provided, such that the 
+     * seek seeks to the index of the entry provided, such that the
      * readNextEntry() will return the entry with the RRN provided.
      */
     void seek(size_t entry_number) const;
 
     /*
-     * rewind returns the table to the begginig, being equivalent to 
+     * rewind returns the table to the begginig, being equivalent to
      * seekTable(rrn = 0).
      */
     void rewind() const;
-    
+
     /*
      * hasNextEntry returns true if the table can read another entry,
      * meaning if readNextEntry() will not be NULL in the next call.
@@ -113,14 +109,14 @@ class Table {
     void removeEntry(size_t rrn);
 
     /*
-     * getTimesCompacted returns the number of times the table has been 
+     * getTimesCompacted returns the number of times the table has been
      * compacted.
      */
     uint32_t getTimesCompacted() const;
 
     /*
      * setTimesCompacted sets the number of times the table has been compacted
-     * to uint32_t num_times_compacted. This is not a dangerous operations, 
+     * to uint32_t num_times_compacted. This is not a dangerous operations,
      * since this number is unimportant to all other table operations
      */
     void setTimesCompacted(uint32_t num_times_compacted);
