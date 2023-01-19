@@ -1,26 +1,16 @@
-# Trabalho 1 da disciplina SCC0607/2022.2 (Estrutura de Dados 3)
+# MiniSQL o Retorno
 
-## Este trabalho foi desenvolvido por
+This project is a SQL-like database manager with operations related with network infrastructure, made in C and C++ for the university subject "Data Structures 3".
 
-- Lucas Eduardo Gulka Pulcinelli - N°USP: 12547336 - 100% de participação.
-- Gabriel Franceschi Libardi - NºUSP: 11760739 - 100% de participação.
+There are three diferent tags made for each assignment: the first one is for basic management of databases as binary files; the second is an improvment using a b-tree, and the third is a toolkit using the data as a disk based graph structure.
 
-## Informações sobre o projeto
+## Made fully by
 
-### Documentação/Relatório
-As funções estão documentadas nos headers. Alguns detalhes de implementação
-também estão explicados nos arquivos *.c.
+- [Lucas Eduardo Gulka Pulcinelli](https://github.com/lucasgpulcinelli)
+- [Gabriel Franceschi Libardi](https://github.com/gabriel-libardi)
 
-### Como Compilar o Código
-Utilize `make all` para compilar o programa e `make run` para iniciá-lo.
+### Documentation
+All functions are documented in their respective headers (aside from main.c{,pp}).
 
-### Estilo de código
-- variáveis separadas com underscore (ex: foo_bar_val)
-- funções em lowerCamelCase (ex: fooIsBar)
-- structs em lowerCamelCase (ex: fooBarStruct)
-- abre chaves na mesma linha
-- #defines sempre em caixa alta separados com underscore
-- todos os arquivos de código devem conter no máximo 80 colunas de caracteres
-
-### Licença de Código
-Todos os códigos desenvolvidos nesse projeto tem a Licença de Código descrita no arquivo LICENSE: GNU general public license version 3
+### How to compile the code
+Use `make all` to compile the code `make run` to start it.
